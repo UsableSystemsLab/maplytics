@@ -1,6 +1,5 @@
 version: "3"
 services:
-  
   db:
     image: postgres:16.4-alpine
     container_name: postgres_container
@@ -25,7 +24,7 @@ services:
       interval: 120s
       timeout: 5s
       retries: 3
-  
+
   pgadmin:
     image: dpage/pgadmin4:8.11.0
     env_file:
@@ -83,28 +82,28 @@ services:
       interval: 120s
       timeout: 5s
       retries: 3
-  
-  react_app:
+
+  nextjs_app:
     environment:
-      - REACT_APP_PORT=${REACT_APP_PORT}
+      - NEXT_PUBLIC_PORT=${NEXT_PUBLIC_PORT}
+      - WATCHPACK_POLLING=true
     build:
-      context: react_app
+      context: nextjs_app
       dockerfile: Dockerfile
       args:
-        PORT: ${REACT_APP_PORT}
-    image: react_app_image
-    container_name: react_container
+        PORT: ${NEXT_PUBLIC_PORT}
+    image: nextjs_app_image
+    container_name: nextjs
     ports:
-      - ${REACT_APP_PORT}:${REACT_APP_PORT}
+      - ${NEXT_PUBLIC_PORT}:${NEXT_PUBLIC_PORT}
     volumes:
-      - ./react_app:/app
+      - ./nextjs_app:/app
       - /app/node_modules
     depends_on:
       - db
       - api_server
     networks:
       - app_network
-
 
 networks:
   app_network:
