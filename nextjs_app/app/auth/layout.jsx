@@ -15,13 +15,19 @@ export default function AuthLayout({ children }) {
     }
   }, [user, loading, router]);
 
-  if (loading || user) {
-    return null;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-700">
+        <p className="animate-pulse">Loading...</p>
+      </div>
+    );
   }
+
+  if (user) return null;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 text-black">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
         {children}
       </div>
     </div>
