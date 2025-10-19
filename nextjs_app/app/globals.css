@@ -46,15 +46,17 @@
 body {
   background-color: #F5F5F5;
   margin: 0px;
+  font-family: "poppins", sans-serif;
+  min-height: 100vh;
 }
 
 header {
   padding-top: 25px;
   margin: 0px;
-  width: 100wh;
+  width: 100vw;
 }
 
-button {
+.btn-header {
   background-color: #0E3147;
 }
 
