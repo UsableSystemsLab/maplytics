@@ -62,9 +62,8 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className={`text-white p-2 rounded hover:bg-cyan-700/90 active:scale-95 transform transition-all ${
-            loading ? "bg-cyan-900" : "bg-cyan-700"
-          }`}
+          className={`text-white p-2 rounded hover:bg-cyan-700/90 active:scale-95 transform transition-all ${loading ? "bg-cyan-900" : "bg-cyan-700"
+            }`}
         >
           Sign In
         </button>
@@ -81,7 +80,7 @@ export default function LoginPage() {
       {error && <p className="text-red-500 mt-2">{error}</p>}
       <p className="mt-4 text-sm">
         Don’t have an account?{" "}
-        <Link href="/auth/register" className="text-blue-600 underline">
+        <Link href="/register" className="text-blue-600 underline">
           Register
         </Link>
       </p>

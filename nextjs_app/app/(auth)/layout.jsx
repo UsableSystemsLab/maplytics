@@ -11,7 +11,7 @@ export default function AuthLayout({ children }) {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/profile");
+      router.replace("/");
     }
   }, [user, loading, router]);
 
