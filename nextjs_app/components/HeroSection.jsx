@@ -11,7 +11,7 @@ export default function HeroSection() {
                 </div>
             </div>
             <div className="image absolute -right-120 top-96 -translate-y-1/2 translate-x-1/4 z-0">
-                <img src="/Earth.png" alt="Earth image" className={"w-[1000px] h-auto"} />
+                <img src="/Earth.png" alt="Earth image" className={"w-[1000px] h-auto [animation:spin_60s_linear_infinite]"} />
             </div>
         </section>
     )
