@@ -9,6 +9,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       <FeatureOverview />
+      <Footer />
     </div>
   );
 }
