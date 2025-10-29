@@ -4,8 +4,14 @@ import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import "../globals.css"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"]
+})
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"]
+})
 
 const locales = ["en", "ar"]
 
@@ -32,8 +38,8 @@ export default async function LocaleLayout({ children, params }) {
   const messages = await getMessages()
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
-      <body className="font-sans antialiased">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} >
+      <body className={`${geistMono.variable} ${geistSans.variable} antialiased`} >
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
     </html>
