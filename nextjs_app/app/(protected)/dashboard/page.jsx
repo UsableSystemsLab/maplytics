@@ -1,7 +1,9 @@
 "use client";
+import SideBar from '@/components/sidebar'
+
 
 export default function DashboardPage() {
     return (
-        <h1>Welcome to your Dashboard</h1>
+        <SideBar />
     );
 }
