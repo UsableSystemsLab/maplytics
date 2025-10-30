@@ -28,9 +28,27 @@
     }
   },
   "footer": {
-    "copyright": "جميع الحقوق محفوظة.",
+    "copyright": "© 2025 مابليتيكس. جميع الحقوق محفوظة.",
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",
     "contactUs": "اتصل بنا"
+  },
+  "header": {
+    "products": "المنتجات",
+    "featuredProduct": "المنتج المميز",
+    "featuredProductDescription": "اطلع على أحدث عروضنا وأفضلها",
+    "product1": "المنتج 1",
+    "product1Description": "وصف للمنتج 1",
+    "product2": "المنتج 2",
+    "product2Description": "وصف للمنتج 2",
+    "product3": "المنتج 3",
+    "product3Description": "وصف للمنتج 3",
+    "about": "من نحن",
+    "contact": "اتصل بنا",
+    "searchPlaceholder": "بحث...",
+    "loading": "جاري التحميل...",
+    "signIn": "تسجيل الدخول",
+    "user": "مستخدم",
+    "signOutConfirm": "تسجيل الخروج؟"
   }
 }

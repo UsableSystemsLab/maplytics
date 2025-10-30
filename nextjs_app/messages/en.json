@@ -28,9 +28,27 @@
     }
   },
   "footer": {
-    "copyright": "All rights reserved.",
+    "copyright": "© 2025 Maplytics. All rights reserved.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "contactUs": "Contact Us"
+  },
+  "header": {
+    "products": "Products",
+    "featuredProduct": "Featured Product",
+    "featuredProductDescription": "Check out our latest and greatest offering",
+    "product1": "Product 1",
+    "product1Description": "Description for Product 1",
+    "product2": "Product 2",
+    "product2Description": "Description for Product 2",
+    "product3": "Product 3",
+    "product3Description": "Description for Product 3",
+    "about": "About",
+    "contact": "Contact",
+    "searchPlaceholder": "Search...",
+    "loading": "Loading...",
+    "signIn": "Sign In",
+    "user": "User",
+    "signOutConfirm": "Sign out?"
   }
 }
