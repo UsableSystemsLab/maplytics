@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const router = useRouter();
   const provider = new GoogleAuthProvider();
+  const t = useTranslations('auth');
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -47,11 +49,11 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="text-2xl mb-4 font-semibold">Register</h1>
+      <h1 className="text-2xl mb-4 font-semibold">{t('registerTitle')}</h1>
       <form onSubmit={handleRegister} className="flex flex-col gap-2 w-64">
         <input
           type="email"
-          placeholder="Email"
+          placeholder={t('emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="border p-2 rounded"
@@ -59,7 +61,7 @@ export default function RegisterPage() {
         />
         <input
           type="password"
-          placeholder="Password (min 6 chars)"
+          placeholder={t('passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="border p-2 rounded"
@@ -67,7 +69,7 @@ export default function RegisterPage() {
         />
         <input
           type="password"
-          placeholder="Confirm Password"
+          placeholder={t('confirmPasswordPlaceholder')}
           value={confPass}
           onChange={(e) => setConfPass(e.target.value)}
           className="border p-2 rounded"
@@ -80,7 +82,7 @@ export default function RegisterPage() {
             loading ? "bg-green-900" : "bg-green-600"
           }`}
         >
-          Register
+          {t('registerButton')}
         </button>
       </form>
 
@@ -88,15 +90,15 @@ export default function RegisterPage() {
         onClick={handleGoogleRegister}
         className="mt-4 border flex items-center justify-center gap-2 p-2 rounded hover:bg-gray-100 transition-all"
       >
-        <img src="/google.svg" alt="Google" className="w-5 h-5" />
-        Sign up with Google
+        <img src="/google.svg" alt={t('googleAlt')} className="w-5 h-5" />
+        {t('signUpWithGoogle')}
       </button>
 
       {error && <p className="text-red-500 mt-2">{error}</p>}
       <p className="mt-4 text-sm">
-        Already have an account?{" "}
+        {t('alreadyHaveAccount')}{" "}
         <Link href="/login" className="text-blue-600 underline">
-          Login
+          {t('loginLink')}
         </Link>
       </p>
     </div>

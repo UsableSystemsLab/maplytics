@@ -50,5 +50,21 @@
     "signIn": "تسجيل الدخول",
     "user": "مستخدم",
     "signOutConfirm": "تسجيل الخروج؟"
+  },
+  "auth": {
+    "loginTitle": "تسجيل الدخول",
+    "registerTitle": "إنشاء حساب",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "passwordPlaceholder": "كلمة المرور",
+    "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "registerButton": "إنشاء حساب",
+    "googleAlt": "جوجل",
+    "signInWithGoogle": "تسجيل الدخول باستخدام جوجل",
+    "signUpWithGoogle": "إنشاء حساب باستخدام جوجل",
+    "noAccount": "ليس لديك حساب؟",
+    "registerLink": "إنشاء حساب",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "loginLink": "تسجيل الدخول"
   }
 }

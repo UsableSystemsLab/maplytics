@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useTranslations } from 'next-intl';
+import LanguageSwitcher from "../LanguageSwitcher";
 
 export default function Tabnavbar() {
   const { user, loading } = useAuth();
@@ -94,6 +95,7 @@ export default function Tabnavbar() {
               <Button>{t('signIn')}</Button>
             </Link>
           )}
+          <LanguageSwitcher />
         </div>
       </div>
     </nav>

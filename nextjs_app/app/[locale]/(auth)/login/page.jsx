@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
   const provider = new GoogleAuthProvider();
+  const t = useTranslations('auth');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,11 +43,11 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="text-2xl mb-4 font-semibold">Login</h1>
+      <h1 className="text-2xl mb-4 font-semibold">{t('loginTitle')}</h1>
       <form onSubmit={handleLogin} className="flex flex-col gap-2 w-64">
         <input
           type="email"
-          placeholder="Email"
+          placeholder={t('emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="border p-2 rounded"
@@ -53,7 +55,7 @@ export default function LoginPage() {
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder={t('passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="border p-2 rounded"
@@ -65,7 +67,7 @@ export default function LoginPage() {
           className={`text-white p-2 rounded hover:bg-cyan-700/90 active:scale-95 transform transition-all ${loading ? "bg-cyan-900" : "bg-cyan-700"
             }`}
         >
-          Sign In
+          {t('signIn')}
         </button>
       </form>
 
@@ -73,15 +75,15 @@ export default function LoginPage() {
         onClick={handleGoogleLogin}
         className="mt-4 border flex items-center justify-center gap-2 p-2 rounded hover:bg-gray-100 transition-all"
       >
-        <img src="/google.svg" alt="Google" className="w-5 h-5" />
-        Sign in with Google
+        <img src="/google.svg" alt={t('googleAlt')} className="w-5 h-5" />
+        {t('signInWithGoogle')}
       </button>
 
       {error && <p className="text-red-500 mt-2">{error}</p>}
       <p className="mt-4 text-sm">
-        Don’t have an account?{" "}
+        {t('noAccount')}{" "}
         <Link href="/register" className="text-blue-600 underline">
-          Register
+          {t('registerLink')}
         </Link>
       </p>
     </div>

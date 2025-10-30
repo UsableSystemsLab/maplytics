@@ -50,5 +50,21 @@
     "signIn": "Sign In",
     "user": "User",
     "signOutConfirm": "Sign out?"
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "registerTitle": "Register",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "confirmPasswordPlaceholder": "Confirm Password",
+    "signIn": "Sign In",
+    "registerButton": "Register",
+    "googleAlt": "Google",
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Register",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Login"
   }
 }
