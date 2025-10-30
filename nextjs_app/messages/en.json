@@ -1,3 +1,36 @@
 {
-  "hello": "Hello"
+  "shared": {
+    "maplytics": "Maplytics"
+  },
+  "landing": {
+    "hero": {
+      "title": "Transform <geo>Geospatial</geo> Data <into>into</into> Actionable Insights",
+      "description": "Unlock the power of spatial analysis to <visualize>visualize patterns</visualize>, <make>make smarter</make> <data>data-informed decisions</data> — All in one simple intuitive platform!",
+      "getStarted": "Get Started",
+      "learnMore": "Learn More"
+    },
+    "features": {
+      "title": "Features Overview",
+      "cards": [
+        {
+          "title": "Add <highlight>Datasets</highlight>",
+          "description": "You can add your own datasets to adjust the output depending on the data you add!"
+        },
+        {
+          "title": "Create <highlight>Graphs</highlight>",
+          "description": "You can create any type of supported graphs for statistical analysis!"
+        },
+        {
+          "title": "Invite <highlight>Team</highlight> Members",
+          "description": "You can add your team members to view your graphs and queries to plan together!"
+        }
+      ]
+    }
+  },
+  "footer": {
+    "copyright": "All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "contactUs": "Contact Us"
+  }
 }
