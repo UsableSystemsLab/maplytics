@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
   const provider = new GoogleAuthProvider();
 
@@ -102,15 +101,6 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-between text-xs md:text-sm" style={fadeIn('0.4s')}>
-              <label className="flex items-center space-x-1.5 md:space-x-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 md:w-4 md:h-4 rounded border-gray-300 text-[#134565] cursor-pointer transition-all hover:scale-110"
-                />
-                <span className="text-[#5C5C5C] group-hover:text-[#333333] transition-colors">Remember me</span>
-              </label>
               <Link
                 href="/forgot-password"
                 className="text-[#134565] hover:text-[#0E3147] font-semibold transition-all hover:underline"
