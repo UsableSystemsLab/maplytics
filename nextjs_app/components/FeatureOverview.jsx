@@ -15,13 +15,13 @@ export default function FeatureOverview() {
             <CardHeader className="text-4xl flex justify-center mt-4 text-center">
               <CardTitle className="font-bold">
                 {t.rich(`cards.${index}.title`, {
-                  highlight1: (chunks) => <span className="text-[#134565]">{chunks}</span>,
-                  highlight2: (chunks) => <span className="text-[#A7B34F]">{chunks}</span>,
+                  highlight1: (chunks) => <span className="text-ocean-blue">{chunks}</span>,
+                  highlight2: (chunks) => <span className="text-earthy-green">{chunks}</span>,
                 })}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-1">
-              <p className="text-[#5C5C5C] text-2xl text-center">{card.description}</p>
+              <p className="text-body-text text-2xl text-center">{card.description}</p>
             </CardContent>
           </Card>
         ))}

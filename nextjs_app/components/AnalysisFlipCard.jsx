@@ -169,7 +169,7 @@ export default function AnalysisFlipCard() {
                                             { name: "Business District", level: 82, color: "bg-orange-500" },
                                             { name: "Shopping Avenue", level: 78, color: "bg-orange-400" },
                                             { name: "University Area", level: 65, color: "bg-yellow-500" },
-                                            { name: "Residential Zone", level: 42, color: "bg-[#A7B34F]" }
+                                            { name: "Residential Zone", level: 42, color: "bg-earthy-green" }
                                         ].map((zone, index) => (
                                             <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                                 <div className="flex items-center justify-between mb-2">

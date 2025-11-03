@@ -91,7 +91,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                     className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl pointer-events-auto animate-scaleIn overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className="bg-[#0E3147] px-6 py-5 flex items-center justify-between">
+                    <div className="bg-primary px-6 py-5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Layers className="w-6 h-6 text-white" />
                             <h2 className="text-2xl font-bold text-white">
@@ -130,7 +130,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                     type="button"
                                     onClick={() => handleChange("sourceType", "upload")}
                                     className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-all ${formData.sourceType === "upload"
-                                        ? "bg-[#0E3147] text-white shadow-md"
+                                        ? "bg-primary text-white shadow-md"
                                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                         }`}
                                 >
@@ -140,7 +140,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                     type="button"
                                     onClick={() => handleChange("sourceType", "url")}
                                     className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-all ${formData.sourceType === "url"
-                                        ? "bg-[#0E3147] text-white shadow-md"
+                                        ? "bg-primary text-white shadow-md"
                                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                         }`}
                                 >
@@ -205,7 +205,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                             <div className="flex items-center gap-3 mb-2">
                                                 <Icon
                                                     className={`w-5 h-5 ${formData.layerType === type.value
-                                                        ? "text-[#0E3147]"
+                                                        ? "text-primary"
                                                         : "text-gray-500"
                                                         }`}
                                                 />
@@ -236,7 +236,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                             <button
                                 type="submit"
                                 disabled={!formData.name || !formData.dataSource}
-                                className="flex-1 px-6 py-3 bg-[#0E3147] text-white font-semibold rounded-lg hover:scale-105 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:scale-105 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Save Layer
                             </button>

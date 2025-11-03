@@ -46,41 +46,41 @@ export default function AuthLeftPanel() {
             `}</style>
 
             <linearGradient id="navyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#134565" stopOpacity="0.4"/>
-              <stop offset="50%" stopColor="#134565" stopOpacity="0.9"/>
-              <stop offset="100%" stopColor="#134565" stopOpacity="0.4"/>
+              <stop offset="0%" stopColor="#134565" stopOpacity="0.4" />
+              <stop offset="50%" stopColor="#134565" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#134565" stopOpacity="0.4" />
             </linearGradient>
             <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#2C3580" stopOpacity="0.4"/>
-              <stop offset="50%" stopColor="#2C3580" stopOpacity="0.9"/>
-              <stop offset="100%" stopColor="#2C3580" stopOpacity="0.4"/>
+              <stop offset="0%" stopColor="#2C3580" stopOpacity="0.4" />
+              <stop offset="50%" stopColor="#2C3580" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#2C3580" stopOpacity="0.4" />
             </linearGradient>
             <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#A7B34F" stopOpacity="0.4"/>
-              <stop offset="50%" stopColor="#A7B34F" stopOpacity="0.9"/>
-              <stop offset="100%" stopColor="#A7B34F" stopOpacity="0.4"/>
+              <stop offset="0%" stopColor="#A7B34F" stopOpacity="0.4" />
+              <stop offset="50%" stopColor="#A7B34F" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#A7B34F" stopOpacity="0.4" />
             </linearGradient>
 
             <g id="pinNavy">
               <circle cx="0" cy="0" r="12" fill="#134565" opacity="0.25">
-                <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite"/>
+                <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite" />
               </circle>
-              <path d="M0,-22 C-6,-22 -11,-17 -11,-11 C-11,-4 0,6 0,6 C0,6 11,-4 11,-11 C11,-17 6,-22 0,-22 Z" fill="#134565" stroke="#0E3147" strokeWidth="2"/>
-              <circle cx="0" cy="-11" r="4.5" fill="white"/>
+              <path d="M0,-22 C-6,-22 -11,-17 -11,-11 C-11,-4 0,6 0,6 C0,6 11,-4 11,-11 C11,-17 6,-22 0,-22 Z" fill="#134565" stroke="#0E3147" strokeWidth="2" />
+              <circle cx="0" cy="-11" r="4.5" fill="white" />
             </g>
             <g id="pinPurple">
               <circle cx="0" cy="0" r="12" fill="#2C3580" opacity="0.25">
-                <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite"/>
+                <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite" />
               </circle>
-              <path d="M0,-22 C-6,-22 -11,-17 -11,-11 C-11,-4 0,6 0,6 C0,6 11,-4 11,-11 C11,-17 6,-22 0,-22 Z" fill="#2C3580" stroke="#1F2760" strokeWidth="2"/>
-              <circle cx="0" cy="-11" r="4.5" fill="white"/>
+              <path d="M0,-22 C-6,-22 -11,-17 -11,-11 C-11,-4 0,6 0,6 C0,6 11,-4 11,-11 C11,-17 6,-22 0,-22 Z" fill="#2C3580" stroke="#1F2760" strokeWidth="2" />
+              <circle cx="0" cy="-11" r="4.5" fill="white" />
             </g>
             <g id="pinGreen">
               <circle cx="0" cy="0" r="12" fill="#A7B34F" opacity="0.25">
-                <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite"/>
+                <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite" />
               </circle>
-              <path d="M0,-22 C-6,-22 -11,-17 -11,-11 C-11,-4 0,6 0,6 C0,6 11,-4 11,-11 C11,-17 6,-22 0,-22 Z" fill="#A7B34F" stroke="#8A9440" strokeWidth="2"/>
-              <circle cx="0" cy="-11" r="4.5" fill="white"/>
+              <path d="M0,-22 C-6,-22 -11,-17 -11,-11 C-11,-4 0,6 0,6 C0,6 11,-4 11,-11 C11,-17 6,-22 0,-22 Z" fill="#A7B34F" stroke="#8A9440" strokeWidth="2" />
+              <circle cx="0" cy="-11" r="4.5" fill="white" />
             </g>
           </defs>
 
@@ -154,14 +154,14 @@ export default function AuthLeftPanel() {
       <div className="relative z-10 flex flex-col w-full h-full">
         <div className="text-center pt-12 pb-8">
           <div className="inline-block overflow-hidden">
-            <h1 className="text-7xl font-bold tracking-tight mb-2 overflow-hidden whitespace-nowrap border-r-4 border-[#134565] pr-1" style={typingAnimation}>
+            <h1 className="text-7xl font-bold tracking-tight mb-2 overflow-hidden whitespace-nowrap border-r-4 border-ocean-blue pr-1" style={typingAnimation}>
               <span
-                className="text-[#333333]">
+                className="text-heading">
                 MAPLYTICS
               </span>
             </h1>
           </div>
-          <p className="text-[#5C5C5C] text-xl font-medium pt-6 mb-8" style={fadeIn('2.5s')}>
+          <p className="text-body-text text-xl font-medium pt-6 mb-8" style={fadeIn('2.5s')}>
             Spatial Analysis Simplified
           </p>
         </div>

@@ -27,7 +27,7 @@ export default function MapArea() {
     return (
         <div className="relative w-full h-full bg-gray-100">
             <div className="absolute inset-0">
-                <img src="/map.jpg" alt="" className="w-full "/>
+                <img src="/map.jpg" alt="" className="w-full " />
             </div>
 
             <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
@@ -151,7 +151,7 @@ export default function MapArea() {
             <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-4xl px-4">
                 <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
                     <div
-                        className="flex items-center justify-between px-6 py-4 bg-[#13B38D] cursor-pointer"
+                        className="flex items-center justify-between px-6 py-4 bg-cyan cursor-pointer"
                         onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}
                     >
                         <div className="flex items-center gap-3">
@@ -172,7 +172,7 @@ export default function MapArea() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <TrendingUp className="w-4 h-4 text-[#A7B34F]" />
+                                        <TrendingUp className="w-4 h-4 text-earthy-green" />
                                         <span className="text-xs font-medium text-gray-600 uppercase">Growth Rate</span>
                                     </div>
                                     <p className="text-2xl font-bold text-gray-900">+12.5%</p>
@@ -190,7 +190,7 @@ export default function MapArea() {
 
                                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Activity className="w-4 h-4 text-[#A7B34F]" />
+                                        <Activity className="w-4 h-4 text-earthy-green" />
                                         <span className="text-xs font-medium text-gray-600 uppercase">Data Points</span>
                                     </div>
                                     <p className="text-2xl font-bold text-gray-900">1,247</p>
@@ -199,10 +199,10 @@ export default function MapArea() {
                             </div>
 
                             <div className="flex gap-3">
-                                <button className="flex-1 bg-[#0E3147] text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors">
+                                <button className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors">
                                     Export Report
                                 </button>
-                                <button className="flex-1 bg-[#13B38D] text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors">
+                                <button className="flex-1 bg-cyan text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors">
                                     Save Analysis
                                 </button>
                                 <button className="px-4 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">

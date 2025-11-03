@@ -66,17 +66,16 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
                                             setCurrentProject(project);
                                             setShowProjectDropdown(false);
                                         }}
-                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                                            currentProject.id === project.id
-                                            ? "bg-[#0E3147] text-white"
-                                                : "text-gray-700 hover:bg-gray-50"
-                                        }`}
+                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${currentProject.id === project.id
+                                            ? "bg-primary text-white"
+                                            : "text-gray-700 hover:bg-gray-50"
+                                            }`}
                                     >
                                         {project.name}
                                     </button>
                                 ))}
                                 <div className="border-t border-gray-200 mt-2 pt-2">
-                                    <button className="w-full text-left px-4 py-2.5 text-sm text-[#13B38D] hover:bg-gray-50 font-medium">
+                                    <button className="w-full text-left px-4 py-2.5 text-sm text-cyan hover:bg-gray-50 font-medium">
                                         + Create New Project
                                     </button>
                                 </div>
@@ -86,7 +85,7 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
                 </div>
 
                 <div className="">
-                       
+
                 </div>
             </div>
         </header>

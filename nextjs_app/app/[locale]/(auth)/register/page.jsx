@@ -59,52 +59,52 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-center justify-center p-6 md:p-12 relative overflow-y-auto">
         <div className="bg-white rounded-xl shadow-2xl p-6 md:p-10 w-full max-w-md hover:shadow-[0_20px_60px_rgba(19,69,101,0.15)] transition-all duration-500 border border-gray-100 relative z-10">
           <div className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-[#134565]/10 rounded-full mb-3" style={fadeIn('0s')}>
-              <UserPlus className="w-7 h-7 md:w-8 md:h-8 text-[#134565]" />
+            <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-ocean-blue/10 rounded-full mb-3" style={fadeIn('0s')}>
+              <UserPlus className="w-7 h-7 md:w-8 md:h-8 text-ocean-blue" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#333333] mb-2" style={fadeIn('0s')}>Create Account</h1>
-            <p className="text-[#5C5C5C] text-sm md:text-base" style={fadeIn('0.1s')}>Join us to unlock powerful spatial analysis</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-heading mb-2" style={fadeIn('0s')}>Create Account</h1>
+            <p className="text-body-text text-sm md:text-base" style={fadeIn('0.1s')}>Join us to unlock powerful spatial analysis</p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4 md:space-y-5">
             <div className="space-y-1.5" style={fadeIn('0.2s')}>
-              <label htmlFor="email" className="text-xs md:text-sm font-semibold text-[#333333] block">
+              <label htmlFor="email" className="text-xs md:text-sm font-semibold text-heading block">
                 Email Address
               </label>
               <div className="relative group">
-                <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-[#5C5C5C] group-focus-within:text-[#134565] transition-colors" />
+                <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
                 <input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-[#134565] focus:outline-none transition-all duration-200 text-[#333333] placeholder:text-gray-400 hover:border-gray-300"
+                  className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5" style={fadeIn('0.3s')}>
-              <label htmlFor="password" className="text-xs md:text-sm font-semibold text-[#333333] block">
+              <label htmlFor="password" className="text-xs md:text-sm font-semibold text-heading block">
                 Password
               </label>
               <div className="relative group">
-                <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-[#5C5C5C] group-focus-within:text-[#134565] transition-colors" />
+                <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-[#134565] focus:outline-none transition-all duration-200 text-[#333333] placeholder:text-gray-400 hover:border-gray-300"
+                  className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
                   required
                   minLength={6}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-[#5C5C5C] hover:text-[#134565] transition-colors hover:scale-110 active:scale-95 transform"
+                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-body-text hover:text-ocean-blue transition-colors hover:scale-110 active:scale-95 transform"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
                 </button>
@@ -113,25 +113,25 @@ export default function RegisterPage() {
 
 
             <div className="space-y-1.5" style={fadeIn('0.4s')}>
-              <label htmlFor="confirmPassword" className="text-xs md:text-sm font-semibold text-[#333333] block">
+              <label htmlFor="confirmPassword" className="text-xs md:text-sm font-semibold text-heading block">
                 Confirm Password
               </label>
               <div className="relative group">
-                <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-[#5C5C5C] group-focus-within:text-[#134565] transition-colors" />
+                <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={confPass}
                   onChange={(e) => setConfPass(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-[#134565] focus:outline-none transition-all duration-200 text-[#333333] placeholder:text-gray-400 hover:border-gray-300"
+                  className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
                   required
                   minLength={6}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-[#5C5C5C] hover:text-[#134565] transition-colors hover:scale-110 active:scale-95 transform"
+                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-body-text hover:text-ocean-blue transition-colors hover:scale-110 active:scale-95 transform"
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
                 </button>
@@ -149,7 +149,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#134565] text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg hover:bg-[#0E3147] active:scale-95 transform transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full bg-ocean-blue text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg hover:bg-primary active:scale-95 transform transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               style={fadeIn('0.5s')}
             >
               {loading ? (
@@ -168,14 +168,14 @@ export default function RegisterPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-xs md:text-sm">
-              <span className="px-3 md:px-4 bg-white text-[#5C5C5C]">Or continue with</span>
+              <span className="px-3 md:px-4 bg-white text-body-text">Or continue with</span>
             </div>
           </div>
 
           <button
             onClick={handleGoogleRegister}
             disabled={loading}
-            className="w-full border-2 border-gray-200 bg-white hover:bg-gray-50 text-[#333333] font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full border-2 border-gray-200 bg-white hover:bg-gray-50 text-heading font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
             style={fadeIn('0.7s')}
           >
             <img src="/google.svg" alt="Google" className="w-4 h-4 md:w-5 md:h-5" />
@@ -183,11 +183,11 @@ export default function RegisterPage() {
           </button>
 
 
-          <p className="mt-4 md:mt-6 text-center text-xs md:text-sm text-[#5C5C5C]" style={fadeIn('0.8s')}>
+          <p className="mt-4 md:mt-6 text-center text-xs md:text-sm text-body-text" style={fadeIn('0.8s')}>
             Already have an account?{" "}
             <Link
               href="/login"
-              className="text-[#134565] hover:text-[#0E3147] font-semibold transition-colors hover:underline"
+              className="text-ocean-blue hover:text-primary font-semibold transition-colors hover:underline"
             >
               Sign In
             </Link>

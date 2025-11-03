@@ -151,8 +151,8 @@ function HoverSignOutButton({ user }) {
         "transition-all duration-300 relative overflow-hidden text-sm font-medium",
         "w-[120px] sm:w-[140px] truncate",
         hovered
-          ? "hover:bg-[#0E3147] hover:text-white"
-          : "text-[#0E3147]"
+          ? "hover:bg-primary hover:text-white"
+          : "text-primary"
       )}
     >
       <span
