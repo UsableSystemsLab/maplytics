@@ -18,9 +18,12 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from "../LanguageSwitcher";
 
 export default function Tabnavbar() {
   const { user, loading } = useAuth();
+  const t = useTranslations('header');
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -35,7 +38,7 @@ export default function Tabnavbar() {
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Products</NavigationMenuTrigger>
+                <NavigationMenuTrigger>{t('products')}</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul
                     className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
@@ -45,34 +48,34 @@ export default function Tabnavbar() {
                           className="flex h-full w-full select-none flex-col justify-end rounded-md bg-linear-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
                           href="#">
                           <div className="mb-2 mt-4 text-lg font-medium">
-                            Featured Product
+                            {t('featuredProduct')}
                           </div>
                           <p className="text-sm leading-tight text-muted-foreground">
-                            Check out our latest and greatest offering
+                            {t('featuredProductDescription')}
                           </p>
                         </Link>
                       </NavigationMenuLink>
                     </li>
-                    <ListItem href="#" title="Product 1">
-                      Description for Product 1
+                    <ListItem href="#" title={t('product1')}>
+                      {t('product1Description')}
                     </ListItem>
-                    <ListItem href="#" title="Product 2">
-                      Description for Product 2
+                    <ListItem href="#" title={t('product2')}>
+                      {t('product2Description')}
                     </ListItem>
-                    <ListItem href="#" title="Product 3">
-                      Description for Product 3
+                    <ListItem href="#" title={t('product3')}>
+                      {t('product3Description')}
                     </ListItem>
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()} href="#">
-                  About
+                  {t('about')}
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()} href="#">
-                  Contact
+                  {t('contact')}
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -81,17 +84,18 @@ export default function Tabnavbar() {
         <div className="flex items-center space-x-4 w-[400px]">
           <form className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Search..." className="pl-8 w-32 focus:w-80 transition-all duration-300" />
+            <Input type="search" placeholder={t('searchPlaceholder')} className="pl-8 w-32 focus:w-80 transition-all duration-300" />
           </form>
           {loading ? (
-            <span className="text-gray-500 animate-pulse">Loading...</span>
+            <span className="text-gray-500 animate-pulse">{t('loading')}</span>
           ) : user ? (
             <HoverSignOutButton user={user} />
           ) : (
             <Link href="/login">
-              <Button>Sign In</Button>
+              <Button>{t('signIn')}</Button>
             </Link>
           )}
+          <LanguageSwitcher />
         </div>
       </div>
     </nav>
@@ -122,10 +126,11 @@ ListItem.displayName = "ListItem";
 
 function HoverSignOutButton({ user }) {
   const [hovered, setHovered] = React.useState(false);
+  const t = useTranslations('header');
 
   const rawName = user.displayName
     ? user.displayName
-    : user.email?.split("@")[0].split(".")[0] || "User";
+    : user.email?.split("@")[0].split(".")[0] || t('user');
 
   const username =
     rawName.charAt(0).toUpperCase() + rawName.slice(1);
@@ -160,7 +165,7 @@ function HoverSignOutButton({ user }) {
         className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${hovered ? "opacity-100" : "opacity-0"
           }`}
       >
-        Sign out?
+        {t('signOutConfirm')}
       </span>
     </Button>
   );
