@@ -1,0 +1,70 @@
+{
+  "shared": {
+    "maplytics": "مابليتيكس"
+  },
+  "landing": {
+    "hero": {
+      "title": "حول بيانات <geo>الجغرافية المكانية</geo> <into>إلى</into> رؤى قابلة للتنفيذ",
+      "description": "استفد من البيانات المكانية لـ <visualize>اكتشاف الأنماط</visualize> و<make>اتخاذ قرارات أذكى</make> <data>تعتمد على البيانات</data> — كل ذلك في منصة واحدة سهلة وبديهية!",
+      "getStarted": "ابدأ الآن",
+      "learnMore": "تعرف على المزيد"
+    },
+    "features": {
+      "title": "لمحة عن المميزات",
+      "cards": [
+        {
+          "title": "أضف <highlight>بياناتك</highlight>",
+          "description": "أضف مجموعات البيانات الخاصة بك لتحصل على نتائج دقيقة ومخصصة وفقًا لبياناتك."
+        },
+        {
+          "title": "أنشئ <highlight>رسومًا بيانية</highlight>",
+          "description": "حوّل بياناتك إلى رسوم بيانية واضحة وسهلة الفهم للتحليلات الإحصائية."
+        },
+        {
+          "title": "شارك <highlight>الفريق</highlight>",
+          "description": "دع فريقك يطلع على الرسوم البيانية والاستفسارات، واعملوا معًا على التخطيط واتخاذ القرارات."
+        }
+      ]
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 مابليتيكس. جميع الحقوق محفوظة.",
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfService": "شروط الخدمة",
+    "contactUs": "اتصل بنا"
+  },
+  "header": {
+    "products": "المنتجات",
+    "featuredProduct": "المنتج المميز",
+    "featuredProductDescription": "اطلع على أحدث عروضنا وأفضلها",
+    "product1": "المنتج 1",
+    "product1Description": "وصف للمنتج 1",
+    "product2": "المنتج 2",
+    "product2Description": "وصف للمنتج 2",
+    "product3": "المنتج 3",
+    "product3Description": "وصف للمنتج 3",
+    "about": "من نحن",
+    "contact": "اتصل بنا",
+    "searchPlaceholder": "بحث...",
+    "loading": "جاري التحميل...",
+    "signIn": "تسجيل الدخول",
+    "user": "مستخدم",
+    "signOutConfirm": "تسجيل الخروج؟"
+  },
+  "auth": {
+    "loginTitle": "تسجيل الدخول",
+    "registerTitle": "إنشاء حساب",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "passwordPlaceholder": "كلمة المرور",
+    "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "registerButton": "إنشاء حساب",
+    "googleAlt": "جوجل",
+    "signInWithGoogle": "تسجيل الدخول باستخدام جوجل",
+    "signUpWithGoogle": "إنشاء حساب باستخدام جوجل",
+    "noAccount": "ليس لديك حساب؟",
+    "registerLink": "إنشاء حساب",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "loginLink": "تسجيل الدخول"
+  }
+}

@@ -2,29 +2,25 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confPass, setConfPass] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const provider = new GoogleAuthProvider();
+  const t = useTranslations('auth');
 
-  const handleRegister = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
     try {
-      if (confPass !== password) {
-        setError("Passwords do not match");
-        return;
-      }
-      await createUserWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
     } catch (err) {
       setError(err.message);
@@ -33,7 +29,7 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleRegister = async () => {
+  const handleGoogleLogin = async () => {
     try {
       setLoading(true);
       await signInWithPopup(auth, provider);
@@ -47,11 +43,11 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="text-2xl mb-4 font-semibold">Register</h1>
-      <form onSubmit={handleRegister} className="flex flex-col gap-2 w-64">
+      <h1 className="text-2xl mb-4 font-semibold">{t('loginTitle')}</h1>
+      <form onSubmit={handleLogin} className="flex flex-col gap-2 w-64">
         <input
           type="email"
-          placeholder="Email"
+          placeholder={t('emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="border p-2 rounded"
@@ -59,44 +55,35 @@ export default function RegisterPage() {
         />
         <input
           type="password"
-          placeholder="Password (min 6 chars)"
+          placeholder={t('passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="border p-2 rounded"
           required
         />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confPass}
-          onChange={(e) => setConfPass(e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
         <button
-          disabled={loading}
           type="submit"
-          className={`text-white p-2 rounded hover:bg-green-600/90 active:scale-95 transform transition-all ${
-            loading ? "bg-green-900" : "bg-green-600"
-          }`}
+          disabled={loading}
+          className={`text-white p-2 rounded hover:bg-cyan-700/90 active:scale-95 transform transition-all ${loading ? "bg-cyan-900" : "bg-cyan-700"
+            }`}
         >
-          Register
+          {t('signIn')}
         </button>
       </form>
 
       <button
-        onClick={handleGoogleRegister}
+        onClick={handleGoogleLogin}
         className="mt-4 border flex items-center justify-center gap-2 p-2 rounded hover:bg-gray-100 transition-all"
       >
-        <img src="/google.svg" alt="Google" className="w-5 h-5" />
-        Sign up with Google
+        <img src="/google.svg" alt={t('googleAlt')} className="w-5 h-5" />
+        {t('signInWithGoogle')}
       </button>
 
       {error && <p className="text-red-500 mt-2">{error}</p>}
       <p className="mt-4 text-sm">
-        Already have an account?{" "}
-        <Link href="/login" className="text-blue-600 underline">
-          Login
+        {t('noAccount')}{" "}
+        <Link href="/register" className="text-blue-600 underline">
+          {t('registerLink')}
         </Link>
       </p>
     </div>
