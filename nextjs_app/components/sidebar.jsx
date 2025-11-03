@@ -50,7 +50,9 @@ export default function SideBar() {
     return (
         <nav className="flex flex-col h-screen w-80 bg-[#FAFAFA] border-r border-gray-200 shadow-sm">
             <div className="px-6 py-5 border-b border-gray-200 flex justify-center">
-                <img src="/logo.svg" alt="Maplytics Logo" className="w-48" />
+                <Link href="/">
+                    <img src="/logo.svg" alt="Maplytics Logo" className="w-48" />
+                </Link>
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-6">
@@ -67,8 +69,8 @@ export default function SideBar() {
                                 >
                                     <button
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                                ? "bg-[#0E3147] text-white shadow-md"
-                                                : "text-gray-700 hover:bg-gray-100"
+                                            ? "bg-primary text-white shadow-md"
+                                            : "text-gray-700 hover:bg-gray-100"
                                             }`}
                                     >
                                         <Icon className="w-5 h-5" />
@@ -93,8 +95,8 @@ export default function SideBar() {
                                 >
                                     <button
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                                ? "bg-[#0E3147] text-white shadow-md"
-                                                : "text-gray-700 hover:bg-gray-100"
+                                            ? "bg-primary text-white shadow-md"
+                                            : "text-gray-700 hover:bg-gray-100"
                                             }`}
                                     >
                                         <Icon className="w-5 h-5" />
@@ -112,7 +114,7 @@ export default function SideBar() {
 
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0E3147] text-white rounded-lg transition-all duration-200 shadow-sm font-medium"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg transition-all duration-200 shadow-sm font-medium"
                         >
                             <Plus className="w-4 h-4" />
                             Add Layer
@@ -122,7 +124,7 @@ export default function SideBar() {
                             {layers.map((layer, index) => (
                                 <div
                                     key={layer.id}
-                                    className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-[#0E3147] transition-all duration-200`}
+                                    className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-200`}
                                 >
                                     <span className="text-sm font-medium text-gray-700 truncate">
                                         {layer.name}
@@ -136,7 +138,7 @@ export default function SideBar() {
 
             <div className="px-4 py-4 border-t border-gray-200 bg-white">
                 <div className="flex items-center gap-3 px-3 py-2 transition-colors cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0E3147] to-[#A7B34F] flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-earthy-green flex items-center justify-center text-white font-semibold">
                         {/*Here inside the circle, it should be the first letter of the user but for now i will only use "U"*/"U"}
                     </div>
                     <div className="flex-1 min-w-0">

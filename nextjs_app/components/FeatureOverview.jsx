@@ -15,7 +15,8 @@ export default function FeatureOverview() {
             <CardHeader className="text-4xl flex justify-center mt-4 text-center">
               <CardTitle className="font-bold">
                 {t.rich(`cards.${index}.title`, {
-                  highlight: (chunks) => <span className="text-[#A7B34F]">{chunks}</span>,
+                  highlight1: (chunks) => <span className="text-[#134565]">{chunks}</span>,
+                  highlight2: (chunks) => <span className="text-[#A7B34F]">{chunks}</span>,
                 })}
               </CardTitle>
             </CardHeader>
