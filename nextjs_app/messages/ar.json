@@ -13,15 +13,15 @@
       "title": "لمحة عن المميزات",
       "cards": [
         {
-          "title": "أضف <highlight>بياناتك</highlight>",
+          "title": "أضف <highlight1>بياناتك</highlight1>",
           "description": "أضف مجموعات البيانات الخاصة بك لتحصل على نتائج دقيقة ومخصصة وفقًا لبياناتك."
         },
         {
-          "title": "أنشئ <highlight>رسومًا بيانية</highlight>",
+          "title": "أنشئ <highlight2>رسومًا بيانية</highlight2>",
           "description": "حوّل بياناتك إلى رسوم بيانية واضحة وسهلة الفهم للتحليلات الإحصائية."
         },
         {
-          "title": "شارك <highlight>الفريق</highlight>",
+          "title": "شارك <highlight1>الفريق</highlight1>",
           "description": "دع فريقك يطلع على الرسوم البيانية والاستفسارات، واعملوا معًا على التخطيط واتخاذ القرارات."
         }
       ]
