@@ -25,15 +25,17 @@ export default function HeroSection() {
                 </p>
 
                 <div className="buttons mt-8 flex flex-col gap-4 max-w-lg">
-                    <Link href="/dashboard">
+                    <Link href="/dashboard/createProject">
                         <Button className="bg-ocean-blue text-white text-[31px] font-semibold px-6 py-3 rounded-md w-[525px] h-20">
                             {t('getStarted')}
                         </Button>
                     </Link>
 
-                    <Button className="bg-primary text-white text-[31px] font-bold px-6 py-3 rounded-md w-[525px] h-20">
-                        {t('learnMore')}
-                    </Button>
+                    <Link href="/dashboard">
+                        <Button className="bg-primary text-white text-[31px] font-bold px-6 py-3 rounded-md w-[525px] h-20">
+                            {t('continue')}
+                        </Button>
+                    </Link>
                 </div>
             </div>
 
