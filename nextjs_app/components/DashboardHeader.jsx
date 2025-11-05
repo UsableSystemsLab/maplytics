@@ -1,6 +1,7 @@
 "use client";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import Link from "next/link";
 import {
     Bell,
     ChevronDown,
@@ -17,9 +18,9 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
     const [notifications] = useState(3);
 
     const projects = [
-        { id: 1, name: "Urban Planning Analysis" },
-        { id: 2, name: "Climate Change Study" },
-        { id: 3, name: "Transportation Network" },
+        { id: 1, name: "Urban Planning Analysis", path: "/dashboard" },
+        { id: 2, name: "Climate Change Study", path: "/" },
+        { id: 3, name: "Transportation Network", path: "/" },
     ];
     const [currentProject, setCurrentProject] = useState(projects[0]);
 
@@ -60,24 +61,28 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
                             ></div>
                             <div className="absolute top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
                                 {projects.map((project) => (
-                                    <button
-                                        key={project.id}
-                                        onClick={() => {
-                                            setCurrentProject(project);
-                                            setShowProjectDropdown(false);
-                                        }}
-                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${currentProject.id === project.id
-                                            ? "bg-primary text-white"
-                                            : "text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                    >
-                                        {project.name}
-                                    </button>
+                                    <Link href={project.path}>
+                                        <button
+                                            key={project.id}
+                                            onClick={() => {
+                                                setCurrentProject(project);
+                                                setShowProjectDropdown(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${currentProject.id === project.id
+                                                ? "bg-primary text-white"
+                                                : "text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                        >
+                                            {project.name}
+                                        </button>
+                                    </Link>
                                 ))}
                                 <div className="border-t border-gray-200 mt-2 pt-2">
-                                    <button className="w-full text-left px-4 py-2.5 text-sm text-cyan hover:bg-gray-50 font-medium">
-                                        + Create New Project
-                                    </button>
+                                    <Link href="/dashboard/createProject">
+                                        <button className="w-full text-left px-4 py-2.5 text-sm text-cyan hover:bg-gray-50 font-medium">
+                                            + Create New Project
+                                        </button>
+                                    </Link>
                                 </div>
                             </div>
                         </>
