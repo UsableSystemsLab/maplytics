@@ -76,7 +76,7 @@ export default function RegisterPage() {
                 <input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="email@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
