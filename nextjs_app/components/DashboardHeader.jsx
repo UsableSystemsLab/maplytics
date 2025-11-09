@@ -18,8 +18,8 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
     const [notifications] = useState(3);
 
     const projects = [
-        { id: 1, name: "Urban Planning Analysis", path: "/dashboard" },
-        { id: 2, name: "Climate Change Study", path: "/" },
+        { id: 1, name: "Climate Change Study", path: "/" },
+        { id: 2, name: "Urban Planning Analysis", path: "/dashboard" },
         { id: 3, name: "Transportation Network", path: "/" },
     ];
     const [currentProject, setCurrentProject] = useState(projects[0]);

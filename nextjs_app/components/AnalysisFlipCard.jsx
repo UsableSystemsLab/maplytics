@@ -19,8 +19,14 @@ export default function AnalysisFlipCard() {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-4">
-            <div className="relative h-auto" style={{ perspective: "1000px" }}>
+        <div className="w-full max-w-4xl mx-auto px-4 mb-6">
+            <div
+                className="relative transition-all duration-700 ease-in-out"
+                style={{
+                    perspective: "1000px",
+                    height: isFlipped ? "700px" : "450px"
+                }}
+            >
                 <div
                     className={`relative w-full transition-transform duration-700 transform-style-3d ${isFlipped ? "transform-[rotateY(180deg)]" : ""
                         }`}

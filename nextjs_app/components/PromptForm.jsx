@@ -1,6 +1,28 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+const placeholderText =
+    "I want an analyitcal visualized study of the top 5 most congested areas in the city with a heatmap for visualization";
+
 export default function PromptForm() {
+    const [placeholder, setPlaceholder] = useState("");
+
+    useEffect(() => {
+        let i = 0;
+        const interval = setInterval(() => {
+            setPlaceholder(placeholderText.slice(0, i));
+            i++;
+
+            if (i > placeholderText.length) clearInterval(interval);
+        }, 10);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const handleSubmit = (e) => {
-        //Add logic here later
+        // Add logic later
     };
 
     return (
@@ -9,23 +31,26 @@ export default function PromptForm() {
                 <label htmlFor="prompt" className="block text-lg font-semibold text-gray-900">
                     Prompt:
                 </label>
+
                 <textarea
                     id="prompt"
                     name="prompt"
                     rows="4"
                     className="w-full px-4 py-3 text-gray-700 bg-white border-2 border-cyan rounded-2xl focus:outline-none focus:border-teal-600 resize-none"
-                    placeholder="Combines live or historical traffic datasets with hospital locations to assess route accessibility and emergency travel efficiency."
+                    placeholder={placeholder}
                 />
+
                 <div className="flex justify-center">
-                    <button
-                        onClick={handleSubmit}
-                        className="px-8 py-3 text-white font-medium bg-slate-800 rounded-full hover:bg-slate-700 transition-colors"
-                    >
-                        Start Analysis
-                    </button>
+                    <Link href="/dashboard">
+                        <button
+                            onClick={handleSubmit}
+                            className="px-8 py-3 text-white font-medium bg-slate-800 rounded-full hover:bg-slate-700 transition-colors"
+                        >
+                            Start Analysis
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>
-
     );
 }
