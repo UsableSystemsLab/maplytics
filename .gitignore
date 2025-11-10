@@ -2,7 +2,8 @@
 /db_data
 /data
 /pg_data
-
+# log files
+*.log
 # express uploads directory
 api/uploads/
 # dependencies

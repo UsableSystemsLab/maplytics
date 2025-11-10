@@ -16,13 +16,12 @@ CREATE TYPE role_type AS ENUM ('user', 'admin');
 -- Stores information about each user.
 -- These attributes are for starter, more can be added as needed.
 ----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public."user" (
+CREATE TABLE IF NOT EXISTS public."User" (
     "user_id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Globally unique identifier for each user
     "email" VARCHAR(255) UNIQUE NOT NULL,             -- Used for login and communication (must be unique)
     "first_name" VARCHAR(100),                        -- First name
     "middle_name" VARCHAR(100),                       -- Middle name
     "last_name" VARCHAR(100),                         -- Last name
-    "password" VARCHAR(255) NOT NULL,                 -- Password (ofcourse it will not be stored in plain text)
     "role" role_type DEFAULT 'user'                   -- Roles in case we will be using role-based access control
 );
 
