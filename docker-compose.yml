@@ -77,7 +77,7 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:${API_SERVER_PORT}/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:${API_SERVER_PORT}/health", "-H", "accept: application/json", "-H", "Authorization: Bearer ${API_SERVER_KEY}" ]
       interval: 120s
       timeout: 5s
       retries: 3
