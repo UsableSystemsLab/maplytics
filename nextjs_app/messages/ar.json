@@ -7,28 +7,28 @@
       "title": "حول بيانات <geo>الجغرافية المكانية</geo> <into>إلى</into> رؤى قابلة للتنفيذ",
       "description": "استفد من البيانات المكانية لـ <visualize>اكتشاف الأنماط</visualize> و<make>اتخاذ قرارات أذكى</make> <data>تعتمد على البيانات</data> — كل ذلك في منصة واحدة سهلة وبديهية!",
       "getStarted": "ابدأ الآن",
-      "learnMore": "تعرف على المزيد"
+      "continue": "أكمل رحلتك"
     },
     "features": {
       "title": "لمحة عن المميزات",
       "cards": [
         {
-          "title": "أضف <highlight>بياناتك</highlight>",
+          "title": "أضف <highlight1>بياناتك</highlight1>",
           "description": "أضف مجموعات البيانات الخاصة بك لتحصل على نتائج دقيقة ومخصصة وفقًا لبياناتك."
         },
         {
-          "title": "أنشئ <highlight>رسومًا بيانية</highlight>",
+          "title": "أنشئ <highlight2>رسومًا بيانية</highlight2>",
           "description": "حوّل بياناتك إلى رسوم بيانية واضحة وسهلة الفهم للتحليلات الإحصائية."
         },
         {
-          "title": "شارك <highlight>الفريق</highlight>",
+          "title": "شارك <highlight1>الفريق</highlight1>",
           "description": "دع فريقك يطلع على الرسوم البيانية والاستفسارات، واعملوا معًا على التخطيط واتخاذ القرارات."
         }
       ]
     }
   },
   "footer": {
-    "copyright": "© 2025 مابليتيكس. جميع الحقوق محفوظة.",
+    "copyright": "مابليتيكس. جميع الحقوق محفوظة.",
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",
     "contactUs": "اتصل بنا"

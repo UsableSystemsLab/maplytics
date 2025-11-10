@@ -1,21 +1,21 @@
 "use client";
+
+import React from 'react'
 import SideBar from '@/components/sidebar';
 import DashboardHeader from '@/components/DashboardHeader';
-import MapArea from '@/components/MapArea';
 
-export default function MapViewPage() {
+export default function layout({ children }) {
     return (
         <div className="flex h-screen bg-gray-50">
             <SideBar />
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <DashboardHeader
-                    pageTitle="Map View"
-                    breadcrumbs={["Dashboard", "Map"]}
-                />
-
-                <MapArea />
+                    pageTitle="Dashboard Overview"
+                    breadcrumbs={["Dashboard", "Overview"]} />
+                {children}
             </div>
+
         </div>
-    );
+    )
 }

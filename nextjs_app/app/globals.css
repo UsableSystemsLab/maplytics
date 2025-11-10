@@ -32,7 +32,12 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
+  --color-primary: #0E3147;
+  --color-earthy-green: #A7B34F;
+  --color-ocean-blue: #134565;
+  --color-cyan: #13B38D;
+  --color-heading: #333333;
+  --color-body-text: #5C5C5C;
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -141,15 +146,18 @@ button:active {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -160,17 +168,20 @@ button:active {
   0% {
     width: 0;
   }
+
   100% {
     width: 100%;
   }
 }
 
 @keyframes blink {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: transparent;
   }
+
   50% {
     border-color: #134565;
   }
 }
-
