@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 ----------------------------------------------------------
 -- ENUMS
 ----------------------------------------------------------
-CREATE TYPE role_type AS ENUM ('user', 'admin');
+CREATE TYPE role_type AS ENUM ('User', 'Admin');
 
 
 
@@ -20,9 +20,10 @@ CREATE TABLE IF NOT EXISTS public."User" (
     "user_id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Globally unique identifier for each user
     "email" VARCHAR(255) UNIQUE NOT NULL,             -- Used for login and communication (must be unique)
     "first_name" VARCHAR(100),                        -- First name
-    "middle_name" VARCHAR(100),                       -- Middle name
     "last_name" VARCHAR(100),                         -- Last name
-    "role" role_type DEFAULT 'user'                   -- Roles in case we will be using role-based access control
+    "created_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp when the user was created
+    "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
+    "role" role_type DEFAULT 'User'                   -- Roles in case we will be using role-based access control
 );
 
 
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public."User" (
 -- Represents a workspace context for the user.
 -- These attributes are for starter, more can be added as needed.
 ----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public."project" (
+CREATE TABLE IF NOT EXISTS public."Project" (
     "project_id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Unique ID for each project
     "project_name" VARCHAR(255) NOT NULL,             -- Descriptive title of the project
     "description" TEXT,                               -- Detailed description of the project
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public."project" (
     "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
     "is_deleted" BOOLEAN DEFAULT FALSE,               -- Soft delete flag
     "user_id" UUID NOT NULL,                           -- References the project owner
-    FOREIGN KEY ("user_id") REFERENCES public."user"("user_id") ON DELETE CASCADE
+    FOREIGN KEY ("user_id") REFERENCES public."User"("user_id") ON DELETE CASCADE
 );
 
 
@@ -49,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public."project" (
 -- Stores information about user-uploaded or system datasets.
 -- These attributes are for starter, more can be added as needed.
 ----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public."dataset" (
+CREATE TABLE IF NOT EXISTS public."Dataset" (
     "dataset_id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Unique dataset identifier
     "dataset_slug" VARCHAR(255) UNIQUE NOT NULL,      -- URL-friendly name (used in APIs or links)
     "dataset_name" VARCHAR(255) NOT NULL,             -- Human-readable dataset title
@@ -64,7 +65,7 @@ CREATE TABLE IF NOT EXISTS public."dataset" (
     "file_format" VARCHAR(50),                        -- Format of uploaded file (CSV, GeoJSON, Shapefile, etc.)
     "uploaded_at" TIMESTAMP DEFAULT NOW(),            -- Upload timestamp for version tracking
     "user_id" UUID NOT NULL,                           -- Reference to dataset owner
-    FOREIGN KEY ("user_id") REFERENCES public."user"("user_id") ON DELETE CASCADE
+    FOREIGN KEY ("user_id") REFERENCES public."User"("user_id") ON DELETE CASCADE
 );
 
 
@@ -74,11 +75,13 @@ CREATE TABLE IF NOT EXISTS public."dataset" (
 -- Stores individual spatial features (points, polygons, lines).
 -- These attributes are for starter, more can be added as needed.
 ----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public."feature" (
+CREATE TABLE IF NOT EXISTS public."Feature" (
     "feature_id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Unique ID for each feature
     "geometry" GEOMETRY(GEOMETRY, 4326) NOT NULL,     -- The actual spatial geometry of the feature
+    "created_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp when the feature was created
+    "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
     "dataset_id" UUID NOT NULL,                        -- Reference to parent dataset
-    FOREIGN KEY ("dataset_id") REFERENCES public."dataset"("dataset_id") ON DELETE CASCADE
+    FOREIGN KEY ("dataset_id") REFERENCES public."Dataset"("dataset_id") ON DELETE CASCADE
 );
 
 
@@ -88,12 +91,14 @@ CREATE TABLE IF NOT EXISTS public."feature" (
 -- Represents the many-to-many relationship between datasets and projects.
 -- Allows datasets to be linked to multiple projects and vice versa.
 ----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public."dataset_project" (
+CREATE TABLE IF NOT EXISTS public."Dataset_Project" (
     "dataset_id" UUID NOT NULL,                        -- Dataset being linked
     "project_id" UUID NOT NULL,                        -- Project it belongs to
+    "created_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp when the link was created
+    "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
     PRIMARY KEY ("dataset_id", "project_id"),           -- Composite key ensures unique links
-    FOREIGN KEY ("dataset_id") REFERENCES public."dataset"("dataset_id") ON DELETE CASCADE,
-    FOREIGN KEY ("project_id") REFERENCES public."project"("project_id") ON DELETE CASCADE
+    FOREIGN KEY ("dataset_id") REFERENCES public."Dataset"("dataset_id") ON DELETE CASCADE,
+    FOREIGN KEY ("project_id") REFERENCES public."Project"("project_id") ON DELETE CASCADE
 );
 
 
@@ -101,10 +106,13 @@ CREATE TABLE IF NOT EXISTS public."dataset_project" (
 -- FEATURE_PROPERTY TABLE
 -- Stores properties (attributes) of features in JSONB format.
 ----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public."feature_property" (
+CREATE TABLE IF NOT EXISTS public."Feature_Property" (
     "feature_id" UUID NOT NULL,                        -- Link to the feature this property belongs to
     "properties" JSONB NOT NULL,                      -- Key-value pairs (e.g., name, type, rating)
-    FOREIGN KEY ("feature_id") REFERENCES public."feature"("feature_id") ON DELETE CASCADE
+    "created_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp when the property was created
+    "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
+    PRIMARY KEY ("feature_id"),                        -- One-to-one relationship with Feature
+    FOREIGN KEY ("feature_id") REFERENCES public."Feature"("feature_id") ON DELETE CASCADE
 );
 
 
@@ -113,8 +121,11 @@ CREATE TABLE IF NOT EXISTS public."feature_property" (
 -- DATASET_METADATA TABLE
 -- Stores dataset-level metadata in flexible JSONB format.
 ----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public."dataset_metadata" (
+CREATE TABLE IF NOT EXISTS public."Dataset_Metadata" (
     "dataset_id" UUID NOT NULL,           -- Reference to the dataset
     "metadata" JSONB NOT NULL,                        -- Flexible key-value metadata (e.g., source, license)
-    FOREIGN KEY ("dataset_id") REFERENCES public."dataset"("dataset_id") ON DELETE CASCADE
+    "created_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp when the metadata was created
+    "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
+    PRIMARY KEY ("dataset_id"),                        -- One-to-one relationship with Dataset
+    FOREIGN KEY ("dataset_id") REFERENCES public."Dataset"("dataset_id") ON DELETE CASCADE
 );
