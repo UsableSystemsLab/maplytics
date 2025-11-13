@@ -21,41 +21,45 @@ import { sequelize } from "../configs/postgresDB.js";
  *           type: string
  *           example: '+9661234567890'
  */
-
+// User model definition
 const User = sequelize.define(
   "User",
   {
     id: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       field: "user_id",
       primaryKey: true,
-      autoIncrement: true,
     },
     email: {
       type: DataTypes.STRING(255),
       field: "email",
+      unique: true,
       allowNull: false,
     },
     first_name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       field: "first_name",
       allowNull: true,
     },
-    middle_name:{
-      type: DataTypes.STRING(255),
-      field: "middle_name",
-      allowNull: true,
-    },
     last_name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       field: "last_name",
       allowNull: true,
-    }
+    },
+    role: {
+      type: DataTypes.ENUM("Admin", "User"),
+      defaultValue: "User",
+      field: "role",
+      allowNull: false,
+    },
   },
   {
     tableName: "User",
     schema: "public",
-    timestamps: false, //TODO: Enable timestamps after adding created_at and updated_at fields to the table
+    timestamps: true, //TODO: Enable timestamps after adding created_at and updated_at fields to the table ✅
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   },
 );
 
