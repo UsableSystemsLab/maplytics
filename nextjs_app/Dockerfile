@@ -8,4 +8,4 @@ COPY next.config.mjs ./next.config.mjs
 ARG PORT=3000
 ENV PORT $PORT
 EXPOSE $PORT
-CMD ["npm","run", "dev"]
+CMD ["npx", "nodemon", "--exec", "npm ci && npm run dev", "--watch", "package.json", "--watch", "package-lock.json"]
