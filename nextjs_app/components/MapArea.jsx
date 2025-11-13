@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
     Search,
     ZoomIn,
@@ -23,11 +25,33 @@ export default function MapArea() {
 
     const handleZoomIn = () => setZoomLevel(Math.min(zoomLevel + 1, 20));
     const handleZoomOut = () => setZoomLevel(Math.max(zoomLevel - 1, 1));
+    const mapRef = useRef(null);
 
+    useEffect(() => {
+        if (mapRef.current) return;
+
+        const map = L.map("map", {
+            minZoom: 3,
+            maxZoom: 18,
+            zoomControl: false,
+            worldCopyJump: true,
+            maxBounds: [
+                [-85, -180],
+                [85, 180],
+            ],
+            maxBoundsViscosity: 1.0, // strong resistance at edges
+        }).setView([23.8859, 45.0792], 5);
+        mapRef.current = map;
+        L.tileLayer('https://api.maptiler.com/maps/streets-v4/256/{z}/{x}/{y}.png?key=RiFdBckUhPkjpd0WA65S', {
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a>' +
+                '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+        }
+        ).addTo(map);
+    }, []);
     return (
         <div className="relative w-full h-full bg-gray-100">
-            <div className="absolute inset-0">
-                <img src="/map.png" alt="" className="w-full " />
+            <div className="fixed inset-0 z-0">
+                <div id="map" className="h-full w-full" />
             </div>
 
             <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
