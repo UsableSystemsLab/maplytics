@@ -3,37 +3,37 @@ import { sequelize } from "../configs/postgresDB.js";
 /**
  * @swagger
  * components:
- *  schemas:
- *    Feature:
- *      type: object
- *      properties:
- *        feature_id:
- *          type: string
- *          example: '123e4567-e89b-12d3-a456-426614174000'
- *        feature_name:
- *          type: string
- *          example: 'Traffic Flow'
- *        dataset_id:
- *          type: string
- *          example: '123e4567-e89b-12d3-a456-426614174000'
- *        geometry:
- *          type: object
- *          properties:
- *            type:
- *              type: string
- *              example: 'Point'
- *            coordinates:
- *              type: array
- *              items:
- *                type: number
- *              example: [39.1234, 21.5678]
- *        properties:
- *          type: object
- *          example: {
- *            speed: 45,
- *            congestion: 'low'
- *          }
- */ 
+ *   schemas:
+ *     Feature:
+ *       type: object
+ *       properties:
+ *         feature_id:
+ *           type: string
+ *           example: '123e4567-e89b-12d3-a456-426614174000'
+ *         feature_name:
+ *           type: string
+ *           example: 'Traffic Flow'
+ *         dataset_id:
+ *           type: string
+ *           example: '123e4567-e89b-12d3-a456-426614174000'
+ *         geometry:
+ *           type: object
+ *           properties:
+ *             type:
+ *               type: string
+ *               example: 'Point'
+ *             coordinates:
+ *               type: array
+ *               items:
+ *                 type: number
+ *               example: [39.1234, 21.5678]
+ *         properties:
+ *           type: object
+ *           example:
+ *             speed: 45
+ *             congestion: 'low'
+ */
+
 // Feature model definition
 const Feature = sequelize.define(
   "Feature",
