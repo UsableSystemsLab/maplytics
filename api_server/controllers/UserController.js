@@ -1,4 +1,4 @@
-import { User } from "../models/index.js";
+import { User } from '../models/index.js';
 
 const UserController = {
   /**
@@ -34,7 +34,7 @@ const UserController = {
     } catch (error) {
       res
         .status(400)
-        .json({ message: "Error creating user", error: error.message });
+        .json({ message: 'Error creating user', error: error.message });
     }
   },
 
@@ -66,7 +66,7 @@ const UserController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching users", error: error.message });
+        .json({ message: 'Error fetching users', error: error.message });
     }
   },
 
@@ -102,12 +102,12 @@ const UserController = {
       if (user) {
         res.status(200).json(user);
       } else {
-        res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching user", error: error.message });
+        .json({ message: 'Error fetching user', error: error.message });
     }
   },
 
@@ -154,12 +154,12 @@ const UserController = {
         const updatedUser = await User.findByPk(req.params.id);
         res.status(200).json(updatedUser);
       } else {
-        res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
       res
         .status(400)
-        .json({ message: "Error updating user", error: error.message });
+        .json({ message: 'Error updating user', error: error.message });
     }
   },
 
@@ -191,14 +191,14 @@ const UserController = {
         where: { id: req.params.id },
       });
       if (deleted) {
-        res.status(204).send("User deleted");
+        res.status(204).send('User deleted');
       } else {
-        res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error deleting user", error: error.message });
+        .json({ message: 'Error deleting user', error: error.message });
     }
   },
 };

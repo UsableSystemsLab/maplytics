@@ -1,5 +1,5 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../configs/postgresDB.js";
+import { DataTypes } from 'sequelize';
+import { sequelize } from '../configs/postgresDB.js';
 
 /**
  * @swagger
@@ -23,38 +23,38 @@ import { sequelize } from "../configs/postgresDB.js";
  */
 
 const User = sequelize.define(
-  "User",
+  'User',
   {
     id: {
       type: DataTypes.STRING(255),
-      field: "user_id",
+      field: 'user_id',
       primaryKey: true,
       autoIncrement: true,
     },
     email: {
       type: DataTypes.STRING(255),
-      field: "email",
+      field: 'email',
       allowNull: false,
     },
     first_name: {
       type: DataTypes.STRING(255),
-      field: "first_name",
+      field: 'first_name',
       allowNull: true,
     },
-    middle_name:{
+    middle_name: {
       type: DataTypes.STRING(255),
-      field: "middle_name",
+      field: 'middle_name',
       allowNull: true,
     },
     last_name: {
       type: DataTypes.STRING(255),
-      field: "last_name",
+      field: 'last_name',
       allowNull: true,
-    }
+    },
   },
   {
-    tableName: "User",
-    schema: "public",
+    tableName: 'User',
+    schema: 'public',
     timestamps: false, //TODO: Enable timestamps after adding created_at and updated_at fields to the table
   },
 );

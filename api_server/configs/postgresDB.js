@@ -1,5 +1,5 @@
-import { Sequelize } from "sequelize";
-import logger from "./logger.js";
+import { Sequelize } from 'sequelize';
+import logger from './logger.js';
 
 const sequelize = new Sequelize(
   process.env.POSTGRES_DB,
@@ -7,16 +7,16 @@ const sequelize = new Sequelize(
   process.env.POSTGRES_PASSWORD,
   {
     host: process.env.POSTGRES_HOST,
-    dialect: "postgres",
+    dialect: 'postgres',
   },
 );
 
 const postgresDB = async () => {
   try {
     await sequelize.authenticate();
-    logger.info("Postgres db connection has been established successfully.");
+    logger.info('Postgres db connection has been established successfully.');
   } catch (error) {
-    logger.error("Unable to connect to postgres", error);
+    logger.error('Unable to connect to postgres', error);
   }
 };
 

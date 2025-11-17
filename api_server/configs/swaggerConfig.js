@@ -1,25 +1,25 @@
-import swaggerJSDoc from "swagger-jsdoc";
+import swaggerJSDoc from 'swagger-jsdoc';
 
 const options = {
   definition: {
-    openapi: "3.0.1",
+    openapi: '3.0.1',
     info: {
-      title: "Maplytics API",
-      version: "1.0.0",
-      description: "This is the API for the Maplytics project",
+      title: 'Maplytics API',
+      version: '1.0.0',
+      description: 'This is the API for the Maplytics project',
     },
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
         },
       },
     },
     servers: [
       {
-        url: "http://localhost:4000/api",
+        url: 'http://localhost:4000/api',
       },
     ],
     security: [
@@ -28,7 +28,7 @@ const options = {
       },
     ],
   },
-  apis: ["./routes/*.js", "./controllers/*.js", "./models/*.js"],
+  apis: ['./routes/*.js', './controllers/*.js', './models/*.js'],
 };
 
 const specs = swaggerJSDoc(options);
