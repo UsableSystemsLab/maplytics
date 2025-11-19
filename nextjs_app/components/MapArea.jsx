@@ -9,7 +9,6 @@ import {
     Layers,
     Maximize2,
     Minimize2,
-    ChevronDown,
     ChevronUp,
     MapPin,
     TrendingUp,
@@ -39,7 +38,7 @@ export default function MapArea() {
                 [-85, -180],
                 [85, 180],
             ],
-            maxBoundsViscosity: 1.0, // strong resistance at edges
+            maxBoundsViscosity: 1.0,
         }).setView([23.8859, 45.0792], 5);
         mapRef.current = map;
         L.tileLayer('https://api.maptiler.com/maps/streets-v4/256/{z}/{x}/{y}.png?key=RiFdBckUhPkjpd0WA65S', {
@@ -48,9 +47,10 @@ export default function MapArea() {
         }
         ).addTo(map);
     }, []);
+
     return (
         <div className="relative w-full h-full bg-gray-100">
-            <div className="fixed inset-0 z-0">
+            <div className="absolute inset-0 z-0">
                 <div id="map" className="h-full w-full" />
             </div>
 
@@ -93,7 +93,6 @@ export default function MapArea() {
                     )}
                 </div>
             </div>
-
 
             <div className="absolute right-6 top-24 z-30 flex flex-col gap-2">
                 <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
@@ -172,7 +171,7 @@ export default function MapArea() {
                 </button>
             </div>
 
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-4xl px-4 transition-all ease-in-out duration-700">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 w-[95%] max-w-4xl">
                 <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
                     <div
                         className="flex items-center justify-between px-6 py-4 bg-cyan cursor-pointer"
@@ -236,13 +235,10 @@ export default function MapArea() {
                                     Share
                                 </button>
                             </div>
-
                         </div>
                     </div>
-
                 </div>
             </div>
-
         </div>
     );
 }

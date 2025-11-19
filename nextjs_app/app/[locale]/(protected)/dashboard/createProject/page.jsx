@@ -3,6 +3,7 @@
 import { useState } from "react";
 import AddLayerModal from "@/components/AddLayerModal";
 import PromptForm from "@/components/PromptForm";
+import SideBar from '@/components/sidebar';
 
 export default function CreateProjectPage() {
     const [layerOn, setLayerOn] = useState(true);
@@ -37,13 +38,19 @@ export default function CreateProjectPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="min-h-screen bg-gray-50 flex">
+            <SideBar
+                name1="Create Project" href1="/dashboard"
+                name2="History" href2="/"
+                name3="Edit Project" href3="/" />
+
+            <div className="flex-1 flex flex-col items-center px-6 py-8">
+
                 <h1 className="text-2xl font-semibold text-gray-900 mb-8">
                     Create Project
                 </h1>
 
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-3xl">
                     <div className="p-6 border-b border-gray-100">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-gray-900">Layer</h2>

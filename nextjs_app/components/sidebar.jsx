@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
 
-export default function SideBar() {
+export default function SideBar(props) {
     const { user, loading } = useAuth();
     const [activeNav, setActiveNav] = useState("overview");
     const [layers, setLayers] = useState([
@@ -26,9 +26,9 @@ export default function SideBar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const navItems = [
-        { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-        { id: "map", label: "Map View", icon: Map, href: "/dashboard/map" },
-        { id: "analysis", label: "Analysis", icon: BarChart3, href: "/dashboard/analysis" },
+        { id: props.name1, label: props.name1, icon: LayoutDashboard, href: props.href1 },
+        { id: props.name2, label: props.name2, icon: Map, href: props.href2 },
+        { id: props.name3, label: props.name3, icon: BarChart3, href: props.href3 },
     ];
 
     const pageItems = [
@@ -48,7 +48,7 @@ export default function SideBar() {
     };
 
     return (
-        <nav className="flex flex-col h-screen w-80 bg-[#FAFAFA] border-r border-gray-200 shadow-sm z-20">
+        <nav className="flex flex-col h-screen w-80 bg-[#FAFAFA] border-r border-gray-200 shadow-sm">
             <div className="px-6 py-5 border-b border-gray-200 flex justify-center">
                 <Link href="/">
                     <img src="/logo.svg" alt="Maplytics Logo" className="w-48" />
