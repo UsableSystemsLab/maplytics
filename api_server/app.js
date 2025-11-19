@@ -12,7 +12,6 @@ const app = express();
 app.use(cors());
 //app.use(validateApiKey)
 app.use(json());
-app.use(errorHandling);
 const port = process.env.API_SERVER_PORT || 4000;
 
 // only requests to /api/* will be sent to our router
@@ -30,6 +29,7 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(swaggerConfigs, swaggerUiOptions),
 );
+app.use(errorHandling);
 
 // connect to the databases
 postgresDB()
