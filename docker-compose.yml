@@ -105,6 +105,8 @@ services:
       - ${NEXT_PUBLIC_PORT}:${NEXT_PUBLIC_PORT}
     volumes:
       - ./nextjs_app:/app
+      - /app/node_modules
+      - /app/.next
     depends_on:
       - db
       - api_server
