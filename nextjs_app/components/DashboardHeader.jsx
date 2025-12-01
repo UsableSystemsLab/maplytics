@@ -61,7 +61,7 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
                             ></div>
                             <div className="absolute top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
                                 {projects.map((project) => (
-                                    <Link href={project.path}>
+                                    <Link key={project.id} href={project.path}>
                                         <button
                                             key={project.id}
                                             onClick={() => {

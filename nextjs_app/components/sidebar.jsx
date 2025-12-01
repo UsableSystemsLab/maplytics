@@ -48,7 +48,7 @@ export default function SideBar(props) {
     };
 
     return (
-        <nav className="flex flex-col h-screen w-80 bg-[#FAFAFA] border-r border-gray-200 shadow-sm">
+        <nav className="flex flex-col h-[93vh] w-80 bg-[#FAFAFA] border-r border-gray-200 shadow-sm">
             <div className="px-6 py-5 border-b border-gray-200 flex justify-center">
                 <Link href="/">
                     <img src="/logo.svg" alt="Maplytics Logo" className="w-48" />

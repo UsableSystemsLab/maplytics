@@ -4,11 +4,11 @@ import SideBar from '@/components/sidebar';
 
 export default function DashboardPage() {
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-[93vh] bg-gray-50 flex">
             <SideBar
                 name1="Overview" href1="/dashboard"
                 name2="Map view" href2="/dashboard/map"
-                name3="Analysis" href3="/dashboard/analysis"
+                name3="Comparison" href3="/dashboard/visualizeDataset"
             />
 
             <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
