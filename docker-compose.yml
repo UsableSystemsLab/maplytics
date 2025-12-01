@@ -11,7 +11,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PORT=${POSTGRES_PORT}
     ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+      - ${POSTGRES_PORT}:5432
     restart: unless-stopped
     volumes:
       - pg_data:/var/lib/postgresql/data
@@ -19,7 +19,7 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 120s
       timeout: 5s
       retries: 3
@@ -56,15 +56,12 @@ services:
     build:
       context: api_server
       dockerfile: Dockerfile
-      args:
-        PORT: ${API_SERVER_PORT}
     image: api_server_image
     container_name: api_server_container
     ports:
-      - ${API_SERVER_PORT}:${API_SERVER_PORT}
+      - ${API_SERVER_PORT}:4000
     volumes:
       - ./api_server:/app
-      - /app/node_modules
     depends_on:
       - db
     networks:
@@ -108,7 +105,6 @@ services:
       - ${NEXT_PUBLIC_PORT}:${NEXT_PUBLIC_PORT}
     volumes:
       - ./nextjs_app:/app
-      - /app/node_modules
     depends_on:
       - db
       - api_server
