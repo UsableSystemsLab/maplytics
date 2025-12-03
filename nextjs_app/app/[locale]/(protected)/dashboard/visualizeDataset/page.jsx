@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
+import { Button } from '@/components/ui/button';
 import {
     Chart as ChartJS,
     BarElement,
@@ -10,6 +11,7 @@ import {
     Tooltip,
     Legend,
 } from "chart.js";
+import Link from "next/link";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -33,6 +35,9 @@ export default function VisualizeDatasetPage() {
 
     return (
         <div className="p-8 space-y-10 min-h-screen">
+            <Link href="/dashboard">
+                <Button className="text-3xl flex items-center pb-3.5 mb-1.5">&larr;</Button>
+            </Link>
 
             <h1 className="text-3xl font-bold">Restaurant Dataset Visualization</h1>
 

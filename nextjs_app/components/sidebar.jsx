@@ -10,7 +10,6 @@ import {
     Users,
     Settings,
     Plus,
-    GripVertical,
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
 
@@ -22,17 +21,60 @@ export default function SideBar(props) {
         { id: 2, name: "Road Network", visible: true },
         { id: 3, name: "Land Usage", visible: false },
     ]);
-    const [draggedItem, setDraggedItem] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const navItems = [
-        { id: props.name1, label: props.name1, icon: LayoutDashboard, href: props.href1 },
-        { id: props.name2, label: props.name2, icon: Map, href: props.href2 },
-        { id: props.name3, label: props.name3, icon: BarChart3, href: props.href3 },
-    ];
+    // Build navItems array from props
+    const navItems = [];
 
+    // Check for old-style props (name1, href1, etc.)
+    if (props.name1) {
+        navItems.push({
+            id: props.name1.toLowerCase().replace(/\s+/g, '-'),
+            label: props.name1,
+            icon: props.icon1 || LayoutDashboard,
+            href: props.href1
+        });
+    }
+    if (props.name2) {
+        navItems.push({
+            id: props.name2.toLowerCase().replace(/\s+/g, '-'),
+            label: props.name2,
+            icon: props.icon2 || Map,
+            href: props.href2
+        });
+    }
+    if (props.name3) {
+        navItems.push({
+            id: props.name3.toLowerCase().replace(/\s+/g, '-'),
+            label: props.name3,
+            icon: props.icon3 || BarChart3,
+            href: props.href3
+        });
+    }
+    if (props.name4) {
+        navItems.push({
+            id: props.name4.toLowerCase().replace(/\s+/g, '-'),
+            label: props.name4,
+            icon: props.icon4 || LayoutDashboard,
+            href: props.href4
+        });
+    }
+    if (props.name5) {
+        navItems.push({
+            id: props.name5.toLowerCase().replace(/\s+/g, '-'),
+            label: props.name5,
+            icon: props.icon5 || LayoutDashboard,
+            href: props.href5
+        });
+    }
+
+    // If navItems prop exists (new style), use it instead
+    const finalNavItems = props.navItems || navItems;
+
+    // Static page items
     const pageItems = [
         { id: "account", label: "Account", icon: User, href: "/account" },
+        { id: "History", label: "History", icon: Map, href: "/dashboard/createProject" },
         { id: "team", label: "Team", icon: Users, href: "/team" },
         { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
     ];
@@ -57,29 +99,31 @@ export default function SideBar(props) {
 
             <div className="flex-1 overflow-y-auto px-4 py-6">
                 <div className="space-y-6">
-                    <div className="space-y-1">
-                        {navItems.map((item) => {
-                            const Icon = item.icon;
-                            const isActive = activeNav === item.id;
-                            return (
-                                <Link
-                                    key={item.id}
-                                    href={item.href}
-                                    onClick={() => setActiveNav(item.id)}
-                                >
-                                    <button
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                            ? "bg-primary text-white shadow-md"
-                                            : "text-gray-700 hover:bg-gray-100"
-                                            }`}
+                    {finalNavItems.length > 0 && (
+                        <div className="space-y-1">
+                            {finalNavItems.map((item) => {
+                                const Icon = item.icon;
+                                const isActive = activeNav === item.id;
+                                return (
+                                    <Link
+                                        key={item.id}
+                                        href={item.href}
+                                        onClick={() => setActiveNav(item.id)}
                                     >
-                                        <Icon className="w-5 h-5" />
-                                        <span className="font-medium">{item.label}</span>
-                                    </button>
-                                </Link>
-                            );
-                        })}
-                    </div>
+                                        <button
+                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
+                                                ? "bg-primary text-white shadow-md"
+                                                : "text-gray-700 hover:bg-gray-100"
+                                                }`}
+                                        >
+                                            <Icon className="w-5 h-5" />
+                                            <span className="font-medium">{item.label}</span>
+                                        </button>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     <div className="border-t border-gray-300"></div>
 
@@ -121,7 +165,7 @@ export default function SideBar(props) {
                         </button>
 
                         <div className="space-y-2">
-                            {layers.map((layer, index) => (
+                            {layers.map((layer) => (
                                 <div
                                     key={layer.id}
                                     className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-200`}
@@ -139,14 +183,14 @@ export default function SideBar(props) {
             <div className="px-4 py-4 border-t border-gray-200 bg-white">
                 <div className="flex items-center gap-3 px-3 py-2 transition-colors cursor-pointer">
                     <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-earthy-green flex items-center justify-center text-white font-semibold">
-                        {/*Here inside the circle, it should be the first letter of the user but for now i will only use "U"*/"U"}
+                        {user?.name?.[0]?.toUpperCase() || "U"}
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
-                            {/*here should be the username*/"User"}
+                            {user?.name || "User"}
                         </p>
                         <p className="text-xs text-gray-500 truncate">
-                            {/*here sholud be the email*/"user@example.com"}
+                            {user?.email || "user@example.com"}
                         </p>
                     </div>
                 </div>
@@ -159,4 +203,4 @@ export default function SideBar(props) {
             />
         </nav>
     );
-} 
+}
