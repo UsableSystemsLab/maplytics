@@ -2,6 +2,11 @@
 
 
 -- =================================================================================================
+INSERT INTO public."User" (user_id, email, first_name, last_name, role)
+VALUES ('00000000-0000-0000-0000-000000000000', 'system@maplytics.com', 'System', 'User', 'Admin')
+ON CONFLICT (user_id) DO NOTHING;
+
+-- =================================================================================================
 -- Insert sample users
 
 INSERT INTO public."User" (email, first_name, last_name, role)
