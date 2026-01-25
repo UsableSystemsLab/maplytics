@@ -1,4 +1,5 @@
 import UserRoutes from './UserRoutes.js';
+import DatasetRoutes from './DatasetRoutes.js';
 
 const apiRoutes = (router) => {
   /**
@@ -26,6 +27,7 @@ const apiRoutes = (router) => {
     res.status(200).json({ status: 'Healthy' });
   });
   router.use('/users', UserRoutes);
+  router.use('/datasets', DatasetRoutes);
   // Middleware to catch 404 errors
   router.use((req, res) => {
     console.log(`404 Not Found: ${req.url}`);
