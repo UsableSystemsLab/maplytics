@@ -10,9 +10,10 @@ import {
     Users,
     Settings,
     Plus,
-    GripVertical,
+    Loader2,
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
+import { ingestDatasetFromFile } from "@/lib/datasetApi";
 
 export default function SideBar(props) {
     const { user, loading } = useAuth();
@@ -24,6 +25,8 @@ export default function SideBar(props) {
     ]);
     const [draggedItem, setDraggedItem] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
 
     const navItems = [
         { id: props.name1, label: props.name1, icon: LayoutDashboard, href: props.href1 },
@@ -37,14 +40,56 @@ export default function SideBar(props) {
         { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
     ];
 
-    const handleSaveLayer = (layerData) => {
-        const newLayer = {
-            id: layers.length + 1,
-            name: layerData.name,
-            type: layerData.layerType,
-            source: layerData.dataSource
-        };
-        setLayers([...layers, newLayer]);
+    const handleSaveLayer = async (layerData, forceOverride = false) => {
+        if (layerData.file) {
+            setIsUploading(true);
+            setUploadError(null);
+
+            try {
+                const result = await ingestDatasetFromFile(
+                    layerData.file,
+                    layerData.name,
+                    layerData.layerType === 'point' ? 'generic' : layerData.layerType,
+                    forceOverride
+                );
+
+                const newLayer = {
+                    id: result.dataset_id,
+                    name: layerData.name,
+                    type: layerData.layerType,
+                    source: layerData.dataSource,
+                    featureCount: result.feature_count,
+                    visible: true
+                };
+                setLayers([...layers, newLayer]);
+            } catch (error) {
+                console.error('Failed to upload dataset:', error);
+
+                if (error.isConflict) {
+                    const confirmReplace = window.confirm(
+                        `A dataset named "${layerData.name}" already exists.\n\n` +
+                        `Do you want to replace it with the new data?`
+                    );
+
+                    if (confirmReplace) {
+                        handleSaveLayer(layerData, true);
+                        return;
+                    }
+                }
+                setUploadError(error.message);
+            } finally {
+                setIsUploading(false);
+            }
+        } else {
+            const newLayer = {
+                id: layers.length + 1,
+                name: layerData.name,
+                type: layerData.layerType,
+                source: layerData.dataSource,
+                visible: true
+            };
+            setLayers([...layers, newLayer]);
+        }
     };
 
     return (
@@ -114,11 +159,27 @@ export default function SideBar(props) {
 
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg transition-all duration-200 shadow-sm font-medium"
+                            disabled={isUploading}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg transition-all duration-200 shadow-sm font-medium disabled:opacity-50"
                         >
-                            <Plus className="w-4 h-4" />
-                            Add Layer
+                            {isUploading ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="w-4 h-4" />
+                                    Add Layer
+                                </>
+                            )}
                         </button>
+
+                        {uploadError && (
+                            <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-xs text-red-600">{uploadError}</p>
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             {layers.map((layer, index) => (
@@ -129,6 +190,11 @@ export default function SideBar(props) {
                                     <span className="text-sm font-medium text-gray-700 truncate">
                                         {layer.name}
                                     </span>
+                                    {layer.featureCount && (
+                                        <span className="text-xs text-gray-500 ml-2">
+                                            ({layer.featureCount} features)
+                                        </span>
+                                    )}
                                 </div>
                             ))}
                         </div>
