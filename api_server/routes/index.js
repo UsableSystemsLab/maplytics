@@ -1,4 +1,5 @@
 import UserRoutes from './UserRoutes.js';
+import uploadRoutes from './upload.routes.js';
 
 const apiRoutes = (router) => {
   /**
@@ -21,15 +22,18 @@ const apiRoutes = (router) => {
    *                   type: string
    *                   example: Healthy
    */
-
   router.get('/health', (req, res) => {
     res.status(200).json({ status: 'Healthy' });
   });
+
   router.use('/users', UserRoutes);
+  router.use('/upload', uploadRoutes);
+
   // Middleware to catch 404 errors
   router.use((req, res) => {
     console.log(`404 Not Found: ${req.url}`);
     res.status(404).json({ error: 'Not Found' });
   });
 };
+
 export default apiRoutes;
