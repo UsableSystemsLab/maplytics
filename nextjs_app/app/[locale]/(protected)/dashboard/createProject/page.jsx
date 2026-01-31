@@ -42,7 +42,9 @@ export default function CreateProjectPage() {
             <SideBar
                 name1="Create Project" href1="/dashboard"
                 name2="History" href2="/"
-                name3="Edit Project" href3="/" />
+                name3="Edit Project" href3="/"
+                name4="Public Dataset" href4="/dashboard/public-dataset"
+            />
 
             <div className="flex-1 flex flex-col items-center px-6 py-8">
 

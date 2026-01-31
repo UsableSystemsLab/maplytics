@@ -11,6 +11,7 @@ import {
     Settings,
     Plus,
     GripVertical,
+    Database,
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
 
@@ -29,6 +30,7 @@ export default function SideBar(props) {
         { id: props.name1, label: props.name1, icon: LayoutDashboard, href: props.href1 },
         { id: props.name2, label: props.name2, icon: Map, href: props.href2 },
         { id: props.name3, label: props.name3, icon: BarChart3, href: props.href3 },
+        ...(props.name4 ? [{ id: props.name4, label: props.name4, icon: Database, href: props.href4 }] : []),
     ];
 
     const pageItems = [

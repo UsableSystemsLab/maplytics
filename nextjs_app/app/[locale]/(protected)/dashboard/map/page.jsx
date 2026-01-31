@@ -9,6 +9,7 @@ export default function MapViewPage() {
                 name1="Overview" href1="/dashboard"
                 name2="Map view" href2="/dashboard/map"
                 name3="Analysis" href3="/dashboard/analysis"
+                name4="Public Dataset" href4="/dashboard/public-dataset"
             />
             <main className="flex-1 relative overflow-hidden">
                 <MapArea />
