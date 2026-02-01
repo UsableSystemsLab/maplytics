@@ -1,9 +1,13 @@
 import express from 'express';
-import upload from '../middlewares/upload.middleware.js';
-import { uploadFile } from '../controllers/upload.controller.js';
+import { uploadPublic, uploadPrivate } from '../middlewares/upload.middleware.js';
+import { uploadPublicFile, uploadPrivateFile } from '../controllers/upload.controller.js';
 
 const router = express.Router();
 
-router.post('/', upload.single('file'), uploadFile);
+// POST /api/upload/public
+router.post('/public', uploadPublic.single('file'), uploadPublicFile);
+
+// POST /api/upload/private
+router.post('/private', uploadPrivate.single('file'), uploadPrivateFile);
 
 export default router;

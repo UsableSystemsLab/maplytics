@@ -21,9 +21,16 @@ app.use(json());
 const port = process.env.API_SERVER_PORT || 4000;
 
 /* ------------------ SERVE UPLOADED FILES ------------------ */
+// Serve public datasets (should be accessible to everyone, no auth needed. But need to add admin/dev role so only devs can upload to public folder and general users should only view them)
 app.use(
-  '/files',
-  express.static(path.join(__dirname, '../dataset/uploads'))
+  '/files/public',
+  express.static('/datasets/public')
+);
+
+// Serve private datasets (you can add auth middleware here later)
+app.use(
+  '/files/private',
+  express.static('/datasets/private')
 );
 /* --------------------------------------------------------- */
 
