@@ -1,34 +1,47 @@
 import multer from 'multer';
 import fs from 'fs';
 
-const createStorage = (destinationPath) => {
-  if (!fs.existsSync(destinationPath)) {
-    fs.mkdirSync(destinationPath, { recursive: true });
-  }
-
-  return multer.diskStorage({
+// Public dataset upload - organized by user ID
+export const uploadPublic = multer({
+  storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, destinationPath);
+      const userId = req.userId;
+      const userFolder = `/datasets/public/${userId}`;
+
+      if (!fs.existsSync(userFolder)) {
+        fs.mkdirSync(userFolder, { recursive: true });
+      }
+
+      cb(null, userFolder);
     },
     filename: (req, file, cb) => {
       const uniqueName = `${Date.now()}-${file.originalname}`;
       cb(null, uniqueName);
     },
-  });
-};
-
-// Public dataset upload (for developers/admins)
-export const uploadPublic = multer({
-  storage: createStorage('/datasets/public'),
+  }),
   limits: {
-    fileSize: 1000 * 1024 * 1024,
+    fileSize: 100 * 1024 * 1024, // 100MB
   },
 });
 
-// Private dataset upload (for users)
+// Private dataset upload - will be organized by project ID later
 export const uploadPrivate = multer({
-  storage: createStorage('/datasets/private'),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const privateFolder = '/datasets/private';
+
+      if (!fs.existsSync(privateFolder)) {
+        fs.mkdirSync(privateFolder, { recursive: true });
+      }
+
+      cb(null, privateFolder);
+    },
+    filename: (req, file, cb) => {
+      const uniqueName = `${Date.now()}-${file.originalname}`;
+      cb(null, uniqueName);
+    },
+  }),
   limits: {
-    fileSize: 500 * 1024 * 1024,
+    fileSize: 500 * 1024 * 1024, // 500MB
   },
 });

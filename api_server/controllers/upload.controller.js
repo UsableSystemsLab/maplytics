@@ -10,11 +10,11 @@ export const uploadPublicFile = (req, res) => {
         success: true,
         message: 'Public dataset uploaded successfully',
         type: 'public',
+        userId: req.userId,
         filename: req.file.filename,
         originalName: req.file.originalname,
         size: req.file.size,
-        path: `/datasets/public/${req.file.filename}`,
-        url: `/files/public/${req.file.filename}`,
+        url: `/files/public/${req.userId}/${req.file.filename}`,
     });
 };
 
@@ -33,7 +33,6 @@ export const uploadPrivateFile = (req, res) => {
         filename: req.file.filename,
         originalName: req.file.originalname,
         size: req.file.size,
-        path: `/datasets/private/${req.file.filename}`,
         url: `/files/private/${req.file.filename}`,
     });
 };
