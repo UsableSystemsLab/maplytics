@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import { X, Upload, Layers, MapPin, Square, Flame, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function AddLayerModal({ isOpen, onClose, onSave, initialData = null }) {
+export default function AddLayerModal({ isOpen, onClose, onSave, initialData = null, projectId = null }) {
     const { user } = useAuth();
     const [formData, setFormData] = useState({
         name: "",
         dataSource: "",
         sourceType: "upload",
         layerType: "point",
+        isPrivate: false,
         file: null
     });
 
@@ -26,6 +27,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                 dataSource: "",
                 sourceType: "upload",
                 layerType: "point",
+                isPrivate: false,
                 file: null
             });
         }
@@ -71,15 +73,26 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
         }
     };
 
-    const uploadFileToBackend = async (file) => {
+    const uploadFileToBackend = async (file, isPrivate, layerName) => {
         if (!user) {
             throw new Error('User not authenticated');
         }
 
         const formDataToSend = new FormData();
         formDataToSend.append('file', file);
-        console.log(`${process.env.NEXT_PUBLIC_API_SERVER_KEY}`)
-        const response = await fetch(`http://localhost:4000/api/upload/public`, {
+        if (layerName) {
+            formDataToSend.append('name', layerName);
+        }
+
+        let endpoint = `http://localhost:4000/api/upload/public`;
+        if (isPrivate) {
+            if (!projectId) {
+                throw new Error('Project ID is required for private uploads');
+            }
+            endpoint = `http://localhost:4000/api/upload/private?projectId=${projectId}`;
+        }
+
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'X-User-Id': user.uid,
@@ -106,7 +119,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
             // If source type is upload and we have a file, upload it first
             if (formData.sourceType === "upload" && formData.file) {
                 setUploading(true);
-                const uploadResult = await uploadFileToBackend(formData.file);
+                const uploadResult = await uploadFileToBackend(formData.file, formData.isPrivate, formData.name);
 
                 // Update form data with the uploaded file URL
                 finalFormData.dataSource = uploadResult.url;
@@ -256,6 +269,36 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                                 />
                             )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Privacy <span className="text-red-500">*</span>
+                            </label>
+                            <div className="flex gap-3 mb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => handleChange("isPrivate", false)}
+                                    disabled={uploading}
+                                    className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-all disabled:opacity-50 ${!formData.isPrivate
+                                        ? "bg-primary text-white shadow-md"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                        }`}
+                                >
+                                    Public Dataset
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleChange("isPrivate", true)}
+                                    disabled={uploading}
+                                    className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-all disabled:opacity-50 ${formData.isPrivate
+                                        ? "bg-primary text-white shadow-md"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                        }`}
+                                >
+                                    Private Dataset
+                                </button>
+                            </div>
                         </div>
 
                         <div>

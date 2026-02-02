@@ -1,7 +1,7 @@
 "use client";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     LayoutDashboard,
     Map,
@@ -16,12 +16,9 @@ import AddLayerModal from "./AddLayerModal";
 export default function SideBar(props) {
     const { user, loading } = useAuth();
     const [activeNav, setActiveNav] = useState("overview");
-    const [layers, setLayers] = useState([
-        { id: 1, name: "Population Density", visible: true },
-        { id: 2, name: "Road Network", visible: true },
-        { id: 3, name: "Land Usage", visible: false },
-    ]);
+    const [layers, setLayers] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentProjectId, setCurrentProjectId] = useState(null);
 
     // Build navItems array from props
     const navItems = [];
@@ -79,14 +76,81 @@ export default function SideBar(props) {
         { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
     ];
 
+    const fetchProjectDatasets = async (projectId) => {
+        if (!projectId || !user) return;
+        try {
+            const response = await fetch(`http://localhost:4000/api/projects/${projectId}/datasets`, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
+                    'X-User-Id': user.uid
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setLayers(data);
+            } else {
+                setLayers([]);
+            }
+        } catch (error) {
+            console.error("Error fetching datasets:", error);
+            setLayers([]);
+        }
+    };
+
     const handleSaveLayer = (layerData) => {
+        // Optimistically add the new layer
         const newLayer = {
-            id: layers.length + 1,
+            id: `temp-${Date.now()}`,
             name: layerData.name,
             type: layerData.layerType,
-            source: layerData.dataSource
         };
-        setLayers([...layers, newLayer]);
+        setLayers(prev => [...prev, newLayer]);
+
+        // Refetch to confirm
+        if (currentProjectId) {
+            setTimeout(() => fetchProjectDatasets(currentProjectId), 1000);
+        }
+    };
+
+    // Update current project ID when modal opens or component mounts
+    const updateCurrentProject = () => {
+        const savedProject = localStorage.getItem('current_project');
+        if (savedProject) {
+            try {
+                const parsed = JSON.parse(savedProject);
+                setCurrentProjectId(parsed.id);
+                fetchProjectDatasets(parsed.id);
+            } catch (e) {
+                console.error("Error parsing current_project", e);
+                setLayers([]);
+            }
+        } else {
+            setCurrentProjectId(null);
+            setLayers([]);
+        }
+    };
+
+    // Listen for storage events to keep project in sync
+    useEffect(() => {
+        updateCurrentProject();
+
+        const handleStorageChange = () => {
+            updateCurrentProject();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        // Custom event for same-window updates
+        window.addEventListener('projectChanged', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('projectChanged', handleStorageChange);
+        };
+    }, [user]);
+
+    const handleOpenModal = () => {
+        updateCurrentProject();
+        setIsModalOpen(true);
     };
 
     return (
@@ -157,7 +221,7 @@ export default function SideBar(props) {
                         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Layers</h3>
 
                         <button
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={handleOpenModal}
                             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg transition-all duration-200 shadow-sm font-medium"
                         >
                             <Plus className="w-4 h-4" />
@@ -165,16 +229,22 @@ export default function SideBar(props) {
                         </button>
 
                         <div className="space-y-2">
-                            {layers.map((layer) => (
-                                <div
-                                    key={layer.id}
-                                    className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-200`}
-                                >
-                                    <span className="text-sm font-medium text-gray-700 truncate">
-                                        {layer.name}
-                                    </span>
+                            {layers.length > 0 ? (
+                                layers.map((layer) => (
+                                    <div
+                                        key={layer.id}
+                                        className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-200`}
+                                    >
+                                        <span className="text-sm font-medium text-gray-700 truncate">
+                                            {layer.name}
+                                        </span>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-4 text-xs text-gray-400">
+                                    {currentProjectId ? "No layers found" : "Select a project"}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 </div>
@@ -200,6 +270,7 @@ export default function SideBar(props) {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSaveLayer}
+                projectId={currentProjectId}
             />
         </nav>
     );

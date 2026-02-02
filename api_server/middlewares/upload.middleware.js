@@ -28,7 +28,13 @@ export const uploadPublic = multer({
 export const uploadPrivate = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      const privateFolder = '/datasets/private';
+      const projectId = req.query.projectId;
+
+      if (!projectId) {
+        return cb(new Error('Project ID is required for private uploads'));
+      }
+
+      const privateFolder = `/datasets/private/${projectId}`;
 
       if (!fs.existsSync(privateFolder)) {
         fs.mkdirSync(privateFolder, { recursive: true });
