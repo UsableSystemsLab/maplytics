@@ -10,6 +10,7 @@ import {
     Users,
     Settings,
     Plus,
+    Trash2,
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
 
@@ -98,7 +99,6 @@ export default function SideBar(props) {
     };
 
     const handleSaveLayer = (layerData) => {
-        // Optimistically add the new layer
         const newLayer = {
             id: `temp-${Date.now()}`,
             name: layerData.name,
@@ -106,13 +106,38 @@ export default function SideBar(props) {
         };
         setLayers(prev => [...prev, newLayer]);
 
-        // Refetch to confirm
         if (currentProjectId) {
             setTimeout(() => fetchProjectDatasets(currentProjectId), 1000);
         }
     };
 
-    // Update current project ID when modal opens or component mounts
+    const handleDeleteLayer = async (e, layerId) => {
+        e.stopPropagation();
+        if (!confirm("Are you sure you want to delete this dataset?")) return;
+
+        if (!currentProjectId || !user) return;
+
+        try {
+            const response = await fetch(`http://localhost:4000/api/projects/${currentProjectId}/datasets/${layerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
+                    'X-User-Id': user.uid
+                }
+            });
+
+            if (response.ok) {
+                setLayers(prev => prev.filter(l => l.id !== layerId));
+            } else {
+                console.error("Failed to delete dataset");
+                alert("Failed to delete dataset");
+            }
+        } catch (error) {
+            console.error("Error deleting dataset:", error);
+            alert("Error deleting dataset");
+        }
+    };
+
     const updateCurrentProject = () => {
         const savedProject = localStorage.getItem('current_project');
         if (savedProject) {
@@ -130,7 +155,6 @@ export default function SideBar(props) {
         }
     };
 
-    // Listen for storage events to keep project in sync
     useEffect(() => {
         updateCurrentProject();
 
@@ -139,7 +163,6 @@ export default function SideBar(props) {
         };
 
         window.addEventListener('storage', handleStorageChange);
-        // Custom event for same-window updates
         window.addEventListener('projectChanged', handleStorageChange);
 
         return () => {
@@ -233,11 +256,18 @@ export default function SideBar(props) {
                                 layers.map((layer) => (
                                     <div
                                         key={layer.id}
-                                        className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-200`}
+                                        className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-200 flex items-center justify-between group`}
                                     >
-                                        <span className="text-sm font-medium text-gray-700 truncate">
+                                        <span className="text-sm font-medium text-gray-700 truncate flex-1">
                                             {layer.name}
                                         </span>
+                                        <button
+                                            onClick={(e) => handleDeleteLayer(e, layer.id)}
+                                            className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                            title="Delete dataset"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 ))
                             ) : (

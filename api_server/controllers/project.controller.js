@@ -22,6 +22,8 @@ const writeProjects = (projects) => {
     fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2));
 };
 
+const getProjectIndex = (projects, id) => projects.findIndex(p => p.id === id);
+
 export const getProjects = (req, res) => {
     const userId = req.headers['x-user-id'];
     if (!userId) {
@@ -163,4 +165,62 @@ export const getProjectDatasets = (req, res) => {
     const allDatasets = [...metaDatasets, ...orphanDiskItems];
 
     res.status(200).json(allDatasets);
+};
+
+export const deleteDataset = (req, res) => {
+    const { id, datasetId } = req.params;
+    const userId = req.headers['x-user-id'];
+
+    if (!userId) {
+        return res.status(401).json({ error: 'User ID required' });
+    }
+
+    let projects = readProjects();
+    const projectIndex = projects.findIndex(p => p.id === id);
+
+    if (projectIndex === -1) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Verify ownership
+    if (projects[projectIndex].userId !== userId) {
+        return res.status(403).json({ error: 'Not authorized to modify this project' });
+    }
+
+    const project = projects[projectIndex];
+    if (!project.datasets) {
+        return res.status(404).json({ error: 'Dataset not found' });
+    }
+
+    const datasetIndex = project.datasets.findIndex(d => d.id === datasetId);
+
+    if (datasetIndex === -1) {
+        return res.status(404).json({ error: 'Dataset not found' });
+    }
+
+    const dataset = project.datasets[datasetIndex];
+
+    // Delete file from disk
+    // datasets on disk are stored at /datasets/private/:projectId/:filename
+    const filePath = path.join('/datasets/private', id, dataset.filename);
+
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        } else {
+            console.warn(`File not found at ${filePath}, only deleting metadata`);
+        }
+    } catch (err) {
+        console.error("Error deleting file from disk:", err);
+        return res.status(500).json({ error: 'Failed to delete file from disk' });
+    }
+
+    // Remove from metadata
+    project.datasets.splice(datasetIndex, 1);
+
+    // Update project
+    projects[projectIndex] = project;
+    writeProjects(projects);
+
+    res.status(200).json({ message: 'Dataset deleted successfully' });
 };
