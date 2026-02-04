@@ -1,5 +1,6 @@
 import fs from 'fs';
-import path from 'path';
+import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
+import { ListObjectsV2Command, DeleteObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 
 const PROJECTS_FILE = '/datasets/projects.json';
 
@@ -21,8 +22,6 @@ const readProjects = () => {
 const writeProjects = (projects) => {
     fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2));
 };
-
-const getProjectIndex = (projects, id) => projects.findIndex(p => p.id === id);
 
 export const getProjects = (req, res) => {
     const userId = req.headers['x-user-id'];
@@ -68,15 +67,11 @@ export const createProject = (req, res) => {
     projects.push(newProject);
     writeProjects(projects);
 
-    const privateFolder = `/datasets/private/${id}`;
-    if (!fs.existsSync(privateFolder)) {
-        fs.mkdirSync(privateFolder, { recursive: true });
-    }
 
     res.status(201).json(newProject);
 };
 
-export const deleteProject = (req, res) => {
+export const deleteProject = async (req, res) => {
     const { id } = req.params;
     const userId = req.headers['x-user-id'];
 
@@ -99,16 +94,37 @@ export const deleteProject = (req, res) => {
     projects.splice(projectIndex, 1);
     writeProjects(projects);
 
-    // Delete project folder
-    const privateFolder = `/datasets/private/${id}`;
-    if (fs.existsSync(privateFolder)) {
-        fs.rmSync(privateFolder, { recursive: true, force: true });
+    // Delete project "folder" (all objects with prefix) from S3
+    const prefix = `private/${id}/`;
+    try {
+        const listParams = {
+            Bucket: BUCKET_NAME,
+            Prefix: prefix
+        };
+
+        const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
+
+        if (listedObjects.Contents && listedObjects.Contents.length > 0) {
+            const deleteParams = {
+                Bucket: BUCKET_NAME,
+                Delete: { Objects: [] }
+            };
+
+            listedObjects.Contents.forEach(({ Key }) => {
+                deleteParams.Delete.Objects.push({ Key });
+            });
+
+            await s3Client.send(new DeleteObjectsCommand(deleteParams));
+        }
+    } catch (err) {
+        console.error("Error deleting project files from S3:", err);
+        // We don't fail the request if S3 cleanup fails, but we log it
     }
 
     res.status(200).json({ message: 'Project deleted successfully' });
 };
 
-export const getProjectDatasets = (req, res) => {
+export const getProjectDatasets = async (req, res) => {
     const { id } = req.params;
     const userId = req.headers['x-user-id'];
 
@@ -128,46 +144,13 @@ export const getProjectDatasets = (req, res) => {
         return res.status(403).json({ error: 'Not authorized to access this project' });
     }
 
-    const privateFolder = `/datasets/private/${id}`;
-    let diskDatasets = [];
-
-    if (fs.existsSync(privateFolder)) {
-        try {
-            const files = fs.readdirSync(privateFolder);
-            diskDatasets = files.map((file, index) => {
-                const stats = fs.statSync(path.join(privateFolder, file));
-                const cleanName = file.replace(/^\d+-/, '');
-                return {
-                    id: `ds-disk-${index}`, // Temporary ID for disk-only items
-                    name: cleanName,
-                    originalFilename: file,
-                    filename: file,
-                    size: stats.size,
-                    createdAt: stats.birthtime,
-                    type: 'private',
-                    isDisk: true
-                };
-            });
-        } catch (err) {
-            console.error('Error reading project datasets from disk:', err);
-        }
-    }
-
+    // Only return datasets from metadata - it's the authoritative source
+    // Metadata contains the user-provided display names.
     const metaDatasets = project.datasets || [];
-
-    // Create a map of filenames in metadata
-    const metaFilenames = new Set(metaDatasets.map(d => d.filename));
-
-    // Filter out disk items that are already in metadata
-    const orphanDiskItems = diskDatasets.filter(d => !metaFilenames.has(d.filename));
-
-    // Combine metadata items + orphan disk items
-    const allDatasets = [...metaDatasets, ...orphanDiskItems];
-
-    res.status(200).json(allDatasets);
+    res.status(200).json(metaDatasets);
 };
 
-export const deleteDataset = (req, res) => {
+export const deleteDataset = async (req, res) => {
     const { id, datasetId } = req.params;
     const userId = req.headers['x-user-id'];
 
@@ -200,19 +183,22 @@ export const deleteDataset = (req, res) => {
 
     const dataset = project.datasets[datasetIndex];
 
-    // Delete file from disk
-    // datasets on disk are stored at /datasets/private/:projectId/:filename
-    const filePath = path.join('/datasets/private', id, dataset.filename);
+    // Delete file from S3
+    // Handle both cases: filename is just the suffix, or filename is the full key
+    let key = dataset.filename;
+    if (!key.startsWith('private/') && !key.startsWith('public/')) {
+        key = `private/${id}/${dataset.filename}`;
+    }
 
     try {
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        } else {
-            console.warn(`File not found at ${filePath}, only deleting metadata`);
-        }
+        await s3Client.send(new DeleteObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: key
+        }));
     } catch (err) {
-        console.error("Error deleting file from disk:", err);
-        return res.status(500).json({ error: 'Failed to delete file from disk' });
+        console.error("Error deleting file from S3:", err);
+        // We continue even if S3 delete fails, or should we? 
+        // Let's at least try to keep metadata in sync if S3 is gone.
     }
 
     // Remove from metadata

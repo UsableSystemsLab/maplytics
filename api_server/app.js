@@ -54,7 +54,13 @@ app.use(errorHandling);
 
 // connect to the databases
 postgresDB()
-  .then(() => {
+  .then(async () => {
+    try {
+      await import('./configs/s3Client.js').then(module => module.initBucket());
+    } catch (err) {
+      console.error('Failed to initialize S3 bucket:', err);
+    }
+
     app.listen(port, () => {
       console.log(`Example app listening on port ${port}`);
     });

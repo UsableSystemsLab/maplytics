@@ -6,15 +6,19 @@ export const uploadPublicFile = (req, res) => {
         });
     }
 
+    // Adapt for S3 or local storage
+    const filename = req.file.key || req.file.filename;
+    const location = req.file.location || `/files/public/${req.userId}/${filename}`;
+
     res.status(201).json({
         success: true,
         message: 'Public dataset uploaded successfully',
         type: 'public',
         userId: req.userId,
-        filename: req.file.filename,
+        filename: filename,
         originalName: req.file.originalname,
         size: req.file.size,
-        url: `/files/public/${req.userId}/${req.file.filename}`,
+        url: location,
     });
 };
 
@@ -46,6 +50,15 @@ export const uploadPrivateFile = (req, res) => {
     const projectId = req.query.projectId;
     const displayName = req.body.name || req.file.originalname;
 
+    // Adapt for S3 or local storage
+    const filename = req.file.key || req.file.filename;
+    const s3Url = req.file.location; // http://rustfs:9000/datasets/... (docker network)
+    const browserUrl = s3Url ? s3Url.replace('http://rustfs:9000', 'http://localhost:9000') : null;
+
+    // Extract just the filename suffix from the S3 key
+    // S3 key format: private/projectId/timestamp-filename.csv
+    const filenameSuffix = filename.split('/').pop();
+
     // Persist metadata to project
     try {
         const projects = readProjects();
@@ -59,7 +72,7 @@ export const uploadPrivateFile = (req, res) => {
             projects[projectIndex].datasets.push({
                 id: `ds-${Date.now()}`,
                 name: displayName, // User provided name
-                filename: req.file.filename,
+                filename: filenameSuffix, // Store only the suffix
                 originalName: req.file.originalname,
                 size: req.file.size,
                 createdAt: new Date().toISOString(),
@@ -73,12 +86,12 @@ export const uploadPrivateFile = (req, res) => {
     }
 
     res.status(201).json({
-        success: true,
-        message: 'Private dataset uploaded successfully',
-        type: 'private',
-        filename: req.file.filename,
+        message: 'File uploaded successfully',
+        id: `ds-${Date.now()}`,
+        name: displayName,
+        filename: filenameSuffix, // Return suffix for consistent frontend state
         originalName: req.file.originalname,
         size: req.file.size,
-        url: `/files/private/${projectId}/${req.file.filename}`,
+        url: browserUrl || `/files/private/${projectId}/${filenameSuffix}`,
     });
 };
