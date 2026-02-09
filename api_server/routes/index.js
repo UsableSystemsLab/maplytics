@@ -1,5 +1,7 @@
 import UserRoutes from './UserRoutes.js';
 import DatasetRoutes from './DatasetRoutes.js';
+import uploadRoutes from './upload.routes.js';
+import projectRoutes from './project.routes.js';
 
 const apiRoutes = (router) => {
   /**
@@ -21,17 +23,32 @@ const apiRoutes = (router) => {
    *                 status:
    *                   type: string
    *                   example: Healthy
+   *
+   * /projects:
+   *   get:
+   *     summary: Get all projects
+   *     tags: [Projects]
+   *   post:
+   *     summary: Create a new project
+   *     tags: [Projects]
+   *   delete:
+   *     summary: Delete a project
+   *     tags: [Projects]
    */
-
   router.get('/health', (req, res) => {
     res.status(200).json({ status: 'Healthy' });
   });
+
   router.use('/users', UserRoutes);
   router.use('/datasets', DatasetRoutes);
+  router.use('/upload', uploadRoutes);
+  router.use('/projects', projectRoutes);
+
   // Middleware to catch 404 errors
   router.use((req, res) => {
     console.log(`404 Not Found: ${req.url}`);
     res.status(404).json({ error: 'Not Found' });
   });
 };
+
 export default apiRoutes;

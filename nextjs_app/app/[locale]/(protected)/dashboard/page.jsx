@@ -6,7 +6,7 @@ export default function DashboardPage() {
     return (
         <div className="min-h-[93vh] bg-gray-50 flex">
             <SideBar
-                name1="Overview" href1="/dashboard"
+                name1="Create New Project" href1="/dashboard/createProject"
                 name2="Map view" href2="/dashboard/map"
                 name3="Comparison" href3="/dashboard/visualizeDataset"
             />
