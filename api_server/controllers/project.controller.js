@@ -197,8 +197,6 @@ export const deleteDataset = async (req, res) => {
         }));
     } catch (err) {
         console.error("Error deleting file from S3:", err);
-        // We continue even if S3 delete fails, or should we? 
-        // Let's at least try to keep metadata in sync if S3 is gone.
     }
 
     // Remove from metadata

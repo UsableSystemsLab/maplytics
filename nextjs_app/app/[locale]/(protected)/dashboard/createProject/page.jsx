@@ -49,7 +49,6 @@ export default function CreateProjectPage() {
                 throw new Error('Failed to create project');
             }
 
-            // Save current project context
             localStorage.setItem('current_project', JSON.stringify({ id: projectId, name: projectName }));
             localStorage.removeItem('current_project_id');
 
@@ -99,6 +98,10 @@ export default function CreateProjectPage() {
                         placeholder="e.g., Urban Analysis 2024"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all"
                     />
+                </div>
+
+                <div className="w-full max-w-3xl mb-6">
+                    <PromptForm />
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-3xl">
