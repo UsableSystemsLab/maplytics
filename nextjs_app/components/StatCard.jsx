@@ -8,7 +8,7 @@
 
 export default function StatCard({
     icon: Icon,
-    iconColor = "text-[#2C3580]",
+    iconColor = "text-dark-blue",
     label,
     value,
     subtitle

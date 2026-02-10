@@ -192,7 +192,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                 placeholder="e.g., Population Density 2024"
                                 required
                                 disabled={uploading}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark-blue focus:border-transparent outline-none transition-all disabled:bg-gray-100 placeholder:text-gray-400"
                             />
                         </div>
 
@@ -232,8 +232,8 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                     onDrop={handleDrop}
                                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${uploading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                                         } ${isDragging
-                                            ? "border-[#2C3580] bg-blue-50"
-                                            : "border-gray-300 hover:border-[#2C3580] hover:bg-gray-50"
+                                            ? "border-dark-blue bg-blue-50"
+                                            : "border-gray-300 hover:border-dark-blue hover:bg-gray-50"
                                         }`}
                                     onClick={() => !uploading && document.getElementById("fileInput").click()}
                                 >
@@ -245,7 +245,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                         disabled={uploading}
                                         className="hidden"
                                     />
-                                    <Upload className={`w-12 h-12 mx-auto mb-3 ${uploading ? "text-gray-300" : isDragging ? "text-[#2C3580]" : "text-gray-400"
+                                    <Upload className={`w-12 h-12 mx-auto mb-3 ${uploading ? "text-gray-300" : isDragging ? "text-dark-blue" : "text-gray-400"
                                         }`} />
                                     <p className="text-sm font-medium text-gray-700 mb-1">
                                         {uploading
@@ -266,7 +266,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                     onChange={(e) => handleChange("dataSource", e.target.value)}
                                     placeholder="https://example.com/api/data.geojson"
                                     disabled={uploading}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark-blue focus:border-transparent outline-none transition-all disabled:bg-gray-100 placeholder:text-gray-400"
                                 />
                             )}
                         </div>
@@ -315,7 +315,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                             onClick={() => handleChange("layerType", type.value)}
                                             disabled={uploading}
                                             className={`p-4 rounded-lg border-2 transition-all text-left disabled:opacity-50 ${formData.layerType === type.value
-                                                ? "border-[#2C3580] bg-blue-50 shadow-md"
+                                                ? "border-dark-blue bg-blue-50 shadow-md"
                                                 : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                                                 }`}
                                         >
@@ -328,7 +328,7 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
                                                 />
                                                 <span
                                                     className={`font-semibold ${formData.layerType === type.value
-                                                        ? "text-[#2C3580]"
+                                                        ? "text-dark-blue"
                                                         : "text-gray-700"
                                                         }`}
                                                 >

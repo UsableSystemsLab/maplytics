@@ -8,7 +8,7 @@ import {
     ChevronDown,
     Settings,
     User,
-    LogOut,
+    Trash2,
     HelpCircle
 } from "lucide-react";
 
@@ -143,7 +143,7 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
                                                 onClick={(e) => handleDeleteProject(e, project.id)}
                                                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
                                             >
-                                                <LogOut className="w-4 h-4" />
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ))

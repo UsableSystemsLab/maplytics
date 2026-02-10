@@ -62,10 +62,10 @@ export default function AnalysisFlipCard() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                     <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <MapPin className="w-5 h-5 text-[#2C3580]" />
+                                            <MapPin className="w-5 h-5 text-dark-blue" />
                                             <span className="text-sm font-semibold text-gray-700">Hotspot Zones</span>
                                         </div>
-                                        <p className="text-3xl font-bold text-[#2C3580]">5</p>
+                                        <p className="text-3xl font-bold text-dark-blue">5</p>
                                         <p className="text-xs text-gray-600 mt-1">High congestion areas</p>
                                     </div>
 
@@ -93,7 +93,7 @@ export default function AnalysisFlipCard() {
 
                                 <button
                                     onClick={handleFlip}
-                                    className="w-full bg-cyan text-white py-4 rounded-lg font-semibold text-lg hover:from-[#1f2660] hover:to-[#2d3670] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                                    className="w-full bg-cyan text-white py-4 rounded-lg font-semibold text-lg hover:from-ocean-blue hover:to-ocean-blue transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                                 >
                                     <BarChart3 className="w-5 h-5" />
                                     Show Detailed Analysis
@@ -129,7 +129,7 @@ export default function AnalysisFlipCard() {
                             <div className="p-6 max-h-[600px] overflow-y-auto">
                                 <div className="mb-6">
                                     <h4 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                        <Clock className="w-5 h-5 text-[#2C3580]" />
+                                        <Clock className="w-5 h-5 text-dark-blue" />
                                         Traffic Density Over Time
                                     </h4>
                                     <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 h-64 flex items-end justify-around gap-2">
@@ -166,7 +166,7 @@ export default function AnalysisFlipCard() {
 
                                 <div className="mb-6">
                                     <h4 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                        <MapPin className="w-5 h-5 text-[#2C3580]" />
+                                        <MapPin className="w-5 h-5 text-dark-blue" />
                                         Top Congestion Zones
                                     </h4>
                                     <div className="space-y-3">
@@ -195,7 +195,7 @@ export default function AnalysisFlipCard() {
 
                                 <div className="mb-6">
                                     <h4 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                        <TrendingUp className="w-5 h-5 text-[#2C3580]" />
+                                        <TrendingUp className="w-5 h-5 text-dark-blue" />
                                         Key Insights
                                     </h4>
                                     <div className="space-y-3">

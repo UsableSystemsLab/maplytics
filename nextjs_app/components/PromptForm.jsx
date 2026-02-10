@@ -36,7 +36,7 @@ export default function PromptForm() {
                     id="prompt"
                     name="prompt"
                     rows="4"
-                    className="w-full px-4 py-3 text-gray-700 bg-white border-2 border-cyan rounded-2xl focus:outline-none focus:border-teal-600 resize-none"
+                    className="w-full px-4 py-3 text-gray-700 bg-white border-2 border-cyan rounded-2xl focus:outline-none focus:border-teal-600 resize-none placeholder:text-gray-400"
                     placeholder={placeholder}
                 />
             </div>

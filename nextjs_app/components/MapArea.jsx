@@ -600,7 +600,7 @@ export default function MapArea() {
                 <div className="relative">
                     <button
                         onClick={() => setShowDatasetPanel(!showDatasetPanel)}
-                        className={`bg-white p-3 rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors ${selectedDataset ? 'ring-2 ring-[#2C3580]' : ''}`}
+                        className={`bg-white p-3 rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors ${selectedDataset ? 'ring-2 ring-dark-blue' : ''}`}
                         title="Datasets"
                     >
                         <Database className="w-5 h-5 text-gray-700" />
@@ -623,7 +623,7 @@ export default function MapArea() {
                                             onChange={handleFileUpload}
                                             className="hidden"
                                         />
-                                        <div className="flex items-center gap-1 text-xs text-[#2C3580] hover:underline">
+                                        <div className="flex items-center gap-1 text-xs text-dark-blue hover:underline">
                                             <Upload className="w-3 h-3" />
                                             Upload
                                         </div>
@@ -651,7 +651,7 @@ export default function MapArea() {
                                         <button
                                             key={dataset.dataset_id}
                                             onClick={() => handleDatasetSelect(dataset)}
-                                            className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors ${selectedDataset?.dataset_id === dataset.dataset_id ? 'bg-blue-50 border-l-2 border-[#2C3580]' : ''}`}
+                                            className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors ${selectedDataset?.dataset_id === dataset.dataset_id ? 'bg-blue-50 border-l-2 border-dark-blue' : ''}`}
                                         >
                                             <div className="text-sm font-medium text-gray-700">{dataset.dataset_name}</div>
                                             <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
@@ -752,7 +752,7 @@ export default function MapArea() {
                     </div>
                 </div>
             </div>
-            
+
             {/* Upload Modal */}
             <DatasetUploadModal
                 isOpen={showUploadModal}

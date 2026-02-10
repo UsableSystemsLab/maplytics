@@ -97,7 +97,7 @@ export default function DatasetUploadModal({
                                 placeholder="e.g., Riyadh Restaurants"
                                 required
                                 disabled={isLoading}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark-blue focus:border-transparent outline-none transition-all disabled:bg-gray-100 placeholder:text-gray-400"
                             />
                         </div>
 
@@ -110,7 +110,7 @@ export default function DatasetUploadModal({
                                 value={entityType}
                                 onChange={(e) => setEntityType(e.target.value)}
                                 disabled={isLoading}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark-blue focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                             >
                                 {ENTITY_TYPES.map((type) => (
                                     <option key={type.value} value={type.value}>

@@ -48,7 +48,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen flex bg-[#F5F5F5] relative overflow-hidden">
+    <div className="h-screen flex bg-gray-100 relative overflow-hidden">
       <AuthLeftPanel />
       <div className="flex-1 flex items-center justify-center p-6 md:p-12 relative overflow-y-auto">
 

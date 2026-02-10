@@ -12,7 +12,7 @@ export default function HeroSection() {
                 <h1 className="text-7xl font-bold w-5xl leading-snug text-heading">
                     {t.rich('title', {
                         geo: (chunks) => <span className="text-earthy-green">{chunks}</span>,
-                        into: (chunks) => <span className="text-[#2C3580]">{chunks}</span>,
+                        into: (chunks) => <span className="text-dark-blue">{chunks}</span>,
                     })}
                 </h1>
 
