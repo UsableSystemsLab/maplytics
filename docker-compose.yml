@@ -18,7 +18,7 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 120s
       timeout: 5s
       retries: 3
@@ -61,22 +61,14 @@ services:
       - ${API_SERVER_PORT}:4000
     volumes:
       - ./api_server:/app
+      - datasets:/datasets
     depends_on:
       - db
+      - rustfs
     networks:
       - app_network
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:${API_SERVER_PORT}/health",
-          "-H",
-          "accept: application/json",
-          "-H",
-          "Authorization: Bearer ${API_SERVER_KEY}",
-        ]
+      test: [ "CMD", "curl", "-f", "http://localhost:${API_SERVER_PORT}/health", "-H", "accept: application/json", "-H", "Authorization: Bearer ${API_SERVER_KEY}" ]
       interval: 120s
       timeout: 5s
       retries: 3
@@ -93,6 +85,7 @@ services:
       - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
       - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
       - NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
+      - NEXT_PUBLIC_API_SERVER_KEY=${API_SERVER_KEY}
     build:
       context: nextjs_app
       dockerfile: Dockerfile
@@ -112,6 +105,20 @@ services:
     networks:
       - app_network
 
+  rustfs:
+    image: rustfs/rustfs
+    container_name: rustfs_container
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - rustfs_data:/data
+    environment:
+      - RUSTFS_VOLUMES=/data
+    networks:
+      - app_network
+
+
 networks:
   app_network:
     driver: bridge
@@ -119,3 +126,5 @@ networks:
 volumes:
   pg_data:
   pgadmin_data:
+  rustfs_data:
+  datasets:
