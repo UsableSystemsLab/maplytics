@@ -140,3 +140,18 @@ export const ingestDatasetFromFile = async (file, datasetName, entityType = 'gen
         reader.readAsText(file);
     });
 };
+
+
+export const searchDatasets = async (query) => {
+    const response = await fetch(`${API_BASE_URL}/datasets/search?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: getHeaders()
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to search datasets');
+    }
+
+    return response.json();
+};

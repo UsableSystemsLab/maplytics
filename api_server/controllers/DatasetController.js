@@ -1,6 +1,7 @@
 import { Dataset, Feature, Feature_Property, Dataset_Metadata } from '../models/index.js';
 import { sequelize } from '../configs/postgresDB.js';
 import logger from '../configs/logger.js';
+import { Op } from 'sequelize';
 
 /**
  * DatasetController - Responsible for managing geospatial datasets.
@@ -130,7 +131,7 @@ const flattenCoordinates = (coords, type) => {
  *       400:
  *         description: Invalid request data
  */
-const ingestDataset = async (req, res, next) => {
+export const ingestDataset = async (req, res, next) => {
     const transaction = await sequelize.transaction();
 
     try {
@@ -235,7 +236,7 @@ const ingestDataset = async (req, res, next) => {
             }, { transaction });
 
             const properties = { ...item };
-            delete properties.geometry;  
+            delete properties.geometry;
             delete properties.latitude;
             delete properties.lat;
             delete properties.Latitude;
@@ -284,7 +285,7 @@ const ingestDataset = async (req, res, next) => {
  *       200:
  *         description: List of datasets
  */
-const getAllDatasets = async (req, res, next) => {
+export const getAllDatasets = async (req, res, next) => {
     try {
         const { user_id } = req.query;
 
@@ -339,7 +340,7 @@ const getAllDatasets = async (req, res, next) => {
  *       404:
  *         description: Dataset not found
  */
-const getDatasetAsGeoJSON = async (req, res, next) => {
+export const getDatasetAsGeoJSON = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -409,7 +410,7 @@ const getDatasetAsGeoJSON = async (req, res, next) => {
  *       404:
  *         description: Dataset not found
  */
-const getDatasetById = async (req, res, next) => {
+export const getDatasetById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -453,7 +454,7 @@ const getDatasetById = async (req, res, next) => {
  *       404:
  *         description: Dataset not found
  */
-const deleteDataset = async (req, res, next) => {
+export const deleteDataset = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -482,10 +483,61 @@ const deleteDataset = async (req, res, next) => {
     }
 };
 
-export {
-    ingestDataset,
-    getAllDatasets,
-    getDatasetAsGeoJSON,
-    getDatasetById,
-    deleteDataset
+/**
+ * @swagger
+ * /datasets/search:
+ *   get:
+ *     summary: Search datasets by name or description
+ *     tags: [Datasets]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *     responses:
+ *       200:
+ *         description: List of matching datasets
+ */
+export const searchDatasets = async (req, res, next) => {
+    try {
+        const { q } = req.query;
+
+        if (!q) {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+
+        const datasets = await Dataset.findAll({
+            where: {
+                [Op.or]: [
+                    { dataset_name: { [Op.iLike]: `%${q}%` } },
+                    { description: { [Op.iLike]: `%${q}%` } }
+                ]
+            },
+            attributes: [
+                'dataset_id',
+                'dataset_slug',
+                'dataset_name',
+                'description',
+                'entity_type',
+                'geometry_type',
+                'feature_count',
+                'user_id',
+                'last_updated'
+            ],
+            order: [['last_updated', 'DESC']],
+            limit: 20
+        });
+
+        res.status(200).json({
+            count: datasets.length,
+            query: q,
+            datasets
+        });
+    } catch (error) {
+        logger.error('Error searching datasets:', error);
+        next(error);
+    }
 };
+
+
