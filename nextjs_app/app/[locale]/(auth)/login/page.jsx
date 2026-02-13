@@ -64,15 +64,15 @@ export default function LoginPage() {
               <label htmlFor="email" className="text-xs md:text-sm font-semibold text-heading block">
                 Email Address
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
+              <div className="flex items-center gap-2 border-2 border-gray-200 rounded-lg px-3 md:px-4 py-2.5 md:py-3 focus-within:border-ocean-blue hover:border-gray-300 transition-colors cursor-text">
+                <Mail className="w-4 h-4 md:w-5 md:h-5 text-body-text flex-shrink-0" />
                 <input
                   id="email"
                   type="email"
                   placeholder="email@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
+                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-400 outline-none bg-transparent"
                   required
                 />
               </div>
@@ -81,21 +81,21 @@ export default function LoginPage() {
               <label htmlFor="password" className="text-xs md:text-sm font-semibold text-heading block">
                 Password
               </label>
-              <div className="relative group">
-                <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
+              <div className="flex items-center gap-2 border-2 border-gray-200 rounded-lg px-3 md:px-4 py-2.5 md:py-3 focus-within:border-ocean-blue hover:border-gray-300 transition-colors cursor-text">
+                <Lock className="w-4 h-4 md:w-5 md:h-5 text-body-text flex-shrink-0" />
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
+                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-400 outline-none bg-transparent"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-body-text hover:text-ocean-blue transition-colors hover:scale-110 active:scale-95 transform"
+                  className="w-8 h-8 flex items-center justify-center rounded-md flex-shrink-0 text-body-text hover:text-ocean-blue hover:bg-gray-100 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
                 </button>
