@@ -39,17 +39,6 @@ export default function PromptForm() {
                     className="w-full px-4 py-3 text-gray-700 bg-white border-2 border-cyan rounded-2xl focus:outline-none focus:border-teal-600 resize-none"
                     placeholder={placeholder}
                 />
-
-                <div className="flex justify-center">
-                    <Link href="/dashboard">
-                        <button
-                            onClick={handleSubmit}
-                            className="px-8 py-3 text-white font-medium bg-slate-800 rounded-full hover:bg-slate-700 transition-colors"
-                        >
-                            Start Analysis
-                        </button>
-                    </Link>
-                </div>
             </div>
         </div>
     );
