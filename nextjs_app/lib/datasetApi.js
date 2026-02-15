@@ -101,6 +101,23 @@ export const deleteDataset = async (datasetId) => {
 };
 
 
+export const getProjectDatasetData = async (projectId, datasetId, userId) => {
+    const response = await fetch(`${API_BASE_URL}/projects/${projectId}/datasets/${datasetId}/data`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
+            'X-User-Id': userId
+        }
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch dataset data');
+    }
+
+    return response.json();
+};
+
 export const ingestDatasetFromFile = async (file, datasetName, entityType = 'generic', forceOverride = false) => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
