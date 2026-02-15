@@ -8,7 +8,7 @@ export default function MapViewPage() {
             <SideBar
                 name1="Overview" href1="/dashboard"
                 name2="Map view" href2="/dashboard/map"
-                name3="Analysis" href3="/dashboard/analysis"
+                name3="Comparison" href3="/dashboard/comparison"
             />
             <main className="flex-1 relative overflow-hidden">
                 <MapArea />

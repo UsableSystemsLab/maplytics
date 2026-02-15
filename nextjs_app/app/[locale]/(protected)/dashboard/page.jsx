@@ -8,7 +8,7 @@ export default function DashboardPage() {
             <SideBar
                 name1="Overview" href1="/dashboard"
                 name2="Map view" href2="/dashboard/map"
-                name3="Comparison" href3="/dashboard/visualizeDataset"
+                name3="Comparison" href3="/dashboard/comparison"
             />
 
             <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
