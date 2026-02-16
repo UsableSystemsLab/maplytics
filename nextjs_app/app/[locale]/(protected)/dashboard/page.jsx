@@ -8,8 +8,9 @@ export default function DashboardPage() {
             <SideBar
                 name1="Create New Project" href1="/dashboard/createProject"
                 name2="Map view" href2="/dashboard/map"
-                name3="Comparison" href3="/dashboard/visualizeDataset"
+                name3="Comparison" href3="/dashboard/comparison"
                 name4="Public Dataset" href4="/dashboard/public-dataset"
+               
             />
 
             <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
