@@ -9,15 +9,18 @@ import {
     Maximize2,
     Minimize2,
     ChevronUp,
+    ChevronDown,
     MapPin,
     Activity,
     Database,
-    Upload
+    Filter,
+    X,
+    Loader2
 } from "lucide-react";
-import { getDatasets, getDatasetGeoJSON, ingestDatasetFromFile } from "@/lib/datasetApi";
+import { getProjectDatasetData } from "@/lib/datasetApi";
 import { getDistrictColor, resetDistrictColors } from "@/lib/districtColors";
+import { useAuth } from "@/hooks/useAuth";
 import StatCard from "@/components/StatCard";
-import DatasetUploadModal from "@/components/DatasetUploadModal";
 
 
 // Custom marker icon
@@ -41,7 +44,7 @@ const createMarkerIcon = (color = '#2C3580') => {
 
 
 // popup content from the feature properties
-const generatePopupContent = (properties, entityType) => {
+const generatePopupContent = (properties) => {
     if (!properties || Object.keys(properties).length === 0) {
         return '<p class="text-gray-500">No properties available</p>';
     }
@@ -55,55 +58,16 @@ const generatePopupContent = (properties, entityType) => {
         }
     }
 
-    let avgRating = null;
-    if (properties.reviews && Array.isArray(properties.reviews) && properties.reviews.length > 0) {
-        const sum = properties.reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-        avgRating = (sum / properties.reviews.length).toFixed(1);
-    }
-
-    const district = properties.district || '';
-    const districtColor = getDistrictColor(district);
-
     let html = '<div class="p-2 max-w-xs">';
 
     if (primaryName) {
         html += `<h3 style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #1f2937;">${primaryName}</h3>`;
     }
 
-    if (district) {
-        html += `<div style="display: inline-block; padding: 2px 8px; border-radius: 12px; background-color: ${districtColor}; color: white; font-size: 11px; font-weight: 500; margin-bottom: 8px;">${district}</div>`;
-    }
-
-    if (avgRating) {
-        const fullStars = Math.floor(avgRating);
-        const hasHalfStar = avgRating - fullStars >= 0.5;
-        let starsHtml = '';
-        for (let i = 0; i < 5; i++) {
-            if (i < fullStars) {
-                starsHtml += '★';
-            } else if (i === fullStars && hasHalfStar) {
-                starsHtml += '⯪';
-            } else {
-                starsHtml += '☆';
-            }
-        }
-        html += `<div style="margin-bottom: 8px;"><span style="color: #f59e0b;">${starsHtml}</span> <span style="color: #6b7280; font-size: 12px;">(${avgRating}/5 from ${properties.reviews.length} reviews)</span></div>`;
-    }
-
     html += '<div style="display: flex; flex-direction: column; gap: 2px;">';
 
-    const priorityFields = ['cuisine', 'price_range'];
-    const skipFields = [...nameFields, 'hourly_traffic_percent', 'order_completion_time_per_hour', 'reviews', 'district'];
-    for (const field of priorityFields) {
-        if (properties[field]) {
-            const label = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            html += `<p style="font-size: 13px;"><span style="font-weight: 500; color: #4b5563;">${label}:</span> <span style="color: #1f2937;">${properties[field]}</span></p>`;
-        }
-    }
-
-    // Show other simple properties
     for (const [key, value] of Object.entries(properties)) {
-        if (skipFields.includes(key) || priorityFields.includes(key)) continue;
+        if (nameFields.includes(key)) continue;
         if (typeof value === 'object') continue;
 
         const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -117,37 +81,38 @@ const generatePopupContent = (properties, entityType) => {
 
 
 export default function MapArea() {
+    const { user } = useAuth();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(5);
     const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Dataset states
-    const [datasets, setDatasets] = useState([]);
-    const [selectedDataset, setSelectedDataset] = useState(null);
+    // Dataset states (RustFS-backed)
+    const [selectedLayer, setSelectedLayer] = useState(null);
     const [geojsonData, setGeojsonData] = useState(null);
+    const [fieldsMetadata, setFieldsMetadata] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [showDatasetPanel, setShowDatasetPanel] = useState(false);
     const [featureCount, setFeatureCount] = useState(0);
-    const [uniqueDistricts, setUniqueDistricts] = useState([]);
 
-    // Upload modal state
-    const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadFile, setUploadFile] = useState(null);
-    const [uploadFormData, setUploadFormData] = useState({
-        datasetName: '',
-        entityType: 'restaurant'
-    });
+    // Filter states
+    const [filters, setFilters] = useState({});
+    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
+
+    // Category legend
+    const [categories, setCategories] = useState([]);
+    const [categoryField, setCategoryField] = useState(null);
 
     const mapRef = useRef(null);
     const markersLayerRef = useRef(null);
-    const fileInputRef = useRef(null);
-    const heatLayerRef = useRef(null);
-    const districtCirclesRef = useRef(null);
 
-    // Visualization mode: |markers|, |density|, |both|
-    const [vizMode, setVizMode] = useState('both');
+    // Refs to avoid stale closures in event handlers
+    const userRef = useRef(user);
+    userRef.current = user;
+    const geojsonRef = useRef(geojsonData);
+    geojsonRef.current = geojsonData;
+    const categoryFieldRef = useRef(categoryField);
+    categoryFieldRef.current = categoryField;
 
     const handleZoomIn = () => {
         if (mapRef.current) {
@@ -163,6 +128,7 @@ export default function MapArea() {
         }
     };
 
+    // Initialize map
     useEffect(() => {
         if (mapRef.current) return;
 
@@ -187,61 +153,19 @@ export default function MapArea() {
         map.on('zoomend', () => {
             setZoomLevel(map.getZoom());
         });
-        loadDatasets();
     }, []);
 
-    const loadDatasets = async () => {
-        try {
-            const result = await getDatasets();
-            setDatasets(result.datasets || []);
-        } catch (err) {
-            console.error('Failed to load datasets:', err);
-        }
-    };
-
-    const loadDatasetGeoJSON = useCallback(async (datasetId) => {
-        if (!datasetId) {
-            if (markersLayerRef.current) {
-                markersLayerRef.current.clearLayers();
-            }
-            setGeojsonData(null);
-            setFeatureCount(0);
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const geojson = await getDatasetGeoJSON(datasetId);
-            setGeojsonData(geojson);
-            setFeatureCount(geojson.features?.length || 0);
-            renderGeoJSON(geojson);
-        } catch (err) {
-            console.error('Failed to load GeoJSON:', err);
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-    const renderGeoJSON = (geojson) => {
+    // Render GeoJSON on the map
+    const renderGeoJSON = (geojson, catField) => {
+        console.log('[MapArea] renderGeoJSON called:', { hasMarkersLayer: !!markersLayerRef.current, featureCount: geojson?.features?.length, catField });
         if (!markersLayerRef.current || !geojson?.features) return;
 
-        resetDistrictColors();
+        const effectiveCatField = catField !== undefined ? catField : categoryFieldRef.current;
 
+        resetDistrictColors();
         markersLayerRef.current.clearLayers();
-        if (districtCirclesRef.current) {
-            districtCirclesRef.current.clearLayers();
-        } else {
-            districtCirclesRef.current = L.layerGroup().addTo(mapRef.current);
-        }
 
         const bounds = [];
-        const entityType = geojson.metadata?.entity_type || 'generic';
-        const districtsFound = new Set();
-
-        const districtData = new Map();
 
         geojson.features.forEach(feature => {
             const geometryType = feature.geometry?.type;
@@ -250,22 +174,14 @@ export default function MapArea() {
                 const [lng, lat] = feature.geometry.coordinates;
                 bounds.push([lat, lng]);
 
-                const district = feature.properties?.district || 'Unknown';
-                districtsFound.add(district);
-
-                if (!districtData.has(district)) {
-                    districtData.set(district, { points: [], count: 0 });
-                }
-                districtData.get(district).points.push([lat, lng]);
-                districtData.get(district).count++;
-
-                const markerColor = getDistrictColor(district);
+                const catValue = effectiveCatField ? (feature.properties?.[effectiveCatField] || 'Unknown') : 'Default';
+                const markerColor = getDistrictColor(catValue);
 
                 const marker = L.marker([lat, lng], {
                     icon: createMarkerIcon(markerColor)
                 });
 
-                const popupContent = generatePopupContent(feature.properties, entityType);
+                const popupContent = generatePopupContent(feature.properties);
                 marker.bindPopup(popupContent, {
                     maxWidth: 300,
                     className: 'custom-popup'
@@ -274,8 +190,8 @@ export default function MapArea() {
                 markersLayerRef.current.addLayer(marker);
             }
             else if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
-                const district = feature.properties?.district || feature.properties?.name || 'Unknown';
-                const color = getDistrictColor(district);
+                const catValue = effectiveCatField ? (feature.properties?.[effectiveCatField] || feature.properties?.name || 'Unknown') : (feature.properties?.name || 'Unknown');
+                const color = getDistrictColor(catValue);
 
                 const coordsToLatLng = (coords) => coords.map(ring =>
                     ring.map(coord => [coord[1], coord[0]])
@@ -299,7 +215,7 @@ export default function MapArea() {
                     fillOpacity: 0.3
                 });
 
-                const popupContent = generatePopupContent(feature.properties, entityType);
+                const popupContent = generatePopupContent(feature.properties);
                 polygon.bindPopup(popupContent, {
                     maxWidth: 300,
                     className: 'custom-popup'
@@ -308,8 +224,8 @@ export default function MapArea() {
                 markersLayerRef.current.addLayer(polygon);
             }
             else if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
-                const district = feature.properties?.district || feature.properties?.name || 'Unknown';
-                const color = getDistrictColor(district);
+                const catValue = effectiveCatField ? (feature.properties?.[effectiveCatField] || feature.properties?.name || 'Unknown') : (feature.properties?.name || 'Unknown');
+                const color = getDistrictColor(catValue);
 
                 let lineCoords;
                 if (geometryType === 'LineString') {
@@ -330,7 +246,7 @@ export default function MapArea() {
                     opacity: 0.8
                 });
 
-                const popupContent = generatePopupContent(feature.properties, entityType);
+                const popupContent = generatePopupContent(feature.properties);
                 polyline.bindPopup(popupContent, {
                     maxWidth: 300,
                     className: 'custom-popup'
@@ -340,115 +256,168 @@ export default function MapArea() {
             }
         });
 
-        districtData.forEach((data, district) => {
-            const color = getDistrictColor(district);
-
-            const centroid = data.points.reduce(
-                (acc, [lat, lng]) => [acc[0] + lat / data.count, acc[1] + lng / data.count],
-                [0, 0]
-            );
-
-            let maxDist = 0;
-            data.points.forEach(([lat, lng]) => {
-                const dist = Math.sqrt(
-                    Math.pow(lat - centroid[0], 2) + Math.pow(lng - centroid[1], 2)
-                );
-                maxDist = Math.max(maxDist, dist);
-            });
-            const radiusMeters = Math.max(maxDist * 111000 * 1.5, 500);
-
-            const circle = L.circle(centroid, {
-                radius: radiusMeters,
-                color: color,
-                fillColor: color,
-                fillOpacity: 0.25,
-                weight: 2,
-                opacity: 0.7
-            });
-
-            circle.bindTooltip(`<strong>${district}</strong><br/>${data.count} locations`, {
-                permanent: false,
-                direction: 'center'
-            });
-
-            districtCirclesRef.current.addLayer(circle);
-        });
-
-        setUniqueDistricts(Array.from(districtsFound));
-
+        console.log('[MapArea] renderGeoJSON done:', { markersAdded: markersLayerRef.current.getLayers().length, boundsCount: bounds.length });
         if (bounds.length > 0 && mapRef.current) {
             mapRef.current.fitBounds(bounds, { padding: [50, 50] });
         }
     };
 
-    const handleDatasetSelect = (dataset) => {
-        setSelectedDataset(dataset);
-        setShowDatasetPanel(false);
-        loadDatasetGeoJSON(dataset?.dataset_id);
-    };
+    const renderGeoJSONRef = useRef(renderGeoJSON);
+    renderGeoJSONRef.current = renderGeoJSON;
 
-    const handleFileUpload = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        setUploadFile(file);
-        setUploadFormData({
-            datasetName: file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '),
-            entityType: 'restaurant'
-        });
-        setShowUploadModal(true);
-        setShowDatasetPanel(false);
-
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+    const clearMap = () => {
+        if (markersLayerRef.current) {
+            markersLayerRef.current.clearLayers();
         }
     };
 
-    const handleUploadSubmit = async (e, forceOverride = false) => {
-        e?.preventDefault();
-        if (!uploadFile || !uploadFormData.datasetName) return;
-
+    const loadLayerData = async (projectId, datasetId) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await ingestDatasetFromFile(
-                uploadFile,
-                uploadFormData.datasetName,
-                uploadFormData.entityType,
-                forceOverride
-            );
-            setShowUploadModal(false);
-            await loadDatasets();
-            loadDatasetGeoJSON(result.dataset_id);
-            setSelectedDataset({
-                dataset_id: result.dataset_id,
-                dataset_name: uploadFormData.datasetName
-            });
-            setUploadFile(null);
-        } catch (err) {
-            console.error('Failed to upload dataset:', err);
+            const userId = userRef.current?.uid;
+            console.log('[MapArea] loadLayerData called:', { projectId, datasetId, userId });
+            const result = await getProjectDatasetData(projectId, datasetId, userId);
+            const { geojson, fields } = result;
+            console.log('[MapArea] API response:', { featureCount: geojson?.features?.length, fields: fields?.length, geojsonType: geojson?.type });
 
-            if (err.isConflict) {
-                const confirmReplace = window.confirm(
-                    `A dataset named "${uploadFormData.datasetName}" already exists ` +
-                    `(${err.existingDataset?.feature_count || 0} features).\n\n` +
-                    `Do you want to replace it with the new data?`
-                );
+            setGeojsonData(geojson);
+            geojsonRef.current = geojson;
+            setFieldsMetadata(fields || []);
+            setFeatureCount(geojson.features?.length || 0);
 
-                if (confirmReplace) {
-                    handleUploadSubmit(null, true);
-                    return;
-                } else {
-                    setError('Please choose a different name or click "Replace" to override.');
-                }
+            const firstCategorical = (fields || []).find(f => f.type === 'string' && f.values && f.values.length > 1 && f.values.length <= 20);
+            if (firstCategorical) {
+                setCategoryField(firstCategorical.name);
+                categoryFieldRef.current = firstCategorical.name;
+                setCategories(firstCategorical.values);
             } else {
-                setError(err.message);
-                setShowUploadModal(false);
+                setCategoryField(null);
+                categoryFieldRef.current = null;
+                setCategories([]);
             }
+
+            renderGeoJSONRef.current(geojson, firstCategorical?.name);
+        } catch (err) {
+            console.error('Failed to load layer data:', err);
+            setError(err.message);
         } finally {
             setIsLoading(false);
         }
     };
+
+    const loadLayerDataRef = useRef(loadLayerData);
+    loadLayerDataRef.current = loadLayerData;
+
+    useEffect(() => {
+        const handleLayerSelected = async (e) => {
+            console.log('[MapArea] layerSelected event received:', e.detail);
+            const detail = e.detail;
+
+            if (!detail) {
+                // Deselected
+                clearMap();
+                setSelectedLayer(null);
+                setGeojsonData(null);
+                setFieldsMetadata([]);
+                setFeatureCount(0);
+                setFilters({});
+                setCategories([]);
+                setCategoryField(null);
+                return;
+            }
+
+            const { projectId, datasetId, datasetName } = detail;
+            setSelectedLayer({ projectId, datasetId, datasetName });
+            setFilters({});
+            await loadLayerDataRef.current(projectId, datasetId);
+        };
+
+        window.addEventListener('layerSelected', handleLayerSelected);
+        return () => window.removeEventListener('layerSelected', handleLayerSelected);
+    }, []);
+
+    // Apply filters client-side and re-render
+    const applyFilters = useCallback(() => {
+        const currentGeojson = geojsonRef.current;
+        if (!currentGeojson?.features) return;
+
+        const activeFilters = Object.entries(filters).filter(([, val]) => {
+            if (val.type === 'string') return val.selected && val.selected.length > 0;
+            if (val.type === 'number') return val.min !== undefined || val.max !== undefined;
+            return false;
+        });
+
+        if (activeFilters.length === 0) {
+            renderGeoJSONRef.current(currentGeojson);
+            setFeatureCount(currentGeojson.features.length);
+            return;
+        }
+
+        const filtered = currentGeojson.features.filter(feature => {
+            return activeFilters.every(([fieldName, filterVal]) => {
+                const propVal = feature.properties?.[fieldName];
+                if (filterVal.type === 'string') {
+                    return filterVal.selected.includes(String(propVal ?? ''));
+                }
+                if (filterVal.type === 'number') {
+                    const num = Number(propVal);
+                    if (isNaN(num)) return false;
+                    if (filterVal.min !== undefined && num < filterVal.min) return false;
+                    if (filterVal.max !== undefined && num > filterVal.max) return false;
+                    return true;
+                }
+                return true;
+            });
+        });
+
+        const filteredGeojson = { ...currentGeojson, features: filtered };
+        renderGeoJSONRef.current(filteredGeojson);
+        setFeatureCount(filtered.length);
+    }, [filters]);
+
+    useEffect(() => {
+        if (geojsonRef.current && Object.keys(filters).length > 0) {
+            applyFilters();
+        }
+    }, [filters, applyFilters]);
+
+    const handleStringFilterChange = (fieldName, value, checked) => {
+        setFilters(prev => {
+            const current = prev[fieldName] || { type: 'string', selected: [] };
+            let selected = [...(current.selected || [])];
+            if (checked) {
+                if (!selected.includes(value)) selected.push(value);
+            } else {
+                selected = selected.filter(v => v !== value);
+            }
+            return { ...prev, [fieldName]: { ...current, type: 'string', selected } };
+        });
+    };
+
+    const handleNumberFilterChange = (fieldName, bound, value) => {
+        setFilters(prev => {
+            const current = prev[fieldName] || { type: 'number' };
+            const numVal = value === '' ? undefined : Number(value);
+            return { ...prev, [fieldName]: { ...current, type: 'number', [bound]: numVal } };
+        });
+    };
+
+    const clearFilters = () => {
+        setFilters({});
+        // Re-render with all data when filters are cleared
+        if (geojsonRef.current) {
+            renderGeoJSONRef.current(geojsonRef.current);
+            setFeatureCount(geojsonRef.current.features?.length || 0);
+        }
+    };
+
+    const hasActiveFilters = Object.values(filters).some(val => {
+        if (val.type === 'string') return val.selected && val.selected.length > 0;
+        if (val.type === 'number') return val.min !== undefined || val.max !== undefined;
+        return false;
+    });
 
     return (
         <div className="relative w-full h-full bg-gray-100">
@@ -456,79 +425,122 @@ export default function MapArea() {
                 <div id="map" className="h-full w-full" />
             </div>
 
-            {/* District Legend & Visualization Controls */}
-            {uniqueDistricts.length > 0 && (
-                <div className="absolute left-6 top-24 z-30 bg-white rounded-lg shadow-lg border border-gray-200 p-3 max-w-[200px]">
-                    <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">Districts</h4>
-                    <div className="space-y-1.5 mb-3">
-                        {uniqueDistricts.map(district => (
-                            <div key={district} className="flex items-center gap-2">
-                                <div
-                                    className="w-3 h-3 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: getDistrictColor(district) }}
-                                />
-                                <span className="text-sm text-gray-700 truncate">{district}</span>
+            {/* Left Panel: Category Legend + Filter Panel */}
+            {selectedLayer && (
+                <div className="absolute left-6 top-24 z-30 flex flex-col gap-3 max-w-[260px]">
+                    {/* Category Legend */}
+                    {categories.length > 0 && categoryField && (
+                        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
+                            <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">
+                                {categoryField.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </h4>
+                            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                                {categories.map(cat => (
+                                    <div key={cat} className="flex items-center gap-2">
+                                        <div
+                                            className="w-3 h-3 rounded-full shrink-0"
+                                            style={{ backgroundColor: getDistrictColor(cat) }}
+                                        />
+                                        <span className="text-sm text-gray-700 truncate">{cat}</span>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-
-                    {/* Visualization Toggle */}
-                    <div className="border-t border-gray-200 pt-2">
-                        <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">View Mode</h4>
-                        <div className="flex flex-col gap-1">
-                            <button
-                                onClick={() => {
-                                    if (markersLayerRef.current) {
-                                        mapRef.current.addLayer(markersLayerRef.current);
-                                    }
-                                    if (districtCirclesRef.current) {
-                                        mapRef.current.removeLayer(districtCirclesRef.current);
-                                    }
-                                    setVizMode('markers');
-                                }}
-                                className={`text-xs px-2 py-1.5 rounded transition-colors ${vizMode === 'markers'
-                                    ? 'bg-primary text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                📍 Markers Only
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (markersLayerRef.current) {
-                                        mapRef.current.removeLayer(markersLayerRef.current);
-                                    }
-                                    if (districtCirclesRef.current) {
-                                        mapRef.current.addLayer(districtCirclesRef.current);
-                                    }
-                                    setVizMode('density');
-                                }}
-                                className={`text-xs px-2 py-1.5 rounded transition-colors ${vizMode === 'density'
-                                    ? 'bg-primary text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                🎨 Density Only
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (markersLayerRef.current) {
-                                        mapRef.current.addLayer(markersLayerRef.current);
-                                    }
-                                    if (districtCirclesRef.current) {
-                                        mapRef.current.addLayer(districtCirclesRef.current);
-                                    }
-                                    setVizMode('both');
-                                }}
-                                className={`text-xs px-2 py-1.5 rounded transition-colors ${vizMode === 'both'
-                                    ? 'bg-primary text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                📍🎨 Both
-                            </button>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Dynamic Filter Panel */}
+                    {fieldsMetadata.length > 0 && (
+                        <div className="bg-white rounded-lg shadow-lg border border-gray-200git">
+                            <button
+                                onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+                                className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Filter className="w-4 h-4" />
+                                    <span>Filters</span>
+                                    {hasActiveFilters && (
+                                        <span className="w-2 h-2 rounded-full bg-primary"></span>
+                                    )}
+                                </div>
+                                {isFilterPanelOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            </button>
+
+                            {isFilterPanelOpen && (
+                                <div className="border-t border-gray-200 px-3 py-2 max-h-[400px] overflow-y-auto">
+                                    {hasActiveFilters && (
+                                        <button
+                                            onClick={clearFilters}
+                                            className="w-full mb-2 flex items-center justify-center gap-1 text-xs text-red-500 hover:text-red-700 py-1"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            Clear Filters
+                                        </button>
+                                    )}
+
+                                    {fieldsMetadata.map(field => (
+                                        <div key={field.name} className="mb-3">
+                                            <label className="text-xs font-medium text-gray-600 block mb-1">
+                                                {field.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                            </label>
+
+                                            {field.type === 'string' && field.values && (
+                                                <div className="max-h-32 overflow-y-auto space-y-0.5 bg-gray-50 rounded p-1.5">
+                                                    {field.values.map(val => (
+                                                        <label key={val} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:bg-white rounded px-1 py-0.5">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={filters[field.name]?.selected?.includes(val) || false}
+                                                                onChange={(e) => handleStringFilterChange(field.name, val, e.target.checked)}
+                                                                className="rounded border-gray-300 text-primary focus:ring-primary w-3 h-3"
+                                                            />
+                                                            <span className="truncate">{val}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {field.type === 'number' && (
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="number"
+                                                        placeholder={`Min${field.min !== undefined ? ` (${field.min})` : ''}`}
+                                                        value={filters[field.name]?.min ?? ''}
+                                                        onChange={(e) => handleNumberFilterChange(field.name, 'min', e.target.value)}
+                                                        className="w-1/2 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-primary focus:border-primary"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        placeholder={`Max${field.max !== undefined ? ` (${field.max})` : ''}`}
+                                                        value={filters[field.name]?.max ?? ''}
+                                                        onChange={(e) => handleNumberFilterChange(field.name, 'max', e.target.value)}
+                                                        className="w-1/2 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Loading Overlay */}
+            {isLoading && (
+                <div className="absolute left-1/2 top-20 transform -translate-x-1/2 z-40 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span className="text-sm text-gray-600">Loading dataset...</span>
+                </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+                <div className="absolute left-1/2 top-20 transform -translate-x-1/2 z-40 bg-red-50 rounded-lg shadow-lg border border-red-200 px-4 py-2 flex items-center gap-2">
+                    <span className="text-sm text-red-600">{error}</span>
+                    <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+                        <X className="w-4 h-4" />
+                    </button>
                 </div>
             )}
 
@@ -596,84 +608,6 @@ export default function MapArea() {
                     </button>
                 </div>
 
-                {/* Dataset Selector */}
-                <div className="relative">
-                    <button
-                        onClick={() => setShowDatasetPanel(!showDatasetPanel)}
-                        className={`bg-white p-3 rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors ${selectedDataset ? 'ring-2 ring-[#2C3580]' : ''}`}
-                        title="Datasets"
-                    >
-                        <Database className="w-5 h-5 text-gray-700" />
-                    </button>
-
-                    {showDatasetPanel && (
-                        <>
-                            <div
-                                className="fixed inset-0 z-10"
-                                onClick={() => setShowDatasetPanel(false)}
-                            ></div>
-                            <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-3 z-20">
-                                <div className="px-4 pb-2 mb-2 border-b border-gray-200 flex items-center justify-between">
-                                    <h3 className="text-sm font-semibold text-gray-900">Datasets</h3>
-                                    <label className="cursor-pointer">
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept=".json"
-                                            onChange={handleFileUpload}
-                                            className="hidden"
-                                        />
-                                        <div className="flex items-center gap-1 text-xs text-[#2C3580] hover:underline">
-                                            <Upload className="w-3 h-3" />
-                                            Upload
-                                        </div>
-                                    </label>
-                                </div>
-
-                                {isLoading && (
-                                    <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
-                                )}
-
-                                {error && (
-                                    <div className="px-4 py-2 text-sm text-red-500">{error}</div>
-                                )}
-
-                                <div className="max-h-64 overflow-y-auto">
-                                    {/* Clear selection option */}
-                                    <button
-                                        onClick={() => handleDatasetSelect(null)}
-                                        className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors flex items-center gap-3 ${!selectedDataset ? 'bg-gray-100' : ''}`}
-                                    >
-                                        <span className="text-sm text-gray-500 italic">No dataset selected</span>
-                                    </button>
-
-                                    {datasets.map((dataset) => (
-                                        <button
-                                            key={dataset.dataset_id}
-                                            onClick={() => handleDatasetSelect(dataset)}
-                                            className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors ${selectedDataset?.dataset_id === dataset.dataset_id ? 'bg-blue-50 border-l-2 border-[#2C3580]' : ''}`}
-                                        >
-                                            <div className="text-sm font-medium text-gray-700">{dataset.dataset_name}</div>
-                                            <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
-                                                <span className="capitalize">{dataset.entity_type}</span>
-                                                <span>•</span>
-                                                <span>{dataset.feature_count} features</span>
-                                            </div>
-                                        </button>
-                                    ))}
-
-                                    {datasets.length === 0 && !isLoading && (
-                                        <div className="px-4 py-4 text-sm text-gray-500 text-center">
-                                            No datasets available.<br />
-                                            <span className="text-xs">Upload a JSON file to get started.</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-
                 {/* Fullscreen Toggle */}
                 <button
                     onClick={() => setIsFullscreen(!isFullscreen)}
@@ -697,7 +631,7 @@ export default function MapArea() {
                         <div className="flex items-center gap-3">
                             <Activity className="w-5 h-5 text-white" />
                             <h3 className="text-lg font-semibold text-white">
-                                {selectedDataset ? selectedDataset.dataset_name : 'Analysis Results'}
+                                {selectedLayer ? selectedLayer.datasetName : 'Analysis Results'}
                             </h3>
                         </div>
                         <button
@@ -709,8 +643,8 @@ export default function MapArea() {
                     </div>
                     <div
                         className={`
-                            overflow-hidden 
-                            transition-all duration-700 ease-in-out 
+                            overflow-hidden
+                            transition-all duration-700 ease-in-out
                             ${isAnalysisExpanded
                                 ? "max-h-[1000px] opacity-100 translate-y-0"
                                 : "max-h-0 opacity-0 -translate-y-4"
@@ -719,22 +653,22 @@ export default function MapArea() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <StatCard
                                     icon={Database}
-                                    label="Entity Type"
-                                    value={geojsonData?.metadata?.entity_type || 'N/A'}
-                                    subtitle="Dataset category"
+                                    label="Dataset"
+                                    value={selectedLayer?.datasetName || 'N/A'}
+                                    subtitle="Selected layer"
                                 />
                                 <StatCard
                                     icon={MapPin}
                                     label="Features"
                                     value={featureCount.toLocaleString()}
-                                    subtitle="Points on map"
+                                    subtitle={hasActiveFilters ? 'Filtered results' : 'Points on map'}
                                 />
                                 <StatCard
                                     icon={Activity}
                                     iconColor="text-earthy-green"
                                     label="Status"
-                                    value={isLoading ? 'Loading...' : selectedDataset ? 'Active' : 'Ready'}
-                                    subtitle={selectedDataset ? 'Dataset loaded' : 'Select a dataset'}
+                                    value={isLoading ? 'Loading...' : selectedLayer ? 'Active' : 'Ready'}
+                                    subtitle={selectedLayer ? 'Dataset loaded' : 'Select a layer'}
                                 />
                             </div>
                             <div className="flex gap-3">
@@ -752,24 +686,6 @@ export default function MapArea() {
                     </div>
                 </div>
             </div>
-            
-            {/* Upload Modal */}
-            <DatasetUploadModal
-                isOpen={showUploadModal}
-                onClose={() => {
-                    setShowUploadModal(false);
-                    setUploadFile(null);
-                }}
-                onSubmit={(datasetName, entityType, forceOverride) => {
-                    setUploadFormData({ datasetName, entityType });
-                    handleUploadSubmit(null, forceOverride);
-                }}
-                fileName={uploadFile?.name}
-                defaultDatasetName={uploadFormData.datasetName}
-                defaultEntityType={uploadFormData.entityType}
-                isLoading={isLoading}
-                error={error}
-            />
         </div>
     );
 }
