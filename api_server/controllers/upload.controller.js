@@ -6,16 +6,52 @@ export const uploadPublicFile = (req, res) => {
         });
     }
 
+    const projectId = req.query.projectId;
+    const displayName = req.body.name || req.file.originalname;
+
     // Adapt for S3 or local storage
     const filename = req.file.key || req.file.filename;
     const location = req.file.location || `/files/public/${req.userId}/${filename}`;
+
+    // Extract just the filename suffix from the S3 key
+    // S3 key format: public/userId/timestamp-filename.csv
+    const filenameSuffix = filename.split('/').pop();
+
+    // Persist metadata to project for public datasets
+    if (projectId) {
+        try {
+            const projects = readProjects();
+            const projectIndex = projects.findIndex(p => p.id === projectId);
+
+            if (projectIndex !== -1) {
+                if (!projects[projectIndex].datasets) {
+                    projects[projectIndex].datasets = [];
+                }
+
+                projects[projectIndex].datasets.push({
+                    id: `ds-${Date.now()}`,
+                    name: displayName,
+                    filename: filenameSuffix,
+                    originalName: req.file.originalname,
+                    size: req.file.size,
+                    createdAt: new Date().toISOString(),
+                    type: 'public',
+                    userId: req.userId
+                });
+
+                writeProjects(projects);
+            }
+        } catch (err) {
+            console.error("Error saving public dataset metadata:", err);
+        }
+    }
 
     res.status(201).json({
         success: true,
         message: 'Public dataset uploaded successfully',
         type: 'public',
         userId: req.userId,
-        filename: filename,
+        filename: filenameSuffix,
         originalName: req.file.originalname,
         size: req.file.size,
         url: location,
