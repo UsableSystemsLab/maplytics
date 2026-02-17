@@ -1,279 +1,75 @@
 {
-    "dataset_name": "Riyadh Restaurants",
-    "entity_type": "restaurant",
-    "data": [
+    "type": "FeatureCollection",
+    "features": [
         {
-            "restaurant_name": "Golden Spoon",
-            "district": "Al-Naseem",
-            "latitude": 24.7745,
-            "longitude": 46.7381,
-            "cuisine": "International",
-            "price_range": "$$",
-            "hourly_traffic_percent": {
-                "10:00": 20,
-                "11:00": 35,
-                "12:00": 60,
-                "13:00": 85,
-                "14:00": 75,
-                "15:00": 40,
-                "16:00": 25,
-                "17:00": 30,
-                "18:00": 50,
-                "19:00": 70,
-                "20:00": 90,
-                "21:00": 65
-            },
-            "reviews": [
-                {
-                    "rating": 5,
-                    "comment": "Amazing food and fast service!",
-                    "date": "2025-01-11"
-                },
-                {
-                    "rating": 4,
-                    "comment": "Good taste but seating was crowded.",
-                    "date": "2025-01-15"
-                },
-                {
-                    "rating": 3,
-                    "comment": "Average experience, okay prices.",
-                    "date": "2025-01-20"
-                }
-            ]
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7381, 24.7745] },
+            "properties": {
+                "restaurant_name": "Golden Spoon",
+                "district": "Al-Naseem",
+                "cuisine": "International",
+                "price_range": "$$"
+            }
         },
         {
-            "restaurant_name": "Spice Hub",
-            "district": "Al-Naseem",
-            "latitude": 24.7752,
-            "longitude": 46.7394,
-            "cuisine": "Indian",
-            "price_range": "$$$",
-            "hourly_traffic_percent": {
-                "10:00": 10,
-                "11:00": 25,
-                "12:00": 55,
-                "13:00": 70,
-                "14:00": 60,
-                "15:00": 45,
-                "16:00": 30,
-                "17:00": 35,
-                "18:00": 65,
-                "19:00": 80,
-                "20:00": 95,
-                "21:00": 85
-            },
-            "reviews": [
-                {
-                    "rating": 4,
-                    "comment": "Great spices and flavors!",
-                    "date": "2025-01-09"
-                },
-                {
-                    "rating": 5,
-                    "comment": "Best curry in the district.",
-                    "date": "2025-01-18"
-                },
-                {
-                    "rating": 3,
-                    "comment": "Long wait times at night.",
-                    "date": "2025-01-22"
-                }
-            ]
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7394, 24.7752] },
+            "properties": {
+                "restaurant_name": "Spice Hub",
+                "district": "Al-Naseem",
+                "cuisine": "Indian",
+                "price_range": "$$$"
+            }
         },
         {
-            "restaurant_name": "Naseem Grill",
-            "district": "Al-Naseem",
-            "latitude": 24.7738,
-            "longitude": 46.7365,
-            "cuisine": "Arabic",
-            "price_range": "$$",
-            "hourly_traffic_percent": {
-                "10:00": 15,
-                "11:00": 30,
-                "12:00": 70,
-                "13:00": 90,
-                "14:00": 80,
-                "15:00": 50,
-                "16:00": 35,
-                "17:00": 40,
-                "18:00": 60,
-                "19:00": 85,
-                "20:00": 95,
-                "21:00": 70
-            },
-            "reviews": [
-                {
-                    "rating": 5,
-                    "comment": "Best shawarma in Riyadh!",
-                    "date": "2025-01-05"
-                },
-                {
-                    "rating": 5,
-                    "comment": "Fresh ingredients always.",
-                    "date": "2025-01-12"
-                },
-                {
-                    "rating": 4,
-                    "comment": "Great value for money.",
-                    "date": "2025-01-19"
-                }
-            ]
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7365, 24.7738] },
+            "properties": {
+                "restaurant_name": "Naseem Grill",
+                "district": "Al-Naseem",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
         },
         {
-            "restaurant_name": "Sultan Palace",
-            "district": "Al-Sulaimania",
-            "latitude": 24.7055,
-            "longitude": 46.6753,
-            "cuisine": "Arabic",
-            "price_range": "$$$",
-            "hourly_traffic_percent": {
-                "10:00": 25,
-                "11:00": 40,
-                "12:00": 75,
-                "13:00": 95,
-                "14:00": 85,
-                "15:00": 55,
-                "16:00": 40,
-                "17:00": 45,
-                "18:00": 70,
-                "19:00": 90,
-                "20:00": 100,
-                "21:00": 80
-            },
-            "reviews": [
-                {
-                    "rating": 5,
-                    "comment": "Authentic Saudi cuisine!",
-                    "date": "2025-01-02"
-                },
-                {
-                    "rating": 5,
-                    "comment": "Beautiful decor and ambiance.",
-                    "date": "2025-01-08"
-                },
-                {
-                    "rating": 4,
-                    "comment": "Slightly pricey but worth it.",
-                    "date": "2025-01-14"
-                }
-            ]
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6753, 24.7055] },
+            "properties": {
+                "restaurant_name": "Sultan Palace",
+                "district": "Al-Sulaimania",
+                "cuisine": "Arabic",
+                "price_range": "$$$"
+            }
         },
         {
-            "restaurant_name": "Cafe Milano",
-            "district": "Al-Sulaimania",
-            "latitude": 24.7068,
-            "longitude": 46.6781,
-            "cuisine": "Italian",
-            "price_range": "$$$",
-            "hourly_traffic_percent": {
-                "10:00": 30,
-                "11:00": 45,
-                "12:00": 65,
-                "13:00": 80,
-                "14:00": 70,
-                "15:00": 50,
-                "16:00": 45,
-                "17:00": 55,
-                "18:00": 75,
-                "19:00": 90,
-                "20:00": 95,
-                "21:00": 75
-            },
-            "reviews": [
-                {
-                    "rating": 4,
-                    "comment": "Great pasta selection.",
-                    "date": "2025-01-04"
-                },
-                {
-                    "rating": 5,
-                    "comment": "Perfect for date nights.",
-                    "date": "2025-01-11"
-                },
-                {
-                    "rating": 4,
-                    "comment": "Excellent espresso.",
-                    "date": "2025-01-17"
-                }
-            ]
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6781, 24.7068] },
+            "properties": {
+                "restaurant_name": "Cafe Milano",
+                "district": "Al-Sulaimania",
+                "cuisine": "Italian",
+                "price_range": "$$$"
+            }
         },
         {
-            "restaurant_name": "Burger Junction",
-            "district": "Al-Sulaimania",
-            "latitude": 24.7042,
-            "longitude": 46.6768,
-            "cuisine": "American",
-            "price_range": "$$",
-            "hourly_traffic_percent": {
-                "10:00": 5,
-                "11:00": 20,
-                "12:00": 50,
-                "13:00": 75,
-                "14:00": 65,
-                "15:00": 40,
-                "16:00": 30,
-                "17:00": 35,
-                "18:00": 55,
-                "19:00": 80,
-                "20:00": 90,
-                "21:00": 70
-            },
-            "reviews": [
-                {
-                    "rating": 4,
-                    "comment": "Juicy burgers!",
-                    "date": "2025-01-06"
-                },
-                {
-                    "rating": 3,
-                    "comment": "Good but a bit greasy.",
-                    "date": "2025-01-13"
-                },
-                {
-                    "rating": 4,
-                    "comment": "Nice fries combo.",
-                    "date": "2025-01-20"
-                }
-            ]
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6768, 24.7042] },
+            "properties": {
+                "restaurant_name": "Burger Junction",
+                "district": "Al-Sulaimania",
+                "cuisine": "American",
+                "price_range": "$$"
+            }
         },
         {
-            "restaurant_name": "Sushi Express",
-            "district": "Al-Sulaimania",
-            "latitude": 24.7078,
-            "longitude": 46.6742,
-            "cuisine": "Japanese",
-            "price_range": "$$$",
-            "hourly_traffic_percent": {
-                "10:00": 10,
-                "11:00": 25,
-                "12:00": 45,
-                "13:00": 60,
-                "14:00": 55,
-                "15:00": 35,
-                "16:00": 30,
-                "17:00": 40,
-                "18:00": 65,
-                "19:00": 85,
-                "20:00": 90,
-                "21:00": 65
-            },
-            "reviews": [
-                {
-                    "rating": 5,
-                    "comment": "Fresh sushi, great quality!",
-                    "date": "2025-01-03"
-                },
-                {
-                    "rating": 5,
-                    "comment": "Best Japanese in town.",
-                    "date": "2025-01-10"
-                },
-                {
-                    "rating": 4,
-                    "comment": "Fast service.",
-                    "date": "2025-01-16"
-                }
-            ]
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6742, 24.7078] },
+            "properties": {
+                "restaurant_name": "Sushi Express",
+                "district": "Al-Sulaimania",
+                "cuisine": "Japanese",
+                "price_range": "$$$"
+            }
         }
     ]
 }
