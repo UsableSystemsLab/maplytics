@@ -52,19 +52,46 @@
     "signOutConfirm": "تسجيل الخروج؟"
   },
   "auth": {
-    "loginTitle": "تسجيل الدخول",
-    "registerTitle": "إنشاء حساب",
-    "emailPlaceholder": "البريد الإلكتروني",
-    "passwordPlaceholder": "كلمة المرور",
-    "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
-    "signIn": "تسجيل الدخول",
-    "registerButton": "إنشاء حساب",
-    "googleAlt": "جوجل",
-    "signInWithGoogle": "تسجيل الدخول باستخدام جوجل",
-    "signUpWithGoogle": "إنشاء حساب باستخدام جوجل",
-    "noAccount": "ليس لديك حساب؟",
-    "registerLink": "إنشاء حساب",
-    "alreadyHaveAccount": "لديك حساب بالفعل؟",
-    "loginLink": "تسجيل الدخول"
+    "shared": {
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "email@example.com",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "••••••••",
+      "orContinueWith": "أو تابع باستخدام"
+    },
+    "login": {
+      "welcomeBack": "مرحبًا بعودتك",
+      "subtitle": "سجّل دخولك لتحليل وعرض البيانات المكانية بسهولة",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "signingIn": "جارٍ تسجيل الدخول...",
+      "signIn": "تسجيل الدخول",
+      "signInWithGoogle": "تسجيل الدخول باستخدام جوجل",
+      "noAccount": "ليس لديك حساب؟",
+      "signUpLink": "إنشاء حساب"
+    },
+    "register": {
+      "createAccount": "إنشاء حساب",
+      "subtitle": "انضم إلينا لاستخدام أدوات التحليل المكاني",
+      "confirmPasswordLabel": "تأكيد كلمة المرور",
+      "passwordHint": "يجب أن تكون 8 أحرف على الأقل",
+      "creatingAccount": "جارٍ إنشاء الحساب...",
+      "signUpWithGoogle": "إنشاء حساب باستخدام جوجل",
+      "alreadyHaveAccount": "لديك حساب بالفعل؟",
+      "signInLink": "تسجيل الدخول",
+      "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين"
+    },
+    "resetPassword": {
+      "title": "إعادة تعيين كلمة المرور",
+      "subtitle": "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور",
+      "sending": "جارٍ الإرسال...",
+      "sendResetLink": "إرسال رابط الاستعادة",
+      "rememberPassword": "تتذكر كلمة المرور؟",
+      "backToSignIn": "العودة لتسجيل الدخول",
+      "checkYourEmail": "تحقق من بريدك الإلكتروني",
+      "resetLinkSent": "تم إرسال رابط الاستعادة! تحقق من صندوق الوارد. إذا لم تجده، تحقق من مجلد الرسائل غير المرغوب فيها."
+    },
+    "leftPanel": {
+      "subtitle": "التحليل المكاني ببساطة"
+    }
   }
 }

@@ -1,7 +1,9 @@
 import { fadeIn, drawLine, fadePin, spinAnimation, typingAnimation } from '@/lib/animationStyles';
+import { useTranslations } from 'next-intl';
 
 export default function AuthLeftPanel() {
-  return (
+  const t = useTranslations()
+  return ( 
     <div className="hidden lg:flex lg:w-[40%] border-r border-gray-200 shadow-xl relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.12]">
         <svg width="100%" height="100%">
@@ -34,12 +36,12 @@ export default function AuthLeftPanel() {
             <h1 className="text-7xl font-bold tracking-tight mb-2 overflow-hidden whitespace-nowrap border-r-4 border-ocean-blue pr-1" style={typingAnimation}>
               <span
                 className="text-heading">
-                MAPLYTICS
+                {t('shared.maplytics')}
               </span>
             </h1>
           </div>
           <p className="text-body-text text-xl font-medium pt-6 mb-8" style={fadeIn('2.5s')}>
-            Spatial Analysis Simplified
+            {t('auth.leftPanel.subtitle')}
           </p>
         </div>
 

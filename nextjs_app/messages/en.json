@@ -52,19 +52,46 @@
     "signOutConfirm": "Sign out?"
   },
   "auth": {
-    "loginTitle": "Login",
-    "registerTitle": "Register",
-    "emailPlaceholder": "Email",
-    "passwordPlaceholder": "Password",
-    "confirmPasswordPlaceholder": "Confirm Password",
-    "signIn": "Sign In",
-    "registerButton": "Register",
-    "googleAlt": "Google",
-    "signInWithGoogle": "Sign in with Google",
-    "signUpWithGoogle": "Sign up with Google",
-    "noAccount": "Don't have an account?",
-    "registerLink": "Register",
-    "alreadyHaveAccount": "Already have an account?",
-    "loginLink": "Login"
+    "shared": {
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "email@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "orContinueWith": "Or continue with"
+    },
+    "login": {
+      "welcomeBack": "Welcome Back",
+      "subtitle": "Sign in to analyze and visualize spatial data effortlessly",
+      "forgotPassword": "Forgot Password?",
+      "signingIn": "Signing In...",
+      "signIn": "Sign In",
+      "signInWithGoogle": "Sign in with Google",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign Up"
+    },
+    "register": {
+      "createAccount": "Create Account",
+      "subtitle": "Join us to unlock powerful spatial analysis",
+      "confirmPasswordLabel": "Confirm Password",
+      "passwordHint": "Must be at least 8 characters",
+      "creatingAccount": "Creating Account...",
+      "signUpWithGoogle": "Sign up with Google",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInLink": "Sign In",
+      "passwordsDoNotMatch": "Passwords do not match"
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email and we'll send you a link to reset your password",
+      "sending": "Sending...",
+      "sendResetLink": "Send Reset Link",
+      "rememberPassword": "Remember your password?",
+      "backToSignIn": "Back to Sign In",
+      "checkYourEmail": "Check Your Email",
+      "resetLinkSent": "Reset link sent! Check your inbox for an email from us. If you don't see it, check your spam folder."
+    },
+    "leftPanel": {
+      "subtitle": "Spatial Analysis Simplified"
+    }
   }
 }
