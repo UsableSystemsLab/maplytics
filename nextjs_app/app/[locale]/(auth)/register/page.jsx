@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
 import AuthLeftPanel from "@/components/AuthLeftPanel";
 import { fadeIn } from "@/lib/animationStyles";
+import { getFirebaseErrorMessage } from "@/lib/firebaseErrors";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -28,13 +29,13 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       if (confPass !== password) {
-        setError("Passwords do not match");
+        setError(t('register.passwordsDoNotMatch'));
         return;
       }
       await createUserWithEmailAndPassword(auth, email, password);
       router.push("/");
     } catch (err) {
-      setError(err.message);
+      setError(getFirebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,7 @@ export default function RegisterPage() {
       await signInWithPopup(auth, provider);
       router.push("/");
     } catch (err) {
-      setError(err.message);
+      setError(getFirebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -62,24 +63,24 @@ export default function RegisterPage() {
             <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-ocean-blue/10 rounded-full mb-3" style={fadeIn('0s')}>
               <UserPlus className="w-7 h-7 md:w-8 md:h-8 text-ocean-blue" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-heading mb-2" style={fadeIn('0s')}>Create Account</h1>
-            <p className="text-body-text text-sm md:text-base" style={fadeIn('0.1s')}>Join us to unlock powerful spatial analysis</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-heading mb-2" style={fadeIn('0s')}>{t('register.createAccount')}</h1>
+            <p className="text-body-text text-sm md:text-base" style={fadeIn('0.1s')}>{t('register.subtitle')}</p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4 md:space-y-5">
             <div className="space-y-1.5" style={fadeIn('0.2s')}>
               <label htmlFor="email" className="text-xs md:text-sm font-semibold text-heading block">
-                Email Address
+                {t('shared.emailLabel')}
               </label>
               <div className="flex items-center gap-2 border-2 border-gray-200 rounded-lg px-3 md:px-4 py-2.5 md:py-3 focus-within:border-ocean-blue hover:border-gray-300 transition-colors cursor-text">
                 <Mail className="w-4 h-4 md:w-5 md:h-5 text-body-text flex-shrink-0" />
                 <input
                   id="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder={t('shared.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-400 outline-none bg-transparent"
+                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-500 outline-none bg-transparent"
                   required
                 />
               </div>
@@ -87,17 +88,17 @@ export default function RegisterPage() {
 
             <div className="space-y-1.5" style={fadeIn('0.3s')}>
               <label htmlFor="password" className="text-xs md:text-sm font-semibold text-heading block">
-                Password
+                {t('shared.passwordLabel')}
               </label>
               <div className="flex items-center gap-2 border-2 border-gray-200 rounded-lg px-3 md:px-4 py-2.5 md:py-3 focus-within:border-ocean-blue hover:border-gray-300 transition-colors cursor-text">
                 <Lock className="w-4 h-4 md:w-5 md:h-5 text-body-text flex-shrink-0" />
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t('shared.passwordPlaceholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-400 outline-none bg-transparent"
+                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-500 outline-none bg-transparent"
                   required
                   minLength={8}
                 />
@@ -109,23 +110,23 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Must be at least 8 characters</p>
+              <p className="text-xs text-gray-500 mt-1">{t('register.passwordHint')}</p>
             </div>
 
 
             <div className="space-y-1.5" style={fadeIn('0.4s')}>
               <label htmlFor="confirmPassword" className="text-xs md:text-sm font-semibold text-heading block">
-                Confirm Password
+                {t('register.confirmPasswordLabel')}
               </label>
               <div className="flex items-center gap-2 border-2 border-gray-200 rounded-lg px-3 md:px-4 py-2.5 md:py-3 focus-within:border-ocean-blue hover:border-gray-300 transition-colors cursor-text">
                 <Lock className="w-4 h-4 md:w-5 md:h-5 text-body-text flex-shrink-0" />
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t('shared.passwordPlaceholder')}
                   value={confPass}
                   onChange={(e) => setConfPass(e.target.value)}
-                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-400 outline-none bg-transparent"
+                  className="flex-1 text-sm md:text-base text-heading placeholder:text-gray-500 outline-none bg-transparent"
                   required
                   minLength={8}
                 />
@@ -156,10 +157,10 @@ export default function RegisterPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Creating Account...
+                  {t('register.creatingAccount')}
                 </span>
               ) : (
-                "Create Account"
+                t('register.createAccount')
               )}
             </button>
           </form>
@@ -169,7 +170,7 @@ export default function RegisterPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-xs md:text-sm">
-              <span className="px-3 md:px-4 bg-white text-body-text">Or continue with</span>
+              <span className="px-3 md:px-4 bg-white text-body-text">{t('shared.orContinueWith')}</span>
             </div>
           </div>
 
@@ -180,17 +181,17 @@ export default function RegisterPage() {
             style={fadeIn('0.7s')}
           >
             <img src="/google.svg" alt="Google" className="w-4 h-4 md:w-5 md:h-5" />
-            Sign up with Google
+            {t('register.signUpWithGoogle')}
           </button>
 
 
           <p className="mt-4 md:mt-6 text-center text-xs md:text-sm text-body-text" style={fadeIn('0.8s')}>
-            Already have an account?{" "}
+            {t('register.alreadyHaveAccount')}{" "}
             <Link
               href="/login"
               className="text-ocean-blue hover:text-primary font-semibold transition-colors hover:underline"
             >
-              Sign In
+              {t('register.signInLink')}
             </Link>
           </p>
         </div>
