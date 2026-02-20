@@ -5,7 +5,7 @@ import { ListObjectsV2Command, DeleteObjectCommand, DeleteObjectsCommand, GetObj
 const PROJECTS_FILE = '/datasets/projects.json';
 
 // Helper to read projects
-const readProjects = () => {
+export const readProjects = () => {
     if (!fs.existsSync(PROJECTS_FILE)) {
         return [];
     }
@@ -19,15 +19,12 @@ const readProjects = () => {
 };
 
 // Helper to write projects
-const writeProjects = (projects) => {
+export const writeProjects = (projects) => {
     fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2));
 };
 
 export const getProjects = (req, res) => {
-    const userId = req.headers['x-user-id'];
-    if (!userId) {
-        return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = req.userId;
 
     const projects = readProjects();
     // Filter projects by user ID
@@ -37,11 +34,7 @@ export const getProjects = (req, res) => {
 
 export const createProject = (req, res) => {
     const { name, id, datasets } = req.body;
-    const userId = req.headers['x-user-id'];
-
-    if (!userId) {
-        return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = req.userId;
 
     if (!name || !id) {
         return res.status(400).json({ error: 'Project name and ID are required' });
@@ -73,11 +66,7 @@ export const createProject = (req, res) => {
 
 export const deleteProject = async (req, res) => {
     const { id } = req.params;
-    const userId = req.headers['x-user-id'];
-
-    if (!userId) {
-        return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = req.userId;
 
     let projects = readProjects();
 
@@ -126,11 +115,7 @@ export const deleteProject = async (req, res) => {
 
 export const getProjectDatasets = async (req, res) => {
     const { id } = req.params;
-    const userId = req.headers['x-user-id'];
-
-    if (!userId) {
-        return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = req.userId;
 
     // Verify project exists and belongs to user
     const projects = readProjects();
@@ -152,11 +137,7 @@ export const getProjectDatasets = async (req, res) => {
 
 export const deleteDataset = async (req, res) => {
     const { id, datasetId } = req.params;
-    const userId = req.headers['x-user-id'];
-
-    if (!userId) {
-        return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = req.userId;
 
     let projects = readProjects();
     const projectIndex = projects.findIndex(p => p.id === id);
@@ -331,11 +312,7 @@ const inferFields = (geojson) => {
 
 export const getDatasetData = async (req, res) => {
     const { id: projectId, datasetId } = req.params;
-    const userId = req.headers['x-user-id'];
-
-    if (!userId) {
-        return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = req.userId;
 
     const projects = readProjects();
     const project = projects.find(p => p.id === projectId);

@@ -1,3 +1,5 @@
+import { readProjects, writeProjects } from './project.controller.js';
+
 export const uploadPublicFile = (req, res) => {
     if (!req.file) {
         return res.status(400).json({
@@ -56,23 +58,6 @@ export const uploadPublicFile = (req, res) => {
         size: req.file.size,
         url: location,
     });
-};
-
-import fs from 'fs';
-
-const PROJECTS_FILE = '/datasets/projects.json';
-
-const readProjects = () => {
-    if (!fs.existsSync(PROJECTS_FILE)) return [];
-    try {
-        return JSON.parse(fs.readFileSync(PROJECTS_FILE, 'utf8'));
-    } catch (e) {
-        return [];
-    }
-};
-
-const writeProjects = (projects) => {
-    fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2));
 };
 
 export const uploadPrivateFile = (req, res) => {
