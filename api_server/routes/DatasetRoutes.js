@@ -4,7 +4,8 @@ import {
     getAllDatasets,
     getDatasetAsGeoJSON,
     getDatasetById,
-    deleteDataset
+    // deleteDataset,
+    searchDatasets
 } from '../controllers/DatasetController.js';
 
 const router = express.Router();
@@ -19,6 +20,9 @@ const router = express.Router();
 // POST /datasets/ingest - Ingest a new dataset
 router.post('/ingest', ingestDataset);
 
+// GET /datasets/search - Search datasets
+router.get('/search', searchDatasets);
+
 // GET /datasets - List all datasets
 router.get('/', getAllDatasets);
 
@@ -29,6 +33,6 @@ router.get('/:id/geojson', getDatasetAsGeoJSON);
 router.get('/:id', getDatasetById);
 
 // DELETE /datasets/:id - Delete a dataset
-router.delete('/:id', deleteDataset);
+// router.delete('/:id', deleteDataset);
 
 export default router;

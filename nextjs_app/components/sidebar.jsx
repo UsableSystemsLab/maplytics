@@ -12,9 +12,9 @@ import {
     Plus,
     Loader2,
     Trash2,
+    Globe,
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
-import { ingestDatasetFromFile } from "@/lib/datasetApi";
 
 export default function SideBar(props) {
     const { user, loading } = useAuth();
@@ -24,6 +24,7 @@ export default function SideBar(props) {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [currentProjectId, setCurrentProjectId] = useState(null);
+    const [selectedLayerId, setSelectedLayerId] = useState(null);
 
     // Build navItems array from props
     const navItems = [];
@@ -75,6 +76,7 @@ export default function SideBar(props) {
 
     // Static page items
     const pageItems = [
+        { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/dashboard/public-dataset" },
         { id: "account", label: "Account", icon: User, href: "/account" },
         { id: "History", label: "History", icon: Map, href: "/dashboard/createProject" },
         { id: "team", label: "Team", icon: Users, href: "/team" },
@@ -174,6 +176,19 @@ export default function SideBar(props) {
             window.removeEventListener('projectChanged', handleStorageChange);
         };
     }, [user]);
+
+    const handleLayerClick = (layer) => {
+        const isDeselecting = selectedLayerId === layer.id;
+        setSelectedLayerId(isDeselecting ? null : layer.id);
+
+        window.dispatchEvent(new CustomEvent('layerSelected', {
+            detail: isDeselecting ? null : {
+                projectId: currentProjectId,
+                datasetId: layer.id,
+                datasetName: layer.name
+            }
+        }));
+    };
 
     const handleOpenModal = () => {
         updateCurrentProject();
@@ -275,9 +290,16 @@ export default function SideBar(props) {
                                 layers.map((layer) => (
                                     <div
                                         key={layer.id}
-                                        className={`px-3 py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-200 flex items-center justify-between group`}
+                                        onClick={() => handleLayerClick(layer)}
+                                        className={`px-3 py-2.5 rounded-lg border-2 transition-all duration-200 flex items-center justify-between group cursor-pointer ${
+                                            selectedLayerId === layer.id
+                                                ? 'bg-blue-50 border-primary shadow-sm'
+                                                : 'bg-white border-gray-200 hover:border-primary'
+                                        }`}
                                     >
-                                        <span className="text-sm font-medium text-gray-700 truncate flex-1">
+                                        <span className={`text-sm font-medium truncate flex-1 ${
+                                            selectedLayerId === layer.id ? 'text-primary' : 'text-gray-700'
+                                        }`}>
                                             {layer.name}
                                         </span>
                                         <button

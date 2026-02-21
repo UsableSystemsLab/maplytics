@@ -40,7 +40,8 @@ export default function CreateProjectPage() {
                         filename: d.content.uploadedFileName,
                         size: d.content.fileSize,
                         originalName: d.content.file?.name,
-                        type: 'private'
+                        type: d.content.isPrivate ? 'private' : 'public',
+                        ...(d.content.isPrivate ? {} : { userId: user?.uid })
                     }))
                 })
             });
