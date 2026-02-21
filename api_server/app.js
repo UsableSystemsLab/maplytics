@@ -6,6 +6,7 @@ import apiRoutes from './routes/index.js';
 import { postgresDB } from './configs/postgresDB.js';
 import validateApiKey from './middlewares/validateApiKey.js';
 import errorHandling from './middlewares/errorHandling.js';
+import { initBucket } from './configs/s3Client.js';
 const app = express();
 
 // middlewares
@@ -36,7 +37,7 @@ app.use(errorHandling);
 postgresDB()
   .then(async () => {
     try {
-      await import('./configs/s3Client.js').then(module => module.initBucket());
+      await initBucket();
     } catch (err) {
       console.error('Failed to initialize S3 bucket:', err);
     }
