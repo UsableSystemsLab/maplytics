@@ -109,8 +109,8 @@ services:
     image: rustfs/rustfs
     container_name: rustfs_container
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${RUSTFS_PORT1}:${RUSTFS_PORT1}"
+      - "${RUSTFS_PORT2}:${RUSTFS_PORT2}"
     volumes:
       - rustfs_data:/data
     environment:
