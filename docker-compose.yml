@@ -59,9 +59,7 @@ services:
     container_name: api_server_container
     ports:
       - ${API_SERVER_PORT}:4000
-    volumes:
       - ./api_server:/app
-      - datasets:/datasets
     depends_on:
       - db
       - rustfs
@@ -127,4 +125,4 @@ volumes:
   pg_data:
   pgadmin_data:
   rustfs_data:
-  datasets:
+  
