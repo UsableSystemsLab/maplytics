@@ -2,7 +2,7 @@ import UserRoutes from './UserRoutes.js';
 import DatasetRoutes from './DatasetRoutes.js';
 import uploadRoutes from './upload.routes.js';
 import projectRoutes from './project.routes.js';
-import filesRoutes from './routes/files.routes.js';
+import filesRoutes from './files.routes.js';
 
 const apiRoutes = (router) => {
   /**
