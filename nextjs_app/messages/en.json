@@ -11,6 +11,7 @@
     },
     "features": {
       "title": "Features Overview",
+      "subtitle": "A Platform to Simplify and Visualize Geo-Spatial Data",
       "cards": [
         {
           "title": "Add <highlight1>Datasets</highlight1>",
