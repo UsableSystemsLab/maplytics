@@ -1,5 +1,6 @@
 import express from 'express';
-import { getProjects, createProject, deleteProject, getProjectDatasets, deleteDataset, getDatasetData } from '../controllers/project.controller.js';
+import { getProjects, createProject, deleteProject } from '../controllers/project.controller.js';
+import { getProjectDatasets, deleteDataset, getDatasetData } from '../controllers/files.controller.js';
 import { extractUserId } from '../middlewares/firebaseAuth.js';
 
 const router = express.Router();
