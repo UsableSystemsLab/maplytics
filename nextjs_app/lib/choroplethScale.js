@@ -8,7 +8,6 @@ export const COLOR_SCHEMES = {
     Purples: 'Purples',
     YlGnBu: 'YlGnBu',
     Viridis: 'Viridis',
-    Turbo: 'Turbo',
 };
 
 /**
