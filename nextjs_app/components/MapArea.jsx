@@ -15,7 +15,8 @@ import {
     X,
     Loader2,
     Map as MapIcon,
-    Layers
+    Layers,
+    BarChart3,
 } from "lucide-react";
 import { getProjectDatasetData } from "@/lib/datasetApi";
 import { getDistrictColor, resetDistrictColors } from "@/lib/districtColors";
@@ -25,10 +26,12 @@ import BoundaryMap from "@/components/BoundaryMap";
 import { getRegionBoundaries, getDistrictBoundaries } from "@/lib/geoApi";
 import { countPointsInBoundaries } from "@/lib/aggregateData";
 import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries } from "@/lib/choroplethScale";
+import { useRouter } from "next/navigation";
 
 
 export default function MapArea() {
     const { user } = useAuth();
+    const router = useRouter();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(5);
     const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
@@ -635,6 +638,22 @@ export default function MapArea() {
                                 <button className="px-4 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
                                     Share
                                 </button>
+                                {selectedLayer && (
+                                    <button
+                                        onClick={() => {
+                                            const params = new URLSearchParams({
+                                                projectId: selectedLayer.projectId,
+                                                datasetId: selectedLayer.datasetId,
+                                                name: selectedLayer.datasetName,
+                                            });
+                                            router.push(`/dashboard?${params.toString()}`);
+                                        }}
+                                        className="flex items-center gap-2 px-4 bg-earthy-green text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors"
+                                    >
+                                        <BarChart3 className="w-4 h-4" />
+                                        View Chart
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
