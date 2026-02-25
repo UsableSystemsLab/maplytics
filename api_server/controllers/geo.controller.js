@@ -224,3 +224,101 @@ export const getCityInfo = async (req, res, next) => {
         next(error);
     }
 };
+
+// ─── Boundary endpoints ───────────────────────────────────────────────────────
+
+/**
+ * @swagger
+ * /geo/regions:
+ *   get:
+ *     summary: Get all regions as a GeoJSON FeatureCollection
+ *     tags: [Geo]
+ *     responses:
+ *       200:
+ *         description: GeoJSON FeatureCollection of region boundaries
+ */
+export const getRegionBoundaries = async (req, res, next) => {
+    try {
+        const regions = await Region.findAll({
+            attributes: ['region_id', 'name_ar', 'name_en', 'code', 'population', 'boundaries'],
+        });
+
+        const features = regions
+            .filter(r => r.boundaries)
+            .map(r => ({
+                type: 'Feature',
+                geometry: r.boundaries,
+                properties: {
+                    region_id: r.region_id,
+                    name_ar: r.name_ar,
+                    name_en: r.name_en,
+                    code: r.code,
+                    population: r.population,
+                },
+            }));
+
+        return res.json({ type: 'FeatureCollection', features });
+    } catch (error) {
+        logger.error('Error in getRegionBoundaries:', error);
+        next(error);
+    }
+};
+
+/**
+ * @swagger
+ * /geo/districts:
+ *   get:
+ *     summary: Get districts as a GeoJSON FeatureCollection
+ *     tags: [Geo]
+ *     parameters:
+ *       - in: query
+ *         name: region_id
+ *         schema:
+ *           type: integer
+ *         description: Filter by region
+ *       - in: query
+ *         name: city_id
+ *         schema:
+ *           type: integer
+ *         description: Filter by city
+ *     responses:
+ *       200:
+ *         description: GeoJSON FeatureCollection of district boundaries
+ */
+export const getDistrictBoundaries = async (req, res, next) => {
+    try {
+        const where = {};
+        if (req.query.region_id) where.region_id = Number(req.query.region_id);
+        if (req.query.city_id) where.city_id = Number(req.query.city_id);
+
+        const districts = await District.findAll({
+            where,
+            attributes: ['district_id', 'name_ar', 'name_en', 'city_id', 'region_id', 'boundaries'],
+            include: [
+                { model: City, as: 'city', attributes: ['name_en', 'name_ar'] },
+                { model: Region, as: 'region', attributes: ['name_en', 'name_ar'] },
+            ],
+        });
+
+        const features = districts
+            .filter(d => d.boundaries)
+            .map(d => ({
+                type: 'Feature',
+                geometry: d.boundaries,
+                properties: {
+                    district_id: d.district_id,
+                    name_ar: d.name_ar,
+                    name_en: d.name_en,
+                    city_id: d.city_id,
+                    city_name: d.city?.name_en || '',
+                    region_id: d.region_id,
+                    region_name: d.region?.name_en || '',
+                },
+            }));
+
+        return res.json({ type: 'FeatureCollection', features });
+    } catch (error) {
+        logger.error('Error in getDistrictBoundaries:', error);
+        next(error);
+    }
+};

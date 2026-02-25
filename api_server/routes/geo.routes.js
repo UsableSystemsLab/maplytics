@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCityInfo } from '../controllers/geo.controller.js';
+import { getCityInfo, getRegionBoundaries, getDistrictBoundaries } from '../controllers/geo.controller.js';
 
 const router = express.Router();
 
@@ -11,5 +11,7 @@ const router = express.Router();
  */
 
 router.get('/city-info', getCityInfo);
+router.get('/regions', getRegionBoundaries);
+router.get('/districts', getDistrictBoundaries);
 
 export default router;
