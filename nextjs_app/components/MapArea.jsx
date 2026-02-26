@@ -24,7 +24,7 @@ import StatCard from "@/components/StatCard";
 import BoundaryMap from "@/components/BoundaryMap";
 import { getRegionBoundaries, getDistrictBoundaries } from "@/lib/geoApi";
 import { countPointsInBoundaries } from "@/lib/aggregateData";
-import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries } from "@/lib/choroplethScale";
+import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries, getColorRange } from "@/lib/choroplethScale";
 
 
 export default function MapArea() {
@@ -171,22 +171,20 @@ export default function MapArea() {
         return () => { cancelled = true; };
     }, [viewMode, boundaryLevel, displayGeojson]);
 
-    // Build choropleth GeoJSON with count values baked into properties
+    // Build choropleth GeoJSON with count values baked into properties.
+    // choroplethData[i] corresponds to boundaryData.features[i] (same order),
+    // so we merge by index to avoid collisions from duplicate name_en values
+    // across different cities/regions.
     const choroplethGeojson = useMemo(() => {
         if (!boundaryData || !choroplethData) return null;
 
-        const countLookup = new Map();
-        for (const d of choroplethData) {
-            countLookup.set(d.name, d.count);
-        }
-
         return {
             type: 'FeatureCollection',
-            features: boundaryData.features.map(f => ({
+            features: boundaryData.features.map((f, i) => ({
                 ...f,
                 properties: {
                     ...f.properties,
-                    count: countLookup.get(f.properties.name_en) ?? 0,
+                    count: choroplethData[i]?.count ?? 0,
                 },
             })),
         };
@@ -201,7 +199,11 @@ export default function MapArea() {
 
     const choroplethColorFn = useMemo(() => {
         if (!choroplethScale) return null;
-        return (feature) => choroplethScale.getColor(feature.properties?.count ?? 0);
+        return (feature) => {
+            const count = feature.properties?.count ?? 0;
+            if (count === 0) return '#e5e7eb'; // distinct "no data" color
+            return choroplethScale.getQuantizedColor(count);
+        };
     }, [choroplethScale]);
 
     // Apply filters client-side
@@ -317,47 +319,80 @@ export default function MapArea() {
                         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
                             <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">Choropleth Settings</h4>
 
-                            <label className="text-xs font-medium text-gray-600 block mb-1">Boundary Level</label>
-                            <select
-                                value={boundaryLevel}
-                                onChange={(e) => setBoundaryLevel(e.target.value)}
-                                className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded mb-3 focus:ring-primary focus:border-primary"
-                            >
-                                <option value="regions">Regions</option>
-                                <option value="districts">Districts</option>
-                            </select>
+                            {/* Boundary Level toggle */}
+                            <p className="text-xs font-medium text-gray-500 mb-1">Boundary Level</p>
+                            <div className="flex rounded-lg overflow-hidden border border-gray-200 mb-3">
+                                <button
+                                    onClick={() => setBoundaryLevel('regions')}
+                                    className={`flex-1 py-1.5 text-xs font-medium transition-colors ${
+                                        boundaryLevel === 'regions'
+                                            ? 'bg-primary text-white'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    Regions
+                                </button>
+                                <button
+                                    onClick={() => setBoundaryLevel('districts')}
+                                    className={`flex-1 py-1.5 text-xs font-medium transition-colors border-l border-gray-200 ${
+                                        boundaryLevel === 'districts'
+                                            ? 'bg-primary text-white'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    Districts
+                                </button>
+                            </div>
 
-                            <label className="text-xs font-medium text-gray-600 block mb-1">Color Scheme</label>
-                            <select
-                                value={colorScheme}
-                                onChange={(e) => setColorScheme(e.target.value)}
-                                className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded mb-3 focus:ring-primary focus:border-primary"
-                            >
-                                {Object.keys(COLOR_SCHEMES).map(scheme => (
-                                    <option key={scheme} value={scheme}>{scheme}</option>
-                                ))}
-                            </select>
+                            {/* Color Scheme swatches */}
+                            <p className="text-xs font-medium text-gray-500 mb-1.5">Color Scheme</p>
+                            <div className="grid grid-cols-2 gap-1.5 mb-3">
+                                {Object.keys(COLOR_SCHEMES).map(scheme => {
+                                    const colors = getColorRange(scheme, 5);
+                                    return (
+                                        <button
+                                            key={scheme}
+                                            onClick={() => setColorScheme(scheme)}
+                                            title={scheme}
+                                            className={`rounded-md overflow-hidden border-2 transition-all ${
+                                                colorScheme === scheme
+                                                    ? 'border-primary shadow-sm'
+                                                    : 'border-transparent hover:border-gray-300'
+                                            }`}
+                                        >
+                                            <div className="flex h-4 w-full">
+                                                {colors.map((color, i) => (
+                                                    <div key={i} style={{ backgroundColor: color }} className="flex-1" />
+                                                ))}
+                                            </div>
+                                            <div className="text-[10px] text-center py-0.5 bg-gray-50 text-gray-600 leading-tight">
+                                                {scheme}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-                            {/* Color Legend */}
+                            {/* Count legend */}
                             {choroplethScale && (
-                                <>
-                                    <div className="border-t border-gray-200 mt-1 pt-2">
-                                        <h4 className="text-xs font-semibold text-gray-600 uppercase mb-1.5">
-                                            Count
-                                        </h4>
-                                        <div className="space-y-1">
-                                            {getLegendEntries(choroplethScale).map((entry, i) => (
-                                                <div key={i} className="flex items-center gap-2">
-                                                    <div
-                                                        className="w-4 h-3 rounded-sm shrink-0 border border-gray-200"
-                                                        style={{ backgroundColor: entry.color }}
-                                                    />
-                                                    <span className="text-xs text-gray-700">{entry.rangeLabel}</span>
-                                                </div>
-                                            ))}
+                                <div className="border-t border-gray-200 pt-2">
+                                    <h4 className="text-xs font-semibold text-gray-600 uppercase mb-1.5">Count</h4>
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-3 rounded-sm shrink-0 border border-gray-200" style={{ backgroundColor: '#e5e7eb' }} />
+                                            <span className="text-xs text-gray-700">0</span>
                                         </div>
+                                        {getLegendEntries(choroplethScale).map((entry, i) => (
+                                            <div key={i} className="flex items-center gap-2">
+                                                <div
+                                                    className="w-4 h-3 rounded-sm shrink-0 border border-gray-200"
+                                                    style={{ backgroundColor: entry.color }}
+                                                />
+                                                <span className="text-xs text-gray-700">{entry.rangeLabel}</span>
+                                            </div>
+                                        ))}
                                     </div>
-                                </>
+                                </div>
                             )}
                         </div>
                     )}
