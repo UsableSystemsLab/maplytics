@@ -1,16 +1,16 @@
 import { S3Client, CreateBucketCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({
-    region: process.env.S3_REGION || "us-east-1",
-    endpoint: process.env.S3_ENDPOINT || "http://rustfs:9000",
+    region: process.env.S3_REGION,
+    endpoint: process.env.S3_ENDPOINT,
     credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY || "rustfsadmin",
-        secretAccessKey: process.env.S3_SECRET_KEY || "rustfsadmin",
+        accessKeyId: process.env.S3_ACCESS_KEY,
+        secretAccessKey: process.env.S3_SECRET_KEY,
     },
     forcePathStyle: true,
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'datasets';
+const BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
 export const initBucket = async () => {
     try {
