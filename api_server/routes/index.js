@@ -2,6 +2,7 @@ import UserRoutes from './UserRoutes.js';
 import DatasetRoutes from './DatasetRoutes.js';
 import uploadRoutes from './upload.routes.js';
 import projectRoutes from './project.routes.js';
+import GeoRoutes from './geo.routes.js';
 import filesRoutes from './files.routes.js';
 
 const apiRoutes = (router) => {
@@ -44,6 +45,7 @@ const apiRoutes = (router) => {
   router.use('/datasets', DatasetRoutes);
   router.use('/upload', uploadRoutes);
   router.use('/projects', projectRoutes);
+  router.use('/geo', GeoRoutes);
   router.use('/files', filesRoutes);
 
   // Middleware to catch 404 errors

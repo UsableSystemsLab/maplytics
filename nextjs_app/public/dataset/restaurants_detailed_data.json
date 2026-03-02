@@ -2,8 +2,8 @@
     {
         "restaurant_name": "Golden Spoon",
         "district": "Al-Naseem",
-        "latitude": 24.7745,
-        "longitude": 46.7381,
+        "latitude": 24.7398,
+        "longitude": 46.8451,
         "hourly_traffic_percent": {
             "10:00": 20,
             "11:00": 35,
@@ -101,8 +101,8 @@
     {
         "restaurant_name": "Spice Hub",
         "district": "Al-Naseem",
-        "latitude": 24.7752,
-        "longitude": 46.7394,
+        "latitude": 24.7415,
+        "longitude": 46.8463,
         "hourly_traffic_percent": {
             "10:00": 10,
             "11:00": 25,
