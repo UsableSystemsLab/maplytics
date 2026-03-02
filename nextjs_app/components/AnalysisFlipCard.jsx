@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
     Activity,
     MapPin,
@@ -11,7 +11,7 @@ import {
     Database,
 } from "lucide-react";
 import BarChartComparison from "@/components/BarChartComparison";
-import { aggregateByField } from "@/lib/aggregateData";
+import { useChartData, isBlocker } from "@/hooks/useChartData";
 
 export default function AnalysisFlipCard({
     features,
@@ -44,32 +44,8 @@ export default function AnalysisFlipCard({
     useEffect(() => observeHeight(frontRef, setFrontHeight), [observeHeight, features]);
     useEffect(() => observeHeight(backRef, setBackHeight), [observeHeight, features, isFlipped]);
 
-    // Categorical fields the user can pick from
-    // Include all string fields — the bar chart limits to top 10 regardless
-    const categoricalFields = useMemo(
-        () =>
-            fieldsMetadata.filter(
-                (f) => f.type === "string"
-            ),
-        [fieldsMetadata]
-    );
-
-    const [selectedField, setSelectedField] = useState(
-        categoricalFields[0]?.name ?? ""
-    );
-
-    // Sync selectedField when categoricalFields change (e.g. async data load)
-    useEffect(() => {
-        if (categoricalFields.length > 0 && !categoricalFields.some((f) => f.name === selectedField)) {
-            setSelectedField(categoricalFields[0].name);
-        }
-    }, [categoricalFields, selectedField]);
-
-    // Aggregate features by the chosen field
-    const chartData = useMemo(() => {
-        if (!features || !selectedField) return [];
-        return aggregateByField(features, selectedField);
-    }, [features, selectedField]);
+    const { categoricalFields, selectedField, setSelectedField, chartData, diagnostics } =
+        useChartData(features, fieldsMetadata);
 
     // Summary stats for the front card
     const hasData = features && features.length > 0;
@@ -273,7 +249,7 @@ export default function AnalysisFlipCard({
                             {/* Flip button */}
                             <button
                                 onClick={handleFlip}
-                                disabled={categoricalFields.length === 0}
+                                disabled={isBlocker(diagnostics.status)}
                                 className="w-full bg-cyan text-white py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-auto"
                             >
                                 <BarChart3 className="w-5 h-5" />

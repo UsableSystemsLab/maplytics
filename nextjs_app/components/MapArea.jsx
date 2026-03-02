@@ -26,12 +26,11 @@ import BoundaryMap from "@/components/BoundaryMap";
 import { getRegionBoundaries, getDistrictBoundaries } from "@/lib/geoApi";
 import { countPointsInBoundaries } from "@/lib/aggregateData";
 import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries } from "@/lib/choroplethScale";
-import { useRouter } from "next/navigation";
+import ChartSidePanel from "@/components/ChartSidePanel";
 
 
 export default function MapArea() {
     const { user } = useAuth();
-    const router = useRouter();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(5);
     const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
@@ -61,6 +60,9 @@ export default function MapArea() {
     const [boundaryData, setBoundaryData] = useState(null);
     const [choroplethData, setChoroplethData] = useState(null);
     const [choroplethLoading, setChoroplethLoading] = useState(false);
+
+    // Chart side panel
+    const [isChartPanelOpen, setIsChartPanelOpen] = useState(false);
 
     const boundaryMapRef = useRef(null);
 
@@ -128,6 +130,7 @@ export default function MapArea() {
                 setViewMode('map');
                 setBoundaryData(null);
                 setChoroplethData(null);
+                setIsChartPanelOpen(false);
                 resetDistrictColors();
                 return;
             }
@@ -284,6 +287,11 @@ export default function MapArea() {
         if (val.type === 'number') return val.min !== undefined || val.max !== undefined;
         return false;
     });
+
+    // Chart availability — drives the dot badge, callout, and toggle button visibility
+    const hasPointFeatures = displayGeojson?.features?.some(f => f.geometry?.type === 'Point');
+    const isChartAvailable = !!selectedLayer && hasPointFeatures && fieldsMetadata.some(f => f.type === 'string');
+    const showChartHint = isChartAvailable && !isChartPanelOpen;
 
     // Determine what geojson and color props to pass to BoundaryMap
     const isChoroplethReady = viewMode === 'choropleth' && choroplethGeojson && choroplethColorFn;
@@ -523,7 +531,7 @@ export default function MapArea() {
             </div>
 
             {/* Right Controls */}
-            <div className="absolute right-6 top-24 z-30 flex flex-col gap-2">
+            <div className={`absolute top-24 z-30 flex flex-col items-end gap-2 transition-all duration-300 ${isChartPanelOpen ? "right-[26.5rem]" : "right-6"}`}>
                 {/* View Mode Toggle */}
                 {selectedLayer && (
                     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
@@ -564,6 +572,22 @@ export default function MapArea() {
                         <ZoomOut className="w-5 h-5 text-gray-700" />
                     </button>
                 </div>
+
+                {/* Chart Panel Toggle */}
+                {isChartAvailable && (
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsChartPanelOpen(!isChartPanelOpen)}
+                            className={`p-3 rounded-lg shadow-lg transition-colors ${isChartPanelOpen ? 'bg-cyan text-white border-transparent' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'}`}
+                            title={isChartPanelOpen ? "Close Chart" : "Open Chart"}
+                        >
+                            <BarChart3 className="w-5 h-5" />
+                        </button>
+                        {showChartHint && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-earthy-green rounded-full pointer-events-none" />
+                        )}
+                    </div>
+                )}
 
                 {/* Fullscreen Toggle */}
                 <button
@@ -628,6 +652,23 @@ export default function MapArea() {
                                     subtitle={selectedLayer ? 'Dataset loaded' : 'Select a layer'}
                                 />
                             </div>
+                            {/* Chart callout */}
+                            {showChartHint && (
+                                <button
+                                    onClick={() => setIsChartPanelOpen(true)}
+                                    className="w-full mb-4 flex items-center gap-3 px-4 py-3 bg-cyan/5 border border-cyan/20 rounded-lg hover:bg-cyan/10 transition-colors group"
+                                >
+                                    <div className="p-2 bg-cyan/10 rounded-lg group-hover:bg-cyan/20 transition-colors">
+                                        <BarChart3 className="w-4 h-4 text-cyan" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-sm font-semibold text-gray-800">Chart analysis ready</p>
+                                        <p className="text-xs text-gray-500">View categorical breakdown of your dataset</p>
+                                    </div>
+                                    <ChevronDown className="w-4 h-4 text-gray-400 ml-auto -rotate-90" />
+                                </button>
+                            )}
+
                             <div className="flex gap-3">
                                 <button className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors">
                                     Export Report
@@ -638,27 +679,19 @@ export default function MapArea() {
                                 <button className="px-4 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
                                     Share
                                 </button>
-                                {selectedLayer && (
-                                    <button
-                                        onClick={() => {
-                                            const params = new URLSearchParams({
-                                                projectId: selectedLayer.projectId,
-                                                datasetId: selectedLayer.datasetId,
-                                                name: selectedLayer.datasetName,
-                                            });
-                                            router.push(`/dashboard?${params.toString()}`);
-                                        }}
-                                        className="flex items-center gap-2 px-4 bg-earthy-green text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors"
-                                    >
-                                        <BarChart3 className="w-4 h-4" />
-                                        View Chart
-                                    </button>
-                                )}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Chart Side Panel */}
+            <ChartSidePanel
+                features={displayGeojson?.features}
+                fieldsMetadata={fieldsMetadata}
+                isOpen={isChartPanelOpen}
+                onClose={() => setIsChartPanelOpen(false)}
+            />
         </div>
     );
 }
