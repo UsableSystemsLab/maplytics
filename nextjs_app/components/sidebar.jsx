@@ -76,7 +76,7 @@ export default function SideBar(props) {
 
     // Static page items
     const pageItems = [
-        { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/dashboard/public-dataset" },
+        { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/public-dataset" },
         { id: "account", label: "Account", icon: User, href: "/account" },
         { id: "History", label: "History", icon: Map, href: "/dashboard/createProject" },
         { id: "team", label: "Team", icon: Users, href: "/team" },
@@ -291,15 +291,13 @@ export default function SideBar(props) {
                                     <div
                                         key={layer.id}
                                         onClick={() => handleLayerClick(layer)}
-                                        className={`px-3 py-2.5 rounded-lg border-2 transition-all duration-200 flex items-center justify-between group cursor-pointer ${
-                                            selectedLayerId === layer.id
+                                        className={`px-3 py-2.5 rounded-lg border-2 transition-all duration-200 flex items-center justify-between group cursor-pointer ${selectedLayerId === layer.id
                                                 ? 'bg-blue-50 border-primary shadow-sm'
                                                 : 'bg-white border-gray-200 hover:border-primary'
-                                        }`}
+                                            }`}
                                     >
-                                        <span className={`text-sm font-medium truncate flex-1 ${
-                                            selectedLayerId === layer.id ? 'text-primary' : 'text-gray-700'
-                                        }`}>
+                                        <span className={`text-sm font-medium truncate flex-1 ${selectedLayerId === layer.id ? 'text-primary' : 'text-gray-700'
+                                            }`}>
                                             {layer.name}
                                         </span>
                                         <button
