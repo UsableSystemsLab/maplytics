@@ -292,8 +292,8 @@ export default function SideBar(props) {
                                         key={layer.id}
                                         onClick={() => handleLayerClick(layer)}
                                         className={`px-3 py-2.5 rounded-lg border-2 transition-all duration-200 flex items-center justify-between group cursor-pointer ${selectedLayerId === layer.id
-                                                ? 'bg-blue-50 border-primary shadow-sm'
-                                                : 'bg-white border-gray-200 hover:border-primary'
+                                            ? 'bg-blue-50 border-primary shadow-sm'
+                                            : 'bg-white border-gray-200 hover:border-primary'
                                             }`}
                                     >
                                         <span className={`text-sm font-medium truncate flex-1 ${selectedLayerId === layer.id ? 'text-primary' : 'text-gray-700'
@@ -320,19 +320,27 @@ export default function SideBar(props) {
             </div>
 
             <div className="px-4 py-4 border-t border-gray-200 bg-white">
-                <div className="flex items-center gap-3 px-3 py-2 transition-colors cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-earthy-green flex items-center justify-center text-white font-semibold">
-                        {user?.name?.[0]?.toUpperCase() || "U"}
+                {user ? (
+                    <div className="flex items-center gap-3 px-3 py-2 transition-colors cursor-pointer">
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-earthy-green flex items-center justify-center text-white font-semibold">
+                            {user?.displayName?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                                {user?.displayName || user?.name || user?.email?.split('@')[0]}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                                {user?.email}
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                            {user?.name || "User"}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                            {user?.email || "user@example.com"}
-                        </p>
+                ) : (
+                    <div className="px-3 py-2">
+                        <Link href="/login" className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg transition-all duration-200 shadow-sm font-medium hover:bg-primary/90">
+                            Login
+                        </Link>
                     </div>
-                </div>
+                )}
             </div>
 
             <AddLayerModal
