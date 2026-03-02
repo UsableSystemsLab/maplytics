@@ -6,6 +6,8 @@
 *.log
 # express uploads directory
 api/uploads/
+# api server data
+api_server/data/
 # dependencies
 node_modules/
 /.pnp
@@ -38,4 +40,5 @@ yarn-error.log*
 env/
 venv/
 ENV/
+
 
