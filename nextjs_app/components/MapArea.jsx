@@ -26,7 +26,7 @@ import BoundaryMap from "@/components/BoundaryMap";
 import { getRegionBoundaries, getDistrictBoundaries } from "@/lib/geoApi";
 import { countPointsInBoundaries } from "@/lib/aggregateData";
 import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries, getColorRange } from "@/lib/choroplethScale";
-
+import ChartSidePanel from "@/components/ChartSidePanel";
 
 export default function MapArea() {
     const { user } = useAuth();

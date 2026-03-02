@@ -1,4 +1,8 @@
 {
+  "metadata": {
+    "title": "Maplytics",
+    "description": "Transform geospatial data into actionable insights with powerful spatial analysis and visualization tools."
+  },
   "shared": {
     "maplytics": "Maplytics"
   },
