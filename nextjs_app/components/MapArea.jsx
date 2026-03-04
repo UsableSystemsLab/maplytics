@@ -23,8 +23,8 @@ import { getDistrictColor, resetDistrictColors } from "@/lib/districtColors";
 import { useAuth } from "@/hooks/useAuth";
 import StatCard from "@/components/StatCard";
 import BoundaryMap from "@/components/BoundaryMap";
-import { getRegionBoundaries, getDistrictBoundaries } from "@/lib/geoApi";
-import { countPointsInBoundaries } from "@/lib/aggregateData";
+import { getRegionBoundaries, getCityBoundaries, getChoroplethData } from "@/lib/geoApi";
+import { pointInGeometry } from "@/lib/aggregateData";
 import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries, getColorRange } from "@/lib/choroplethScale";
 import ChartSidePanel from "@/components/ChartSidePanel";
 
@@ -54,11 +54,22 @@ export default function MapArea() {
 
     // Choropleth mode
     const [viewMode, setViewMode] = useState('map'); // 'map' | 'choropleth'
-    const [boundaryLevel, setBoundaryLevel] = useState('regions');
     const [colorScheme, setColorScheme] = useState('Blues');
     const [boundaryData, setBoundaryData] = useState(null);
     const [choroplethData, setChoroplethData] = useState(null);
     const [choroplethLoading, setChoroplethLoading] = useState(false);
+
+    // Dynamic zoom-based boundary level
+    const [mapCenter, setMapCenter] = useState([23.8859, 45.0792]); // [lat, lng]
+    const [focusedRegionId, setFocusedRegionId] = useState(null);
+    const [focusedCityId, setFocusedCityId] = useState(null);
+    const regionBoundariesCache = useRef(null);
+    const cityBoundariesCache = useRef({}); // keyed by region_id
+    const [regionCacheReady, setRegionCacheReady] = useState(false);
+    const [cityCacheKeys, setCityCacheKeys] = useState([]); // triggers re-detection when new city data loads
+
+    // Derive boundary level from zoom
+    const boundaryLevel = zoomLevel <= 7 ? 'regions' : zoomLevel <= 10 ? 'cities' : 'districts';
 
     // Chart side panel
     const [isChartPanelOpen, setIsChartPanelOpen] = useState(false);
@@ -76,6 +87,70 @@ export default function MapArea() {
     const handleZoomOut = () => {
         boundaryMapRef.current?.zoomOut();
     };
+
+    const handleMoveEnd = useCallback(({ center, zoom }) => {
+        setMapCenter(center);
+        setZoomLevel(zoom);
+    }, []);
+
+    // Detect which region the map center falls in.
+    // If no region matches (e.g. center is over the sea), keep previous value.
+    useEffect(() => {
+        if (!regionCacheReady || !regionBoundariesCache.current || !mapCenter) return;
+        const pt = [mapCenter[1], mapCenter[0]]; // [lng, lat]
+        for (const f of regionBoundariesCache.current.features) {
+            if (pointInGeometry(pt, f.geometry)) {
+                setFocusedRegionId(f.properties.region_id);
+                return;
+            }
+        }
+        // No match — keep previous focusedRegionId
+    }, [mapCenter, regionCacheReady]);
+
+    // Detect which city the map center falls in.
+    // If no city matches, keep previous value.
+    useEffect(() => {
+        if (!focusedRegionId || !cityBoundariesCache.current[focusedRegionId] || !mapCenter) return;
+        const pt = [mapCenter[1], mapCenter[0]]; // [lng, lat]
+        const cityData = cityBoundariesCache.current[focusedRegionId];
+        for (const f of cityData.features) {
+            if (pointInGeometry(pt, f.geometry)) {
+                setFocusedCityId(f.properties.city_id);
+                return;
+            }
+        }
+    }, [mapCenter, focusedRegionId, cityCacheKeys]);
+
+    useEffect(() => {
+        if (viewMode !== 'choropleth') return;
+        const liveCenter = boundaryMapRef.current?.getCenter();
+        if (liveCenter) setMapCenter(liveCenter);
+
+        if (regionBoundariesCache.current) return;
+        let cancelled = false;
+        getRegionBoundaries().then(data => {
+            if (!cancelled) {
+                regionBoundariesCache.current = data;
+                setRegionCacheReady(true);
+            }
+        }).catch(err => console.error('Failed to preload region boundaries:', err));
+        return () => { cancelled = true; };
+    }, [viewMode]);
+
+    // Load city boundaries whenever focusedRegionId is known,
+    // so focusedCityId detection works at any zoom level (including district)
+    useEffect(() => {
+        if (viewMode !== 'choropleth' || !focusedRegionId) return;
+        if (cityBoundariesCache.current[focusedRegionId]) return;
+        let cancelled = false;
+        getCityBoundaries({ region_id: focusedRegionId }).then(data => {
+            if (!cancelled) {
+                cityBoundariesCache.current[focusedRegionId] = data;
+                setCityCacheKeys(prev => [...prev, focusedRegionId]);
+            }
+        }).catch(err => console.error('Failed to preload city boundaries:', err));
+        return () => { cancelled = true; };
+    }, [viewMode, focusedRegionId]);
 
     const loadLayerData = async (projectId, datasetId) => {
         setIsLoading(true);
@@ -129,6 +204,8 @@ export default function MapArea() {
                 setViewMode('map');
                 setBoundaryData(null);
                 setChoroplethData(null);
+                setFocusedRegionId(null);
+                setFocusedCityId(null);
                 setIsChartPanelOpen(false);
                 resetDistrictColors();
                 return;
@@ -144,26 +221,54 @@ export default function MapArea() {
         return () => window.removeEventListener('layerSelected', handleLayerSelected);
     }, []);
 
-    // Fetch boundaries and compute choropleth when mode/level/data changes
+    // Fetch boundaries + counts from PostGIS in one request.
+    // Keep previous choropleth visible while loading new level (smooth transition).
     useEffect(() => {
         if (viewMode !== 'choropleth' || !displayGeojson?.features?.length) {
             return;
         }
+
+        // Wait for required IDs before fetching — the effect will re-run
+        // once the eager-load effects resolve them
+        if (boundaryLevel === 'cities' && !focusedRegionId) return;
+        if (boundaryLevel === 'districts' && !focusedCityId) return;
 
         let cancelled = false;
         setChoroplethLoading(true);
 
         const fetchAndCompute = async () => {
             try {
-                const boundaries = boundaryLevel === 'regions'
-                    ? await getRegionBoundaries()
-                    : await getDistrictBoundaries();
+                // Extract point coordinates from display data
+                const points = displayGeojson.features
+                    .filter(f => f.geometry?.type === 'Point')
+                    .map(f => f.geometry.coordinates); // [lng, lat]
+
+                // Single server-side request: boundaries + PostGIS ST_Contains counts
+                const result = await getChoroplethData({
+                    points,
+                    level: boundaryLevel,
+                    region_id: focusedRegionId,
+                    city_id: focusedCityId,
+                });
 
                 if (cancelled) return;
 
-                setBoundaryData(boundaries);
-                const counts = countPointsInBoundaries(displayGeojson.features, boundaries.features);
-                setChoroplethData(counts);
+                // Cache boundaries for center detection
+                if (boundaryLevel === 'regions' && !regionBoundariesCache.current) {
+                    regionBoundariesCache.current = result;
+                    setRegionCacheReady(true);
+                } else if (boundaryLevel === 'cities' && focusedRegionId && !cityBoundariesCache.current[focusedRegionId]) {
+                    cityBoundariesCache.current[focusedRegionId] = result;
+                    setCityCacheKeys(prev => [...prev, focusedRegionId]);
+                }
+
+                setBoundaryData(result);
+                // Build counts array matching features order
+                setChoroplethData(result.features.map(f => ({
+                    name: f.properties?.name_en || f.properties?.name_ar || 'Unknown',
+                    count: f.properties?.count ?? 0,
+                    feature: f,
+                })));
             } catch (err) {
                 console.error('Failed to load choropleth data:', err);
                 if (!cancelled) setError(err.message);
@@ -174,26 +279,14 @@ export default function MapArea() {
 
         fetchAndCompute();
         return () => { cancelled = true; };
-    }, [viewMode, boundaryLevel, displayGeojson]);
+    }, [viewMode, boundaryLevel, focusedRegionId, focusedCityId, displayGeojson]);
 
-    // Build choropleth GeoJSON with count values baked into properties.
-    // choroplethData[i] corresponds to boundaryData.features[i] (same order),
-    // so we merge by index to avoid collisions from duplicate name_en values
-    // across different cities/regions.
+    // The server already returns counts baked into feature properties,
+    // so choroplethGeojson is just boundaryData directly.
     const choroplethGeojson = useMemo(() => {
-        if (!boundaryData || !choroplethData) return null;
-
-        return {
-            type: 'FeatureCollection',
-            features: boundaryData.features.map((f, i) => ({
-                ...f,
-                properties: {
-                    ...f.properties,
-                    count: choroplethData[i]?.count ?? 0,
-                },
-            })),
-        };
-    }, [boundaryData, choroplethData]);
+        if (!boundaryData?.features?.length) return null;
+        return boundaryData;
+    }, [boundaryData]);
 
     // Build Chroma color function and legend data for choropleth
     const choroplethScale = useMemo(() => {
@@ -304,11 +397,13 @@ export default function MapArea() {
                 <BoundaryMap
                     ref={boundaryMapRef}
                     geojson={mapGeojson}
+                    fitBounds={viewMode !== 'choropleth'}
                     colorBy={isChoroplethReady ? null : categoryField}
                     getFeatureColor={isChoroplethReady ? choroplethColorFn : null}
                     fillOpacity={isChoroplethReady ? 0.65 : 0.3}
                     showZoomControl={false}
                     onZoomChange={setZoomLevel}
+                    onMoveEnd={handleMoveEnd}
                     className="h-full w-full"
                 />
             </div>
@@ -329,29 +424,23 @@ export default function MapArea() {
                         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
                             <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">Choropleth Settings</h4>
 
-                            {/* Boundary Level toggle */}
+                            {/* Dynamic boundary level badge */}
                             <p className="text-xs font-medium text-gray-500 mb-1">Boundary Level</p>
-                            <div className="flex rounded-lg overflow-hidden border border-gray-200 mb-3">
-                                <button
-                                    onClick={() => setBoundaryLevel('regions')}
-                                    className={`flex-1 py-1.5 text-xs font-medium transition-colors ${
-                                        boundaryLevel === 'regions'
-                                            ? 'bg-primary text-white'
-                                            : 'bg-white text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    Regions
-                                </button>
-                                <button
-                                    onClick={() => setBoundaryLevel('districts')}
-                                    className={`flex-1 py-1.5 text-xs font-medium transition-colors border-l border-gray-200 ${
-                                        boundaryLevel === 'districts'
-                                            ? 'bg-primary text-white'
-                                            : 'bg-white text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    Districts
-                                </button>
+                            <div className="mb-3 px-2 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-700 text-center">
+                                {boundaryLevel === 'regions' && 'Regions'}
+                                {boundaryLevel === 'cities' && (
+                                    <>Cities{focusedRegionId && regionBoundariesCache.current && (() => {
+                                        const r = regionBoundariesCache.current.features.find(f => f.properties.region_id === focusedRegionId);
+                                        return r ? ` \u2014 ${r.properties.name_en}` : '';
+                                    })()}</>
+                                )}
+                                {boundaryLevel === 'districts' && (
+                                    <>Districts{focusedCityId && cityBoundariesCache.current[focusedRegionId] && (() => {
+                                        const c = cityBoundariesCache.current[focusedRegionId]?.features.find(f => f.properties.city_id === focusedCityId);
+                                        return c ? ` \u2014 ${c.properties.name_en}` : '';
+                                    })()}</>
+                                )}
+                                <span className="ml-1.5 text-gray-400">(zoom {Math.round(zoomLevel)})</span>
                             </div>
 
                             {/* Color Scheme swatches */}
@@ -565,7 +654,7 @@ export default function MapArea() {
             </div>
 
             {/* Right Controls */}
-            <div className={`absolute top-24 z-30 flex flex-col items-end gap-2 transition-all duration-300 ${isChartPanelOpen ? "right-[26.5rem]" : "right-6"}`}>
+            <div className={`absolute top-24 z-30 flex flex-col items-end gap-2 transition-all duration-300 ${isChartPanelOpen ? "right-106" : "right-6"}`}>
                 {/* View Mode Toggle */}
                 {selectedLayer && (
                     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">

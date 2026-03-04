@@ -229,6 +229,68 @@ export const getCityInfo = async (req, res, next) => {
 
 /**
  * @swagger
+ * /geo/cities:
+ *   get:
+ *     summary: Get city boundaries derived by merging district polygons
+ *     description: >
+ *       Returns city-level boundaries computed by ST_Union of all district
+ *       polygons belonging to each city. Optionally filtered by region_id.
+ *     tags: [Geo]
+ *     parameters:
+ *       - in: query
+ *         name: region_id
+ *         schema:
+ *           type: integer
+ *         description: Filter cities by region
+ *     responses:
+ *       200:
+ *         description: GeoJSON FeatureCollection of city boundaries
+ */
+export const getCityBoundaries = async (req, res, next) => {
+    try {
+        const regionFilter = req.query.region_id ? Number(req.query.region_id) : null;
+
+        let whereClause = 'd.boundaries IS NOT NULL';
+        const bind = [];
+        if (regionFilter) {
+            bind.push(regionFilter);
+            whereClause += ` AND d.region_id = $1`;
+        }
+
+        const [results] = await sequelize.query(
+            `SELECT d.city_id, c.name_ar, c.name_en, c.region_id,
+                    r.name_en AS region_name, r.name_ar AS region_name_ar,
+                    ST_AsGeoJSON(ST_Union(ST_MakeValid(d.boundaries)))::json AS geometry
+             FROM districts d
+             JOIN cities c ON c.city_id = d.city_id
+             JOIN regions r ON r.region_id = c.region_id
+             WHERE ${whereClause}
+             GROUP BY d.city_id, c.name_ar, c.name_en, c.region_id,
+                      r.name_en, r.name_ar`,
+            { bind }
+        );
+
+        const features = results.map(row => ({
+            type: 'Feature',
+            geometry: row.geometry,
+            properties: {
+                city_id: row.city_id,
+                name_ar: row.name_ar,
+                name_en: row.name_en,
+                region_id: row.region_id,
+                region_name: row.region_name,
+            },
+        }));
+
+        return res.json({ type: 'FeatureCollection', features });
+    } catch (error) {
+        logger.error('Error in getCityBoundaries:', error);
+        next(error);
+    }
+};
+
+/**
+ * @swagger
  * /geo/regions:
  *   get:
  *     summary: Get all regions as a GeoJSON FeatureCollection
@@ -319,6 +381,129 @@ export const getDistrictBoundaries = async (req, res, next) => {
         return res.json({ type: 'FeatureCollection', features });
     } catch (error) {
         logger.error('Error in getDistrictBoundaries:', error);
+        next(error);
+    }
+};
+
+/**
+ * @swagger
+ * /geo/choropleth:
+ *   post:
+ *     summary: Count points per boundary using PostGIS ST_Contains
+ *     description: >
+ *       Accepts an array of [lng, lat] points and a boundary level.
+ *       Returns a GeoJSON FeatureCollection with a `count` property per boundary.
+ *     tags: [Geo]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               points:
+ *                 type: array
+ *                 items:
+ *                   type: array
+ *                   items: { type: number }
+ *               level:
+ *                 type: string
+ *                 enum: [regions, cities, districts]
+ *               region_id:
+ *                 type: integer
+ *               city_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: GeoJSON FeatureCollection with count per boundary
+ */
+export const choroplethCount = async (req, res, next) => {
+    try {
+        const { points, level, region_id, city_id } = req.body;
+
+        if (!points || !Array.isArray(points) || !level) {
+            return res.status(400).json({ error: 'points (array of [lng, lat]) and level are required' });
+        }
+
+        const pointsJson = JSON.stringify(points.map(([lng, lat]) => ({ lng, lat })));
+
+        let sql;
+        const bind = [pointsJson];
+
+        if (level === 'regions') {
+            sql = `
+                WITH pts AS (
+                    SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
+                    FROM json_array_elements($1::json) AS p
+                ),
+                valid_regions AS MATERIALIZED (
+                    SELECT region_id, name_ar, name_en, code, population,
+                           ST_MakeValid(boundaries) AS valid_geom
+                    FROM regions
+                    WHERE boundaries IS NOT NULL
+                )
+                SELECT vr.region_id, vr.name_ar, vr.name_en, vr.code, vr.population,
+                       ST_AsGeoJSON(vr.valid_geom)::json AS geometry,
+                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(vr.valid_geom, pts.geom)) AS count
+                FROM valid_regions vr`;
+        } else if (level === 'cities') {
+            if (!region_id) return res.status(400).json({ error: 'region_id required for cities level' });
+            bind.push(Number(region_id));
+            sql = `
+                WITH pts AS (
+                    SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
+                    FROM json_array_elements($1::json) AS p
+                ),
+                city_bounds AS (
+                    SELECT d.city_id, c.name_ar, c.name_en, c.region_id,
+                           r.name_en AS region_name,
+                           ST_Union(ST_MakeValid(d.boundaries)) AS boundaries
+                    FROM districts d
+                    JOIN cities c ON c.city_id = d.city_id
+                    JOIN regions r ON r.region_id = c.region_id
+                    WHERE d.region_id = $2 AND d.boundaries IS NOT NULL
+                    GROUP BY d.city_id, c.name_ar, c.name_en, c.region_id, r.name_en
+                )
+                SELECT cb.city_id, cb.name_ar, cb.name_en, cb.region_id, cb.region_name,
+                       ST_AsGeoJSON(cb.boundaries)::json AS geometry,
+                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(cb.boundaries, pts.geom)) AS count
+                FROM city_bounds cb`;
+        } else if (level === 'districts') {
+            if (!city_id) return res.status(400).json({ error: 'city_id required for districts level' });
+            bind.push(Number(city_id));
+            sql = `
+                WITH pts AS (
+                    SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
+                    FROM json_array_elements($1::json) AS p
+                )
+                SELECT d.district_id, d.name_ar, d.name_en, d.city_id, d.region_id,
+                       c.name_en AS city_name, r.name_en AS region_name,
+                       ST_AsGeoJSON(d.boundaries)::json AS geometry,
+                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(d.boundaries, pts.geom)) AS count
+                FROM districts d
+                JOIN cities c ON c.city_id = d.city_id
+                JOIN regions r ON r.region_id = d.region_id
+                WHERE d.city_id = $2 AND d.boundaries IS NOT NULL`;
+        } else {
+            return res.status(400).json({ error: 'level must be regions, cities, or districts' });
+        }
+
+        const [results] = await sequelize.query(sql, { bind });
+
+        const features = results.map(row => ({
+            type: 'Feature',
+            geometry: row.geometry,
+            properties: {
+                ...Object.fromEntries(
+                    Object.entries(row).filter(([k]) => k !== 'geometry')
+                ),
+                count: Number(row.count),
+            },
+        }));
+
+        return res.json({ type: 'FeatureCollection', features });
+    } catch (error) {
+        logger.error('Error in choroplethCount:', error);
         next(error);
     }
 };
