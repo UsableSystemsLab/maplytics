@@ -4,6 +4,7 @@ import uploadRoutes from './upload.routes.js';
 import projectRoutes from './project.routes.js';
 import GeoRoutes from './geo.routes.js';
 import filesRoutes from './files.routes.js';
+import comparisonRoutes from './comparisonRoutes.js';
 
 const apiRoutes = (router) => {
   /**
@@ -47,6 +48,7 @@ const apiRoutes = (router) => {
   router.use('/projects', projectRoutes);
   router.use('/geo', GeoRoutes);
   router.use('/files', filesRoutes);
+  router.use('/comparison', comparisonRoutes);
 
   // Middleware to catch 404 errors
   router.use((req, res) => {
