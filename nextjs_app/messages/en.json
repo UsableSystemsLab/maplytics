@@ -84,7 +84,13 @@
     "copyright": "Maplytics rights reserved.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "contactUs": "Contact Us"
+    "aboutTitle": "About Maplytics",
+    "aboutDescription": "Empowering your spatial analysis with interactive maps, datasets, and powerful location intelligence tools.",
+    "quickLinks": "Quick Links",
+    "datasets": "Datasets",
+    "getStarted": "Get Started",
+    "startNow": "Start Now",
+    "login": "Login"
   },
   "header": {
     "products": "Products",
