@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import SideBar from '@/components/sidebar';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
 import { getDatasets, searchDatasets, ingestDatasetFromFile } from '@/lib/datasetApi';
 
@@ -149,20 +150,15 @@ export default function PublicDatasetPage() {
     };
 
     return (
-        <div className="flex h-screen bg-gray-50">
-            <SideBar
-                name1="Overview" href1="/dashboard"
-                name2="Map view" href2="/dashboard/map"
-                name3="Comparison" href3="/dashboard/visualizeDataset"
-                name4="Public Dataset" href4="/dashboard/public-dataset"
-            />
+        <div className="min-h-screen flex flex-col bg-gray-50">
+            <Header />
 
-            <main className="flex-1 overflow-y-auto p-6 relative">
+            <main className="flex-1 overflow-y-auto p-6 relative w-full pt-32">
                 <div className="max-w-7xl mx-auto space-y-6">
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Dataset</h1>
+                            <h1 className="text-2xl font-bold text-gray-900">Datasets</h1>
                             <p className="text-gray-500 mt-1">Explore, understand, and share useful information. Learn about different types of data and how to work with them.</p>
                         </div>
                         <button
@@ -416,6 +412,8 @@ export default function PublicDatasetPage() {
                     </div>
                 )}
             </main>
+
+            <Footer />
         </div>
     );
 }
