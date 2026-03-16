@@ -1,9 +1,11 @@
 'use client'
-import Header from "../../components/Header"
 import HeroSection from "../../components/HeroSection";
 import FeatureOverview from "../../components/FeatureOverview";
+import HowItWorks from "../../components/HowItWorks";
 import Footer from "../../components/Footer";
 import { useRef } from "react";
+import LandingCTA from "../../components/LandingCTA";
+
 export default function Home() {
   const moreRef = useRef(null);
 
@@ -18,6 +20,8 @@ export default function Home() {
     <div>
       <HeroSection onScrollDown={scrollToMore} />
       <FeatureOverview ref={moreRef} />
+      <HowItWorks />
+      <LandingCTA />
       <Footer />
     </div>
   );

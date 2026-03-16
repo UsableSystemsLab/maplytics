@@ -655,20 +655,20 @@ export default function MapArea() {
                                     icon={Database}
                                     label="Dataset"
                                     value={selectedLayer?.datasetName || 'N/A'}
-                                    subtitle="Selected layer"
+                                    description="Selected layer"
                                 />
                                 <StatCard
                                     icon={MapPin}
                                     label="Features"
                                     value={featureCount.toLocaleString()}
-                                    subtitle={hasActiveFilters ? 'Filtered results' : 'Points on map'}
+                                    description={hasActiveFilters ? 'Filtered results' : 'Points on map'}
                                 />
                                 <StatCard
                                     icon={Activity}
                                     iconColor="text-earthy-green"
                                     label="Status"
                                     value={isLoading ? 'Loading...' : selectedLayer ? 'Active' : 'Ready'}
-                                    subtitle={selectedLayer ? 'Dataset loaded' : 'Select a layer'}
+                                    description={selectedLayer ? 'Dataset loaded' : 'Select a layer'}
                                 />
                             </div>
                             <div className="flex gap-3">

@@ -168,7 +168,7 @@ export default function HeroSection({ onScrollDown }) {
     }, []);
 
     return (
-        <section className="relative w-screen h-screen flex items-center justify-center px-6 sm:px-10 font-mono">
+        <section className="relative w-screen h-screen flex items-center justify-center px-6 sm:px-10 bg-[#262626]">
 
             {/* Map */}
             <div
@@ -211,7 +211,8 @@ export default function HeroSection({ onScrollDown }) {
 
                     <Button
                         onClick={onScrollDown}
-                        className="bg-gray-700 text-white text-base sm:text-lg px-10 sm:px-12 py-6 sm:py-8 rounded-md hover:bg-gray-800 transition-all"
+                        variant="secondary"
+                        className="text-base sm:text-lg px-10 sm:px-12 py-6 sm:py-8 rounded-md"
                     >
                         Read More
                     </Button>

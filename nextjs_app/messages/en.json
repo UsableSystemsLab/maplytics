@@ -10,22 +10,70 @@
       "continue": "Continue Your Journey"
     },
     "features": {
-      "title": "Features Overview",
-      "subtitle": "A Platform to Simplify and Visualize Geo-Spatial Data",
+      "badge": "Platform Features",
+      "title": "Everything You Need to Understand Your World",
+      "description": "From raw geospatial data to stunning visual insights — Maplytics puts the power of spatial intelligence in your hands.",
       "cards": [
         {
-          "title": "Add <highlight1>Datasets</highlight1>",
-          "description": "You can add your own datasets to adjust the output depending on the data you add!"
+          "tag": "Data Sources",
+          "title": "Rich Datasets, Ready to Explore",
+          "description": "Dive into our curated library of public geospatial datasets covering regions, cities, and boundaries — or bring your own. Upload custom datasets in standard formats and instantly unlock spatial analysis tailored to your exact needs.",
+          "bullets": [
+            "Access free public geospatial datasets",
+            "Upload your own custom datasets",
+            "Supports GeoJSON, CSV, and more"
+          ]
         },
         {
-          "title": "Create <highlight2>Graphs</highlight2>",
-          "description": "You can create any type of supported graphs for statistical analysis!"
+          "tag": "Smart Prompts",
+          "title": "Just Describe What You Want to See",
+          "description": "No complex query syntax. No steep learning curve. Simply type what you want to visualize in plain language, and Maplytics intelligently translates your intent into precise spatial queries and visual outputs — instantly.",
+          "bullets": [
+            "Natural language to spatial query",
+            "Instant visualization from text prompts",
+            "Smart suggestions as you type"
+          ]
         },
         {
-          "title": "Invite <highlight1>Team</highlight1> Members",
-          "description": "You can add your team members to view your graphs and queries to plan together!"
+          "tag": "Visualizations",
+          "title": "Stunning Maps & Interactive Charts",
+          "description": "Turn your data into interactive maps, heatmaps, bar charts, scatter plots, and more. Every visualization is dynamic, responsive, and shareable — giving your team the clarity needed to make confident, data-driven decisions.",
+          "bullets": [
+            "Interactive maps and heatmaps",
+            "Statistical charts and graphs",
+            "Export and share with your team"
+          ]
         }
       ]
+    },
+    "howItWorks": {
+      "title": "How to Start",
+      "description": "From Raw Data to Visual Clarity in 3 Simple Steps",
+      "steps": [
+        {
+          "number": "01",
+          "title": "Create Project",
+          "description": "Start by choosing from our rich library of public geospatial datasets, or upload your own. Supports GeoJSON, CSV, Shapefiles, and more — your data is ready in seconds."
+        },
+        {
+          "number": "02",
+          "title": "Input Prompt",
+          "description": "No SQL. No complex filters. Just type your question in plain language and Maplytics intelligently translates it into precise spatial queries — instantly."
+        },
+        {
+          "number": "03",
+          "title": "Explore Interactive Visualizations",
+          "description": "Get beautiful, interactive maps, heatmaps, bar charts, and scatter plots instantly. Share your insights with teammates or export them for presentations and reports."
+        }
+      ]
+    },
+    "cta": {
+      "cta": "Get Started",
+      "title": "Start Turning Your Geospatial Data into Actionable Insights Today",
+      "description": "Join researchers, analysts, and planners who use Maplytics to understand their cities — no coding experience required.",
+      "primaryButton": "Create Your First Project",
+      "secondaryButton": "Browse Public Datasets",
+      "trustLine": "No credit card required · Free to get started · Saudi-focused data"
     }
   },
   "footer": {

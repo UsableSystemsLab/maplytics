@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -53,9 +52,7 @@
 }
 
 body {
-  background-color: #F5F5F5;
   min-height: 100vh;
-  @apply font-mono;
 }
 
 header {
@@ -66,33 +63,6 @@ header {
 
 .btn-header {
   background-color: #0E3147;
-}
-
-button {
-  position: relative;
-  overflow: hidden;
-}
-
-button:active {
-  scale: 0.95;
-}
-
-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -30px;
-  width: 20px;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: skewX(-20deg);
-  transition: left 0.25s;
-  z-index: 10;
-  pointer-events: none;
-}
-
-button:active::before {
-  left: calc(100% + 30px);
 }
 
 :root {
@@ -129,6 +99,7 @@ button:active::before {
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
+
 .hero-polygon {
   filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.7));
 }
