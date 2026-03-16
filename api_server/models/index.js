@@ -3,6 +3,9 @@ import Dataset from './Dataset.js';
 import Feature from './Feature.js';
 import Feature_Property from './Feature_Property.js';
 import Dataset_Metadata from './Dataset_Metadata.js';
+import Region from './Region.js';
+import City from './City.js';
+import District from './District.js';
 
 // Define associations between models
 
@@ -56,4 +59,40 @@ Dataset.belongsTo(User, {
     as: 'owner'
 });
 
-export { User, Dataset, Feature, Feature_Property, Dataset_Metadata };
+// Region has many Cities
+Region.hasMany(City, {
+    foreignKey: 'region_id',
+    as: 'cities',
+});
+
+// City belongs to Region
+City.belongsTo(Region, {
+    foreignKey: 'region_id',
+    as: 'region',
+});
+
+// Region has many Districts
+Region.hasMany(District, {
+    foreignKey: 'region_id',
+    as: 'districts',
+});
+
+// District belongs to Region
+District.belongsTo(Region, {
+    foreignKey: 'region_id',
+    as: 'region',
+});
+
+// City has many Districts
+City.hasMany(District, {
+    foreignKey: 'city_id',
+    as: 'districts',
+});
+
+// District belongs to City
+District.belongsTo(City, {
+    foreignKey: 'city_id',
+    as: 'city',
+});
+
+export { User, Dataset, Feature, Feature_Property, Dataset_Metadata, Region, City, District };

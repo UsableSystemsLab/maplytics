@@ -3,70 +3,330 @@
     "features": [
         {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [46.7381, 24.7745] },
+            "geometry": { "type": "Point", "coordinates": [46.8451, 24.7398] },
             "properties": {
                 "restaurant_name": "Golden Spoon",
-                "district": "Al-Naseem",
+                "district": "East Naseem",
                 "cuisine": "International",
                 "price_range": "$$"
             }
         },
         {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [46.7394, 24.7752] },
+            "geometry": { "type": "Point", "coordinates": [46.8463, 24.7415] },
             "properties": {
                 "restaurant_name": "Spice Hub",
-                "district": "Al-Naseem",
+                "district": "East Naseem",
                 "cuisine": "Indian",
                 "price_range": "$$$"
             }
         },
         {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [46.7365, 24.7738] },
+            "geometry": { "type": "Point", "coordinates": [46.8439, 24.7381] },
             "properties": {
                 "restaurant_name": "Naseem Grill",
-                "district": "Al-Naseem",
+                "district": "East Naseem",
                 "cuisine": "Arabic",
                 "price_range": "$$"
             }
         },
         {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [46.6753, 24.7055] },
+            "geometry": { "type": "Point", "coordinates": [46.7012, 24.6972] },
             "properties": {
                 "restaurant_name": "Sultan Palace",
-                "district": "Al-Sulaimania",
+                "district": "Al Sulaimaniyah",
                 "cuisine": "Arabic",
                 "price_range": "$$$"
             }
         },
         {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [46.6781, 24.7068] },
+            "geometry": { "type": "Point", "coordinates": [46.7031, 24.6995] },
             "properties": {
                 "restaurant_name": "Cafe Milano",
-                "district": "Al-Sulaimania",
+                "district": "Al Sulaimaniyah",
                 "cuisine": "Italian",
                 "price_range": "$$$"
             }
         },
         {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [46.6768, 24.7042] },
+            "geometry": { "type": "Point", "coordinates": [46.7008, 24.6985] },
             "properties": {
                 "restaurant_name": "Burger Junction",
-                "district": "Al-Sulaimania",
+                "district": "Al Sulaimaniyah",
                 "cuisine": "American",
                 "price_range": "$$"
             }
         },
         {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [46.6742, 24.7078] },
+            "geometry": { "type": "Point", "coordinates": [46.7024, 24.7011] },
             "properties": {
                 "restaurant_name": "Sushi Express",
-                "district": "Al-Sulaimania",
+                "district": "Al Sulaimaniyah",
+                "cuisine": "Japanese",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6691, 24.7382] },
+            "properties": {
+                "restaurant_name": "Al Waha Restaurant",
+                "district": "King Fahd",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6705, 24.7394] },
+            "properties": {
+                "restaurant_name": "Riyadh Kitchen",
+                "district": "King Fahd",
+                "cuisine": "Saudi",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6682, 24.7371] },
+            "properties": {
+                "restaurant_name": "Olive Tree",
+                "district": "King Fahd",
+                "cuisine": "Mediterranean",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6714, 24.7408] },
+            "properties": {
+                "restaurant_name": "Flames Grill",
+                "district": "King Fahd",
+                "cuisine": "American",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6674, 24.7358] },
+            "properties": {
+                "restaurant_name": "La Piazza",
+                "district": "King Fahd",
+                "cuisine": "Italian",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7081, 24.7568] },
+            "properties": {
+                "restaurant_name": "Nuzha Cafe",
+                "district": "Al Nuzha",
+                "cuisine": "Cafe",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7065, 24.7553] },
+            "properties": {
+                "restaurant_name": "Saffron House",
+                "district": "Al Nuzha",
+                "cuisine": "Indian",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7098, 24.7582] },
+            "properties": {
+                "restaurant_name": "The Terrace",
+                "district": "Al Nuzha",
+                "cuisine": "International",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7052, 24.7541] },
+            "properties": {
+                "restaurant_name": "Shanghai Garden",
+                "district": "Al Nuzha",
+                "cuisine": "Chinese",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7112, 24.7595] },
+            "properties": {
+                "restaurant_name": "Nuzha Steakhouse",
+                "district": "Al Nuzha",
+                "cuisine": "American",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7038, 24.7530] },
+            "properties": {
+                "restaurant_name": "Falafel Corner",
+                "district": "Al Nuzha",
+                "cuisine": "Levantine",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6841, 24.8071] },
+            "properties": {
+                "restaurant_name": "Nada Corner",
+                "district": "Al Nada",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6828, 24.8058] },
+            "properties": {
+                "restaurant_name": "Lebanese House",
+                "district": "Al Nada",
+                "cuisine": "Lebanese",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6854, 24.8085] },
+            "properties": {
+                "restaurant_name": "Panda Wok",
+                "district": "Al Nada",
+                "cuisine": "Chinese",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6815, 24.8044] },
+            "properties": {
+                "restaurant_name": "Al Reef",
+                "district": "Al Nada",
+                "cuisine": "Saudi",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.6866, 24.8097] },
+            "properties": {
+                "restaurant_name": "Desert Rose",
+                "district": "Al Nada",
+                "cuisine": "International",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7512, 24.6741] },
+            "properties": {
+                "restaurant_name": "Jareer Grill",
+                "district": "Jareer",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7498, 24.6727] },
+            "properties": {
+                "restaurant_name": "Shawarma Palace",
+                "district": "Jareer",
+                "cuisine": "Levantine",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7527, 24.6758] },
+            "properties": {
+                "restaurant_name": "Jareer Bites",
+                "district": "Jareer",
+                "cuisine": "Fast Food",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7358, 24.6642] },
+            "properties": {
+                "restaurant_name": "Malaz Grill",
+                "district": "Al Malaz",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7372, 24.6658] },
+            "properties": {
+                "restaurant_name": "The Lebanese",
+                "district": "Al Malaz",
+                "cuisine": "Lebanese",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7344, 24.6629] },
+            "properties": {
+                "restaurant_name": "Steakhouse 99",
+                "district": "Al Malaz",
+                "cuisine": "American",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7381, 24.6668] },
+            "properties": {
+                "restaurant_name": "Al Diwan",
+                "district": "Al Malaz",
+                "cuisine": "Saudi",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7331, 24.6614] },
+            "properties": {
+                "restaurant_name": "Turkish Delight",
+                "district": "Al Malaz",
+                "cuisine": "Turkish",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7394, 24.6679] },
+            "properties": {
+                "restaurant_name": "Burger Street",
+                "district": "Al Malaz",
+                "cuisine": "American",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [46.7318, 24.6601] },
+            "properties": {
+                "restaurant_name": "Malaz Sushi",
+                "district": "Al Malaz",
                 "cuisine": "Japanese",
                 "price_range": "$$$"
             }

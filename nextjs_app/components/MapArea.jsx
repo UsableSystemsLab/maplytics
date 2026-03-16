@@ -1,7 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
     Search,
     ZoomIn,
@@ -15,70 +13,20 @@ import {
     Database,
     Filter,
     X,
-    Loader2
+    Loader2,
+    Map as MapIcon,
+    Layers,
+    BarChart3,
 } from "lucide-react";
 import { getProjectDatasetData } from "@/lib/datasetApi";
 import { getDistrictColor, resetDistrictColors } from "@/lib/districtColors";
 import { useAuth } from "@/hooks/useAuth";
 import StatCard from "@/components/StatCard";
-
-
-// Custom marker icon
-const createMarkerIcon = (color = '#2C3580') => {
-    return L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="
-            background-color: ${color};
-            width: 24px;
-            height: 24px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        "></div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 24],
-        popupAnchor: [0, -24]
-    });
-};
-
-
-// popup content from the feature properties
-const generatePopupContent = (properties) => {
-    if (!properties || Object.keys(properties).length === 0) {
-        return '<p class="text-gray-500">No properties available</p>';
-    }
-
-    const nameFields = ['name', 'restaurant_name', 'school_name', 'hospital_name', 'title', 'label'];
-    let primaryName = '';
-    for (const field of nameFields) {
-        if (properties[field]) {
-            primaryName = properties[field];
-            break;
-        }
-    }
-
-    let html = '<div class="p-2 max-w-xs">';
-
-    if (primaryName) {
-        html += `<h3 style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #1f2937;">${primaryName}</h3>`;
-    }
-
-    html += '<div style="display: flex; flex-direction: column; gap: 2px;">';
-
-    for (const [key, value] of Object.entries(properties)) {
-        if (nameFields.includes(key)) continue;
-        if (typeof value === 'object') continue;
-
-        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        html += `<p style="font-size: 13px;"><span style="font-weight: 500; color: #4b5563;">${label}:</span> <span style="color: #1f2937;">${value}</span></p>`;
-    }
-    html += '</div>';
-    html += '</div>';
-
-    return html;
-};
-
+import BoundaryMap from "@/components/BoundaryMap";
+import { getRegionBoundaries, getDistrictBoundaries } from "@/lib/geoApi";
+import { countPointsInBoundaries } from "@/lib/aggregateData";
+import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries, getColorRange } from "@/lib/choroplethScale";
+import ChartSidePanel from "@/components/ChartSidePanel";
 
 export default function MapArea() {
     const { user } = useAuth();
@@ -90,6 +38,7 @@ export default function MapArea() {
     // Dataset states (RustFS-backed)
     const [selectedLayer, setSelectedLayer] = useState(null);
     const [geojsonData, setGeojsonData] = useState(null);
+    const [displayGeojson, setDisplayGeojson] = useState(null);
     const [fieldsMetadata, setFieldsMetadata] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -103,172 +52,29 @@ export default function MapArea() {
     const [categories, setCategories] = useState([]);
     const [categoryField, setCategoryField] = useState(null);
 
-    const mapRef = useRef(null);
-    const markersLayerRef = useRef(null);
+    // Choropleth mode
+    const [viewMode, setViewMode] = useState('map'); // 'map' | 'choropleth'
+    const [boundaryLevel, setBoundaryLevel] = useState('regions');
+    const [colorScheme, setColorScheme] = useState('Blues');
+    const [boundaryData, setBoundaryData] = useState(null);
+    const [choroplethData, setChoroplethData] = useState(null);
+    const [choroplethLoading, setChoroplethLoading] = useState(false);
 
-    // Refs to avoid stale closures in event handlers
+    // Chart side panel
+    const [isChartPanelOpen, setIsChartPanelOpen] = useState(false);
+
+    const boundaryMapRef = useRef(null);
+
+    // Ref to avoid stale closure in event handler
     const userRef = useRef(user);
     userRef.current = user;
-    const geojsonRef = useRef(geojsonData);
-    geojsonRef.current = geojsonData;
-    const categoryFieldRef = useRef(categoryField);
-    categoryFieldRef.current = categoryField;
 
     const handleZoomIn = () => {
-        if (mapRef.current) {
-            mapRef.current.zoomIn();
-            setZoomLevel(mapRef.current.getZoom());
-        }
+        boundaryMapRef.current?.zoomIn();
     };
 
     const handleZoomOut = () => {
-        if (mapRef.current) {
-            mapRef.current.zoomOut();
-            setZoomLevel(mapRef.current.getZoom());
-        }
-    };
-
-    // Initialize map
-    useEffect(() => {
-        if (mapRef.current) return;
-
-        const map = L.map("map", {
-            minZoom: 3,
-            maxZoom: 18,
-            zoomControl: false,
-            worldCopyJump: true,
-            maxBounds: [
-                [-85, -180],
-                [85, 180],
-            ],
-            maxBoundsViscosity: 1.0,
-        }).setView([23.8859, 45.0792], 5);
-        mapRef.current = map;
-        markersLayerRef.current = L.layerGroup().addTo(map);
-        L.tileLayer('https://api.maptiler.com/maps/streets-v4/256/{z}/{x}/{y}.png?key=RiFdBckUhPkjpd0WA65S', {
-            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a>' +
-                '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
-        }).addTo(map);
-
-        map.on('zoomend', () => {
-            setZoomLevel(map.getZoom());
-        });
-    }, []);
-
-    // Render GeoJSON on the map
-    const renderGeoJSON = (geojson, catField) => {
-        console.log('[MapArea] renderGeoJSON called:', { hasMarkersLayer: !!markersLayerRef.current, featureCount: geojson?.features?.length, catField });
-        if (!markersLayerRef.current || !geojson?.features) return;
-
-        const effectiveCatField = catField !== undefined ? catField : categoryFieldRef.current;
-
-        resetDistrictColors();
-        markersLayerRef.current.clearLayers();
-
-        const bounds = [];
-
-        geojson.features.forEach(feature => {
-            const geometryType = feature.geometry?.type;
-
-            if (geometryType === 'Point') {
-                const [lng, lat] = feature.geometry.coordinates;
-                bounds.push([lat, lng]);
-
-                const catValue = effectiveCatField ? (feature.properties?.[effectiveCatField] || 'Unknown') : 'Default';
-                const markerColor = getDistrictColor(catValue);
-
-                const marker = L.marker([lat, lng], {
-                    icon: createMarkerIcon(markerColor)
-                });
-
-                const popupContent = generatePopupContent(feature.properties);
-                marker.bindPopup(popupContent, {
-                    maxWidth: 300,
-                    className: 'custom-popup'
-                });
-
-                markersLayerRef.current.addLayer(marker);
-            }
-            else if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
-                const catValue = effectiveCatField ? (feature.properties?.[effectiveCatField] || feature.properties?.name || 'Unknown') : (feature.properties?.name || 'Unknown');
-                const color = getDistrictColor(catValue);
-
-                const coordsToLatLng = (coords) => coords.map(ring =>
-                    ring.map(coord => [coord[1], coord[0]])
-                );
-
-                let polygonCoords;
-                if (geometryType === 'Polygon') {
-                    polygonCoords = coordsToLatLng(feature.geometry.coordinates);
-                    feature.geometry.coordinates[0].forEach(([lng, lat]) => bounds.push([lat, lng]));
-                } else {
-                    polygonCoords = feature.geometry.coordinates.map(poly => coordsToLatLng(poly));
-                    feature.geometry.coordinates.forEach(poly =>
-                        poly[0].forEach(([lng, lat]) => bounds.push([lat, lng]))
-                    );
-                }
-
-                const polygon = L.polygon(polygonCoords, {
-                    color: color,
-                    weight: 2,
-                    fillColor: color,
-                    fillOpacity: 0.3
-                });
-
-                const popupContent = generatePopupContent(feature.properties);
-                polygon.bindPopup(popupContent, {
-                    maxWidth: 300,
-                    className: 'custom-popup'
-                });
-
-                markersLayerRef.current.addLayer(polygon);
-            }
-            else if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
-                const catValue = effectiveCatField ? (feature.properties?.[effectiveCatField] || feature.properties?.name || 'Unknown') : (feature.properties?.name || 'Unknown');
-                const color = getDistrictColor(catValue);
-
-                let lineCoords;
-                if (geometryType === 'LineString') {
-                    lineCoords = feature.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-                    feature.geometry.coordinates.forEach(([lng, lat]) => bounds.push([lat, lng]));
-                } else {
-                    lineCoords = feature.geometry.coordinates.map(line =>
-                        line.map(([lng, lat]) => [lat, lng])
-                    );
-                    feature.geometry.coordinates.forEach(line =>
-                        line.forEach(([lng, lat]) => bounds.push([lat, lng]))
-                    );
-                }
-
-                const polyline = L.polyline(lineCoords, {
-                    color: color,
-                    weight: 3,
-                    opacity: 0.8
-                });
-
-                const popupContent = generatePopupContent(feature.properties);
-                polyline.bindPopup(popupContent, {
-                    maxWidth: 300,
-                    className: 'custom-popup'
-                });
-
-                markersLayerRef.current.addLayer(polyline);
-            }
-        });
-
-        console.log('[MapArea] renderGeoJSON done:', { markersAdded: markersLayerRef.current.getLayers().length, boundsCount: bounds.length });
-        if (bounds.length > 0 && mapRef.current) {
-            mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-        }
-    };
-
-    const renderGeoJSONRef = useRef(renderGeoJSON);
-    renderGeoJSONRef.current = renderGeoJSON;
-
-    const clearMap = () => {
-        if (markersLayerRef.current) {
-            markersLayerRef.current.clearLayers();
-        }
+        boundaryMapRef.current?.zoomOut();
     };
 
     const loadLayerData = async (projectId, datasetId) => {
@@ -277,28 +83,24 @@ export default function MapArea() {
 
         try {
             const userId = userRef.current?.uid;
-            console.log('[MapArea] loadLayerData called:', { projectId, datasetId, userId });
             const result = await getProjectDatasetData(projectId, datasetId, userId);
             const { geojson, fields } = result;
-            console.log('[MapArea] API response:', { featureCount: geojson?.features?.length, fields: fields?.length, geojsonType: geojson?.type });
+
+            resetDistrictColors();
 
             setGeojsonData(geojson);
-            geojsonRef.current = geojson;
+            setDisplayGeojson(geojson);
             setFieldsMetadata(fields || []);
             setFeatureCount(geojson.features?.length || 0);
 
             const firstCategorical = (fields || []).find(f => f.type === 'string' && f.values && f.values.length > 1 && f.values.length <= 20);
             if (firstCategorical) {
                 setCategoryField(firstCategorical.name);
-                categoryFieldRef.current = firstCategorical.name;
                 setCategories(firstCategorical.values);
             } else {
                 setCategoryField(null);
-                categoryFieldRef.current = null;
                 setCategories([]);
             }
-
-            renderGeoJSONRef.current(geojson, firstCategorical?.name);
         } catch (err) {
             console.error('Failed to load layer data:', err);
             setError(err.message);
@@ -312,19 +114,23 @@ export default function MapArea() {
 
     useEffect(() => {
         const handleLayerSelected = async (e) => {
-            console.log('[MapArea] layerSelected event received:', e.detail);
             const detail = e.detail;
 
             if (!detail) {
                 // Deselected
-                clearMap();
                 setSelectedLayer(null);
                 setGeojsonData(null);
+                setDisplayGeojson(null);
                 setFieldsMetadata([]);
                 setFeatureCount(0);
                 setFilters({});
                 setCategories([]);
                 setCategoryField(null);
+                setViewMode('map');
+                setBoundaryData(null);
+                setChoroplethData(null);
+                setIsChartPanelOpen(false);
+                resetDistrictColors();
                 return;
             }
 
@@ -338,10 +144,76 @@ export default function MapArea() {
         return () => window.removeEventListener('layerSelected', handleLayerSelected);
     }, []);
 
-    // Apply filters client-side and re-render
+    // Fetch boundaries and compute choropleth when mode/level/data changes
+    useEffect(() => {
+        if (viewMode !== 'choropleth' || !displayGeojson?.features?.length) {
+            return;
+        }
+
+        let cancelled = false;
+        setChoroplethLoading(true);
+
+        const fetchAndCompute = async () => {
+            try {
+                const boundaries = boundaryLevel === 'regions'
+                    ? await getRegionBoundaries()
+                    : await getDistrictBoundaries();
+
+                if (cancelled) return;
+
+                setBoundaryData(boundaries);
+                const counts = countPointsInBoundaries(displayGeojson.features, boundaries.features);
+                setChoroplethData(counts);
+            } catch (err) {
+                console.error('Failed to load choropleth data:', err);
+                if (!cancelled) setError(err.message);
+            } finally {
+                if (!cancelled) setChoroplethLoading(false);
+            }
+        };
+
+        fetchAndCompute();
+        return () => { cancelled = true; };
+    }, [viewMode, boundaryLevel, displayGeojson]);
+
+    // Build choropleth GeoJSON with count values baked into properties.
+    // choroplethData[i] corresponds to boundaryData.features[i] (same order),
+    // so we merge by index to avoid collisions from duplicate name_en values
+    // across different cities/regions.
+    const choroplethGeojson = useMemo(() => {
+        if (!boundaryData || !choroplethData) return null;
+
+        return {
+            type: 'FeatureCollection',
+            features: boundaryData.features.map((f, i) => ({
+                ...f,
+                properties: {
+                    ...f.properties,
+                    count: choroplethData[i]?.count ?? 0,
+                },
+            })),
+        };
+    }, [boundaryData, choroplethData]);
+
+    // Build Chroma color function and legend data for choropleth
+    const choroplethScale = useMemo(() => {
+        if (!choroplethData) return null;
+        const counts = choroplethData.map(d => d.count);
+        return createChoroplethScale(counts, colorScheme);
+    }, [choroplethData, colorScheme]);
+
+    const choroplethColorFn = useMemo(() => {
+        if (!choroplethScale) return null;
+        return (feature) => {
+            const count = feature.properties?.count ?? 0;
+            if (count === 0) return '#e5e7eb'; // distinct "no data" color
+            return choroplethScale.getQuantizedColor(count);
+        };
+    }, [choroplethScale]);
+
+    // Apply filters client-side
     const applyFilters = useCallback(() => {
-        const currentGeojson = geojsonRef.current;
-        if (!currentGeojson?.features) return;
+        if (!geojsonData?.features) return;
 
         const activeFilters = Object.entries(filters).filter(([, val]) => {
             if (val.type === 'string') return val.selected && val.selected.length > 0;
@@ -350,12 +222,12 @@ export default function MapArea() {
         });
 
         if (activeFilters.length === 0) {
-            renderGeoJSONRef.current(currentGeojson);
-            setFeatureCount(currentGeojson.features.length);
+            setDisplayGeojson(geojsonData);
+            setFeatureCount(geojsonData.features.length);
             return;
         }
 
-        const filtered = currentGeojson.features.filter(feature => {
+        const filtered = geojsonData.features.filter(feature => {
             return activeFilters.every(([fieldName, filterVal]) => {
                 const propVal = feature.properties?.[fieldName];
                 if (filterVal.type === 'string') {
@@ -372,13 +244,12 @@ export default function MapArea() {
             });
         });
 
-        const filteredGeojson = { ...currentGeojson, features: filtered };
-        renderGeoJSONRef.current(filteredGeojson);
+        setDisplayGeojson({ ...geojsonData, features: filtered });
         setFeatureCount(filtered.length);
-    }, [filters]);
+    }, [filters, geojsonData]);
 
     useEffect(() => {
-        if (geojsonRef.current && Object.keys(filters).length > 0) {
+        if (geojsonData && Object.keys(filters).length > 0) {
             applyFilters();
         }
     }, [filters, applyFilters]);
@@ -406,10 +277,9 @@ export default function MapArea() {
 
     const clearFilters = () => {
         setFilters({});
-        // Re-render with all data when filters are cleared
-        if (geojsonRef.current) {
-            renderGeoJSONRef.current(geojsonRef.current);
-            setFeatureCount(geojsonRef.current.features?.length || 0);
+        if (geojsonData) {
+            setDisplayGeojson(geojsonData);
+            setFeatureCount(geojsonData.features?.length || 0);
         }
     };
 
@@ -419,17 +289,126 @@ export default function MapArea() {
         return false;
     });
 
+    // Chart availability — drives the dot badge, callout, and toggle button visibility
+    const hasPointFeatures = displayGeojson?.features?.some(f => f.geometry?.type === 'Point');
+    const isChartAvailable = !!selectedLayer && hasPointFeatures && fieldsMetadata.some(f => f.type === 'string');
+    const showChartHint = isChartAvailable && !isChartPanelOpen;
+
+    // Determine what geojson and color props to pass to BoundaryMap
+    const isChoroplethReady = viewMode === 'choropleth' && choroplethGeojson && choroplethColorFn;
+    const mapGeojson = isChoroplethReady ? choroplethGeojson : displayGeojson;
+
     return (
         <div className="relative w-full h-full bg-gray-100">
             <div className="absolute inset-0 z-0">
-                <div id="map" className="h-full w-full" />
+                <BoundaryMap
+                    ref={boundaryMapRef}
+                    geojson={mapGeojson}
+                    colorBy={isChoroplethReady ? null : categoryField}
+                    getFeatureColor={isChoroplethReady ? choroplethColorFn : null}
+                    fillOpacity={isChoroplethReady ? 0.65 : 0.3}
+                    showZoomControl={false}
+                    onZoomChange={setZoomLevel}
+                    className="h-full w-full"
+                />
             </div>
 
-            {/* Left Panel: Category Legend + Filter Panel */}
+            {/* Choropleth loading overlay */}
+            {viewMode === 'choropleth' && choroplethLoading && (
+                <div className="absolute left-1/2 top-20 transform -translate-x-1/2 z-40 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span className="text-sm text-gray-600">Loading choropleth...</span>
+                </div>
+            )}
+
+            {/* Left Panel: Choropleth Legend / Category Legend + Filter Panel */}
             {selectedLayer && (
                 <div className="absolute left-6 top-24 z-30 flex flex-col gap-3 max-w-[260px]">
-                    {/* Category Legend */}
-                    {categories.length > 0 && categoryField && (
+                    {/* Choropleth Settings + Legend */}
+                    {viewMode === 'choropleth' && (
+                        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
+                            <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">Choropleth Settings</h4>
+
+                            {/* Boundary Level toggle */}
+                            <p className="text-xs font-medium text-gray-500 mb-1">Boundary Level</p>
+                            <div className="flex rounded-lg overflow-hidden border border-gray-200 mb-3">
+                                <button
+                                    onClick={() => setBoundaryLevel('regions')}
+                                    className={`flex-1 py-1.5 text-xs font-medium transition-colors ${
+                                        boundaryLevel === 'regions'
+                                            ? 'bg-primary text-white'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    Regions
+                                </button>
+                                <button
+                                    onClick={() => setBoundaryLevel('districts')}
+                                    className={`flex-1 py-1.5 text-xs font-medium transition-colors border-l border-gray-200 ${
+                                        boundaryLevel === 'districts'
+                                            ? 'bg-primary text-white'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    Districts
+                                </button>
+                            </div>
+
+                            {/* Color Scheme swatches */}
+                            <p className="text-xs font-medium text-gray-500 mb-1.5">Color Scheme</p>
+                            <div className="grid grid-cols-2 gap-1.5 mb-3">
+                                {Object.keys(COLOR_SCHEMES).map(scheme => {
+                                    const colors = getColorRange(scheme, 5);
+                                    return (
+                                        <button
+                                            key={scheme}
+                                            onClick={() => setColorScheme(scheme)}
+                                            title={scheme}
+                                            className={`rounded-md overflow-hidden border-2 transition-all ${
+                                                colorScheme === scheme
+                                                    ? 'border-primary shadow-sm'
+                                                    : 'border-transparent hover:border-gray-300'
+                                            }`}
+                                        >
+                                            <div className="flex h-4 w-full">
+                                                {colors.map((color, i) => (
+                                                    <div key={i} style={{ backgroundColor: color }} className="flex-1" />
+                                                ))}
+                                            </div>
+                                            <div className="text-[10px] text-center py-0.5 bg-gray-50 text-gray-600 leading-tight">
+                                                {scheme}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Count legend */}
+                            {choroplethScale && (
+                                <div className="border-t border-gray-200 pt-2">
+                                    <h4 className="text-xs font-semibold text-gray-600 uppercase mb-1.5">Count</h4>
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-3 rounded-sm shrink-0 border border-gray-200" style={{ backgroundColor: '#e5e7eb' }} />
+                                            <span className="text-xs text-gray-700">0</span>
+                                        </div>
+                                        {getLegendEntries(choroplethScale).map((entry, i) => (
+                                            <div key={i} className="flex items-center gap-2">
+                                                <div
+                                                    className="w-4 h-3 rounded-sm shrink-0 border border-gray-200"
+                                                    style={{ backgroundColor: entry.color }}
+                                                />
+                                                <span className="text-xs text-gray-700">{entry.rangeLabel}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Category Legend (map mode only) */}
+                    {viewMode === 'map' && categories.length > 0 && categoryField && (
                         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
                             <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">
                                 {categoryField.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -450,7 +429,7 @@ export default function MapArea() {
 
                     {/* Dynamic Filter Panel */}
                     {fieldsMetadata.length > 0 && (
-                        <div className="bg-white rounded-lg shadow-lg border border-gray-200git">
+                        <div className="bg-white rounded-lg shadow-lg border border-gray-200">
                             <button
                                 onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
                                 className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
@@ -586,7 +565,27 @@ export default function MapArea() {
             </div>
 
             {/* Right Controls */}
-            <div className="absolute right-6 top-24 z-30 flex flex-col gap-2">
+            <div className={`absolute top-24 z-30 flex flex-col items-end gap-2 transition-all duration-300 ${isChartPanelOpen ? "right-[26.5rem]" : "right-6"}`}>
+                {/* View Mode Toggle */}
+                {selectedLayer && (
+                    <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                        <button
+                            onClick={() => setViewMode('map')}
+                            className={`p-3 transition-colors ${viewMode === 'map' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-700'}`}
+                            title="Map View"
+                        >
+                            <MapIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('choropleth')}
+                            className={`p-3 transition-colors border-t border-gray-200 ${viewMode === 'choropleth' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-700'}`}
+                            title="Choropleth View"
+                        >
+                            <Layers className="w-5 h-5" />
+                        </button>
+                    </div>
+                )}
+
                 {/* Zoom Controls */}
                 <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                     <button
@@ -607,6 +606,22 @@ export default function MapArea() {
                         <ZoomOut className="w-5 h-5 text-gray-700" />
                     </button>
                 </div>
+
+                {/* Chart Panel Toggle */}
+                {isChartAvailable && (
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsChartPanelOpen(!isChartPanelOpen)}
+                            className={`p-3 rounded-lg shadow-lg transition-colors ${isChartPanelOpen ? 'bg-cyan text-white border-transparent' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'}`}
+                            title={isChartPanelOpen ? "Close Chart" : "Open Chart"}
+                        >
+                            <BarChart3 className="w-5 h-5" />
+                        </button>
+                        {showChartHint && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-earthy-green rounded-full pointer-events-none" />
+                        )}
+                    </div>
+                )}
 
                 {/* Fullscreen Toggle */}
                 <button
@@ -671,6 +686,23 @@ export default function MapArea() {
                                     description={selectedLayer ? 'Dataset loaded' : 'Select a layer'}
                                 />
                             </div>
+                            {/* Chart callout */}
+                            {showChartHint && (
+                                <button
+                                    onClick={() => setIsChartPanelOpen(true)}
+                                    className="w-full mb-4 flex items-center gap-3 px-4 py-3 bg-cyan/5 border border-cyan/20 rounded-lg hover:bg-cyan/10 transition-colors group"
+                                >
+                                    <div className="p-2 bg-cyan/10 rounded-lg group-hover:bg-cyan/20 transition-colors">
+                                        <BarChart3 className="w-4 h-4 text-cyan" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-sm font-semibold text-gray-800">Chart analysis ready</p>
+                                        <p className="text-xs text-gray-500">View categorical breakdown of your dataset</p>
+                                    </div>
+                                    <ChevronDown className="w-4 h-4 text-gray-400 ml-auto -rotate-90" />
+                                </button>
+                            )}
+
                             <div className="flex gap-3">
                                 <button className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:opacity-80 transition-colors">
                                     Export Report
@@ -686,6 +718,14 @@ export default function MapArea() {
                     </div>
                 </div>
             </div>
+
+            {/* Chart Side Panel */}
+            <ChartSidePanel
+                features={displayGeojson?.features}
+                fieldsMetadata={fieldsMetadata}
+                isOpen={isChartPanelOpen}
+                onClose={() => setIsChartPanelOpen(false)}
+            />
         </div>
     );
 }
