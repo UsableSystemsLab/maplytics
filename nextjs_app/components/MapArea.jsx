@@ -67,9 +67,12 @@ export default function MapArea() {
     const cityBoundariesCache = useRef({}); // keyed by region_id
     const [regionCacheReady, setRegionCacheReady] = useState(false);
     const [cityCacheKeys, setCityCacheKeys] = useState([]); // triggers re-detection when new city data loads
+    const [boundaryLock, setBoundaryLock] = useState('auto'); // 'auto' | 'regions' | 'cities' | 'districts'
 
-    // Derive boundary level from zoom
-    const boundaryLevel = zoomLevel <= 7 ? 'regions' : zoomLevel <= 10 ? 'cities' : 'districts';
+    // Derive boundary level from zoom or lock
+    const boundaryLevel = boundaryLock !== 'auto'
+        ? boundaryLock
+        : zoomLevel <= 7 ? 'regions' : zoomLevel <= 10 ? 'cities' : 'districts';
 
     // Chart side panel
     const [isChartPanelOpen, setIsChartPanelOpen] = useState(false);
@@ -206,6 +209,7 @@ export default function MapArea() {
                 setChoroplethData(null);
                 setFocusedRegionId(null);
                 setFocusedCityId(null);
+                setBoundaryLock('auto');
                 setIsChartPanelOpen(false);
                 resetDistrictColors();
                 return;
@@ -230,8 +234,9 @@ export default function MapArea() {
 
         // Wait for required IDs before fetching — the effect will re-run
         // once the eager-load effects resolve them
-        if (boundaryLevel === 'cities' && !focusedRegionId) return;
-        if (boundaryLevel === 'districts' && !focusedCityId) return;
+        const isLocked = boundaryLock !== 'auto';
+        if (!isLocked && boundaryLevel === 'cities' && !focusedRegionId) return;
+        if (!isLocked && boundaryLevel === 'districts' && !focusedCityId) return;
 
         let cancelled = false;
         setChoroplethLoading(true);
@@ -247,19 +252,21 @@ export default function MapArea() {
                 const result = await getChoroplethData({
                     points,
                     level: boundaryLevel,
-                    region_id: focusedRegionId,
-                    city_id: focusedCityId,
+                    region_id: isLocked ? null : focusedRegionId,
+                    city_id: isLocked ? null : focusedCityId,
                 });
 
                 if (cancelled) return;
 
                 // Cache boundaries for center detection
-                if (boundaryLevel === 'regions' && !regionBoundariesCache.current) {
-                    regionBoundariesCache.current = result;
-                    setRegionCacheReady(true);
-                } else if (boundaryLevel === 'cities' && focusedRegionId && !cityBoundariesCache.current[focusedRegionId]) {
-                    cityBoundariesCache.current[focusedRegionId] = result;
-                    setCityCacheKeys(prev => [...prev, focusedRegionId]);
+                if (!isLocked) {
+                    if (boundaryLevel === 'regions' && !regionBoundariesCache.current) {
+                        regionBoundariesCache.current = result;
+                        setRegionCacheReady(true);
+                    } else if (boundaryLevel === 'cities' && focusedRegionId && !cityBoundariesCache.current[focusedRegionId]) {
+                        cityBoundariesCache.current[focusedRegionId] = result;
+                        setCityCacheKeys(prev => [...prev, focusedRegionId]);
+                    }
                 }
 
                 setBoundaryData(result);
@@ -279,7 +286,7 @@ export default function MapArea() {
 
         fetchAndCompute();
         return () => { cancelled = true; };
-    }, [viewMode, boundaryLevel, focusedRegionId, focusedCityId, displayGeojson]);
+    }, [viewMode, boundaryLevel, focusedRegionId, focusedCityId, displayGeojson, boundaryLock]);
 
     // The server already returns counts baked into feature properties,
     // so choroplethGeojson is just boundaryData directly.
@@ -424,23 +431,45 @@ export default function MapArea() {
                         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
                             <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">Choropleth Settings</h4>
 
-                            {/* Dynamic boundary level badge */}
-                            <p className="text-xs font-medium text-gray-500 mb-1">Boundary Level</p>
-                            <div className="mb-3 px-2 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-700 text-center">
-                                {boundaryLevel === 'regions' && 'Regions'}
-                                {boundaryLevel === 'cities' && (
-                                    <>Cities{focusedRegionId && regionBoundariesCache.current && (() => {
-                                        const r = regionBoundariesCache.current.features.find(f => f.properties.region_id === focusedRegionId);
-                                        return r ? ` \u2014 ${r.properties.name_en}` : '';
-                                    })()}</>
+                            {/* Dynamic boundary level badge & controls */}
+                            <div className="flex items-center justify-between mb-2">
+                                <p className="text-xs font-medium text-gray-500">Boundary Level</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-1.5 mb-2">
+                                {['auto', 'regions', 'cities', 'districts'].map((level) => (
+                                    <button
+                                        key={level}
+                                        onClick={() => setBoundaryLock(level)}
+                                        className={`py-1.5 px-2 text-[10px] uppercase tracking-wider font-semibold rounded transition-colors ${boundaryLock === level
+                                                ? 'bg-primary text-white shadow-sm'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {level}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="mb-3 px-2 py-1.5 bg-gray-100 rounded-lg flex flex-col items-center justify-center min-h-[40px]">
+                                <div className="text-xs font-medium text-gray-700 text-center">
+                                    {boundaryLevel === 'regions' && 'Regions'}
+                                    {boundaryLevel === 'cities' && (
+                                        <>Cities{focusedRegionId && regionBoundariesCache.current && (() => {
+                                            const r = regionBoundariesCache.current.features.find(f => f.properties.region_id === focusedRegionId);
+                                            return r ? ` \u2014 ${r.properties.name_en}` : '';
+                                        })()}</>
+                                    )}
+                                    {boundaryLevel === 'districts' && (
+                                        <>Districts{focusedCityId && cityBoundariesCache.current[focusedRegionId] && (() => {
+                                            const c = cityBoundariesCache.current[focusedRegionId]?.features.find(f => f.properties.city_id === focusedCityId);
+                                            return c ? ` \u2014 ${c.properties.name_en}` : '';
+                                        })()}</>
+                                    )}
+                                </div>
+                                {boundaryLock === 'auto' && (
+                                    <span className="text-gray-400 text-[10px] mt-0.5">(zoom {Math.round(zoomLevel)})</span>
                                 )}
-                                {boundaryLevel === 'districts' && (
-                                    <>Districts{focusedCityId && cityBoundariesCache.current[focusedRegionId] && (() => {
-                                        const c = cityBoundariesCache.current[focusedRegionId]?.features.find(f => f.properties.city_id === focusedCityId);
-                                        return c ? ` \u2014 ${c.properties.name_en}` : '';
-                                    })()}</>
-                                )}
-                                <span className="ml-1.5 text-gray-400">(zoom {Math.round(zoomLevel)})</span>
                             </div>
 
                             {/* Color Scheme swatches */}
@@ -453,11 +482,10 @@ export default function MapArea() {
                                             key={scheme}
                                             onClick={() => setColorScheme(scheme)}
                                             title={scheme}
-                                            className={`rounded-md overflow-hidden border-2 transition-all ${
-                                                colorScheme === scheme
+                                            className={`rounded-md overflow-hidden border-2 transition-all ${colorScheme === scheme
                                                     ? 'border-primary shadow-sm'
                                                     : 'border-transparent hover:border-gray-300'
-                                            }`}
+                                                }`}
                                         >
                                             <div className="flex h-4 w-full">
                                                 {colors.map((color, i) => (

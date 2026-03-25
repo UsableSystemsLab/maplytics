@@ -447,8 +447,11 @@ export const choroplethCount = async (req, res, next) => {
                        (SELECT COUNT(*) FROM pts WHERE ST_Contains(vr.valid_geom, pts.geom)) AS count
                 FROM valid_regions vr`;
         } else if (level === 'cities') {
-            if (!region_id) return res.status(400).json({ error: 'region_id required for cities level' });
-            bind.push(Number(region_id));
+            let whereClause = 'd.boundaries IS NOT NULL';
+            if (region_id) {
+                bind.push(Number(region_id));
+                whereClause += ` AND d.region_id = $${bind.length}`;
+            }
             sql = `
                 WITH pts AS (
                     SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
@@ -461,7 +464,7 @@ export const choroplethCount = async (req, res, next) => {
                     FROM districts d
                     JOIN cities c ON c.city_id = d.city_id
                     JOIN regions r ON r.region_id = c.region_id
-                    WHERE d.region_id = $2 AND d.boundaries IS NOT NULL
+                    WHERE ${whereClause}
                     GROUP BY d.city_id, c.name_ar, c.name_en, c.region_id, r.name_en
                 )
                 SELECT cb.city_id, cb.name_ar, cb.name_en, cb.region_id, cb.region_name,
@@ -469,8 +472,14 @@ export const choroplethCount = async (req, res, next) => {
                        (SELECT COUNT(*) FROM pts WHERE ST_Contains(cb.boundaries, pts.geom)) AS count
                 FROM city_bounds cb`;
         } else if (level === 'districts') {
-            if (!city_id) return res.status(400).json({ error: 'city_id required for districts level' });
-            bind.push(Number(city_id));
+            let whereClause = 'd.boundaries IS NOT NULL';
+            if (city_id) {
+                bind.push(Number(city_id));
+                whereClause += ` AND d.city_id = $${bind.length}`;
+            } else if (region_id) {
+                bind.push(Number(region_id));
+                whereClause += ` AND d.region_id = $${bind.length}`;
+            }
             sql = `
                 WITH pts AS (
                     SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
@@ -483,7 +492,7 @@ export const choroplethCount = async (req, res, next) => {
                 FROM districts d
                 JOIN cities c ON c.city_id = d.city_id
                 JOIN regions r ON r.region_id = d.region_id
-                WHERE d.city_id = $2 AND d.boundaries IS NOT NULL`;
+                WHERE ${whereClause}`;
         } else {
             return res.status(400).json({ error: 'level must be regions, cities, or districts' });
         }
