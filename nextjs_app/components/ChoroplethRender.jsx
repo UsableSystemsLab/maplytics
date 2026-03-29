@@ -173,7 +173,7 @@ export default function ChoroplethRender({ displayGeojson, mapCenter, zoomLevel,
                 </>
             )}
 
-            <div className="mb-3 px-2 py-1.5 bg-gray-100 rounded-lg flex flex-col items-center justify-center min-h-[40px]">
+            <div className="mb-3 px-2 py-1.5 bg-gray-100 rounded-lg flex flex-col items-center justify-center min-h-10">
                 <div className="text-xs font-medium text-gray-700 text-center">{levelLabel}</div>
                 {!viewLocked && boundaryLock === "auto" && (
                     <span className="text-gray-400 text-[10px] mt-0.5">(zoom {Math.round(zoomLevel)})</span>
