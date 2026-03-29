@@ -282,7 +282,7 @@ export function pointInPolygon(point, ring) {
  * @param {object} geometry - GeoJSON geometry (Polygon or MultiPolygon)
  * @returns {boolean}
  */
-function pointInGeometry(point, geometry) {
+export function pointInGeometry(point, geometry) {
     if (!geometry) return false;
 
     if (geometry.type === 'Polygon') {

@@ -185,7 +185,8 @@ export default function SideBar(props) {
             detail: isDeselecting ? null : {
                 projectId: currentProjectId,
                 datasetId: layer.id,
-                datasetName: layer.name
+                datasetName: layer.name,
+                pgDatasetId: layer.pgDatasetId || null,
             }
         }));
     };
