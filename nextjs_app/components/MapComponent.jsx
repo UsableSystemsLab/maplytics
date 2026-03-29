@@ -1,82 +1,68 @@
 "use client";
-import { useState, useCallback, useRef, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from "react";
 import BoundaryMap from "@/components/BoundaryMap";
+import ChoroplethRender from "@/components/ChoroplethRender";
 
-/**
- * MapComponent
- *
- * A thin, type-agnostic map shell. It owns only:
- *   - BoundaryMap rendering
- *   - zoom / center state (surfaced via onZoomChange + onMoveEnd)
- *   - imperative zoomIn / zoomOut via ref
- *
- * It knows nothing about choropleth, heatmap, or any other type.
- * The parent (MapArea) is responsible for picking the right renderer,
- * getting geojson + colorFn from it, and passing them in here.
- *
- * Props
- * ─────
- * geojson          – GeoJSON FeatureCollection to render (points or polygons)
- * getFeatureColor  – optional (feature) => colorString for polygon fill
- * fillOpacity      – polygon fill opacity (default 0.3)
- * colorBy          – field name for categorical point coloring (default map mode)
- * fitBounds        – whether to auto-fit the map to geojson on load (default true)
- * showZoomControl  – show Leaflet's built-in zoom control (default false)
- * className        – extra classes for the wrapper div
- * onZoomChange     – callback(zoom: number)
- * onMoveEnd        – callback({ center: [lat, lng], zoom: number })
- */
 const MapComponent = forwardRef(function MapComponent(
-    {
-        geojson,
-        getFeatureColor = null,
-        fillOpacity = 0.3,
-        colorBy = null,
-        fitBounds = true,
-        showZoomControl = false,
-        className = "",
-        onZoomChange,
-        onMoveEnd,
-    },
+    { type, view, displayGeojson, categoryField = null, onZoomChange, onMoveEnd, panelSlotRef, className = "" },
     ref
 ) {
     const boundaryMapRef = useRef(null);
 
-    // Expose zoom controls imperatively so MapArea's buttons still work
     useImperativeHandle(ref, () => ({
         zoomIn: () => boundaryMapRef.current?.zoomIn(),
         zoomOut: () => boundaryMapRef.current?.zoomOut(),
         getCenter: () => boundaryMapRef.current?.getCenter(),
     }));
 
-    const handleMoveEnd = useCallback(
-        ({ center, zoom }) => {
-            onMoveEnd?.({ center, zoom });
-        },
-        [onMoveEnd]
-    );
+    const [zoomLevel, setZoomLevel] = useState(5);
+    const [mapCenter, setMapCenter] = useState([23.8859, 45.0792]);
 
-    const handleZoomChange = useCallback(
-        (zoom) => {
-            onZoomChange?.(zoom);
-        },
-        [onZoomChange]
-    );
+    const handleMoveEnd = useCallback(({ center, zoom }) => {
+        setMapCenter(center);
+        setZoomLevel(zoom);
+        onMoveEnd?.({ center, zoom });
+    }, [onMoveEnd]);
+
+    const handleZoomChange = useCallback((zoom) => {
+        setZoomLevel(zoom);
+        onZoomChange?.(zoom);
+    }, [onZoomChange]);
+
+    // Each renderer exposes { geojson, colorFn, loading } via onReady
+    const [rendererOutput, setRendererOutput] = useState({ geojson: null, colorFn: null });
+    const handleRendererReady = useCallback((output) => { setRendererOutput(output); }, []);
+
+    const isRendererActive = !!type && !!rendererOutput.geojson;
+    const mapGeojson = isRendererActive ? rendererOutput.geojson : displayGeojson;
+    const mapColorFn = isRendererActive ? rendererOutput.colorFn : null;
 
     return (
         <div className={`relative w-full h-full ${className}`}>
             <BoundaryMap
                 ref={boundaryMapRef}
-                geojson={geojson}
-                fitBounds={fitBounds}
-                colorBy={getFeatureColor ? null : colorBy}
-                getFeatureColor={getFeatureColor}
-                fillOpacity={fillOpacity}
-                showZoomControl={showZoomControl}
+                geojson={mapGeojson}
+                fitBounds={!isRendererActive}
+                colorBy={mapColorFn ? null : categoryField}
+                getFeatureColor={mapColorFn}
+                fillOpacity={isRendererActive ? 0.65 : 0.3}
+                showZoomControl={false}
                 onZoomChange={handleZoomChange}
                 onMoveEnd={handleMoveEnd}
                 className="h-full w-full"
             />
+
+            {/* Add new types here — each renderer follows the onReady contract */}
+            {type === "choropleth" && (
+                <ChoroplethRender
+                    displayGeojson={displayGeojson}
+                    mapCenter={mapCenter}
+                    zoomLevel={zoomLevel}
+                    view={view}
+                    panelSlotRef={panelSlotRef}
+                    onReady={handleRendererReady}
+                />
+            )}
         </div>
     );
 });
