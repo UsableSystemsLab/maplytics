@@ -1,6 +1,7 @@
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { readProjects, writeProjects } from './project.controller.js';
+import { parseCSV, buildGeoJSONFromObjects, inferFields } from '../lib/geo/index.js';
 
 export const getPublicFile = async (req, res) => {
     res.status(501).json({ message: "getPublicFile not implemented yet" });
@@ -91,121 +92,6 @@ export const deleteDataset = async (req, res) => {
     res.status(200).json({ message: 'Dataset deleted successfully' });
 };
 
-
-const extractLatitude = (item) => {
-    return item.latitude ?? item.lat ?? item.Latitude ?? item.LAT ?? item.Lat ?? null;
-};
-
-const extractLongitude = (item) => {
-    return item.longitude ?? item.lng ?? item.Longitude ?? item.LNG ?? item.Lng ?? item.lon ?? item.Lon ?? null;
-};
-
-const LAT_FIELD_NAMES = ['latitude', 'lat', 'Latitude', 'LAT', 'Lat'];
-const LNG_FIELD_NAMES = ['longitude', 'lng', 'Longitude', 'LNG', 'Lng', 'lon', 'Lon'];
-
-const isLatField = (name) => LAT_FIELD_NAMES.includes(name);
-const isLngField = (name) => LNG_FIELD_NAMES.includes(name);
-
-const parseCSV = (text) => {
-    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-    if (lines.length < 2) return [];
-
-    const parseRow = (row) => {
-        const fields = [];
-        let current = '';
-        let inQuotes = false;
-        for (let i = 0; i < row.length; i++) {
-            const ch = row[i];
-            if (ch === '"') {
-                inQuotes = !inQuotes;
-            } else if (ch === ',' && !inQuotes) {
-                fields.push(current.trim());
-                current = '';
-            } else {
-                current += ch;
-            }
-        }
-        fields.push(current.trim());
-        return fields;
-    };
-
-    const headers = parseRow(lines[0]);
-    const rows = [];
-    for (let i = 1; i < lines.length; i++) {
-        const values = parseRow(lines[i]);
-        const obj = {};
-        headers.forEach((h, idx) => {
-            let val = values[idx] ?? '';
-            if (val !== '' && !isNaN(Number(val))) {
-                val = Number(val);
-            }
-            obj[h] = val;
-        });
-        rows.push(obj);
-    }
-    return rows;
-};
-
-const buildGeoJSONFromObjects = (items) => {
-    const features = [];
-    items.forEach(item => {
-        const lat = extractLatitude(item);
-        const lng = extractLongitude(item);
-        if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
-            const properties = {};
-            for (const [key, value] of Object.entries(item)) {
-                if (!isLatField(key) && !isLngField(key)) {
-                    properties[key] = value;
-                }
-            }
-            features.push({
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: [Number(lng), Number(lat)]
-                },
-                properties
-            });
-        }
-    });
-    return { type: 'FeatureCollection', features };
-};
-
-const inferFields = (geojson) => {
-    const fields = [];
-    if (!geojson.features || geojson.features.length === 0) return fields;
-
-    const keySet = new Set();
-    geojson.features.forEach(f => {
-        if (f.properties) {
-            Object.keys(f.properties).forEach(k => keySet.add(k));
-        }
-    });
-
-    keySet.forEach(key => {
-        const values = geojson.features
-            .map(f => f.properties?.[key])
-            .filter(v => v !== undefined && v !== null && v !== '');
-
-        const allNumbers = values.length > 0 && values.every(v => typeof v === 'number' || (!isNaN(Number(v)) && typeof v !== 'boolean'));
-        const type = allNumbers ? 'number' : 'string';
-
-        const field = { name: key, type };
-        if (type === 'string') {
-            const unique = [...new Set(values.map(String))];
-            if (unique.length <= 100) {
-                field.values = unique;
-            }
-        } else {
-            const nums = values.map(Number);
-            field.min = Math.min(...nums);
-            field.max = Math.max(...nums);
-        }
-        fields.push(field);
-    });
-
-    return fields;
-};
 
 export const getDatasetData = async (req, res) => {
     const { id: projectId, datasetId } = req.params;
