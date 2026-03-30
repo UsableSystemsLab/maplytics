@@ -13,6 +13,7 @@ import {
     Loader2,
     Trash2,
     Globe,
+    Bot,
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
 
@@ -77,6 +78,7 @@ export default function SideBar(props) {
     // Static page items
     const pageItems = [
         { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/public-dataset" },
+        { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
         { id: "account", label: "Account", icon: User, href: "/account" },
         { id: "History", label: "History", icon: Map, href: "/dashboard/createProject" },
         { id: "team", label: "Team", icon: Users, href: "/team" },

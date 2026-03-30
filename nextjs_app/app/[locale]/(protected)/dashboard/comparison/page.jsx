@@ -47,6 +47,7 @@ export default function ComparisonPage() {
                 name1="Overview" href1="/dashboard"
                 name2="Map view" href2="/dashboard/map"
                 name3="Comparison" href3="/dashboard/comparison"
+                name4="Chat" href4="/dashboard/chat"
             />
             <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
                 <div className="w-full max-w-7xl space-y-6">
