@@ -58,7 +58,7 @@ export default function DashboardPage() {
                 name3="Comparison"
                 href3="/dashboard/comparison"
                 name4="Public Dataset"
-                href4="/dashboard/public-dataset"
+                href4="/public-dataset"
             />
 
             <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
