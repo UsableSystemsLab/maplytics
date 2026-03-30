@@ -9,6 +9,7 @@
     "dev": "node --watch app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "collect-pois": "node cli/collect-pois.js",
+    "convert-dataset": "node cli/convert-dataset.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

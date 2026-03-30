@@ -15,3 +15,18 @@ export async function uploadToS3(csvContent, key) {
 
   return { bucket: BUCKET_NAME, key };
 }
+
+export async function uploadGeoJSONToS3(content, key) {
+  await initBucket();
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: content,
+      ContentType: "application/geo+json",
+    })
+  );
+
+  return { bucket: BUCKET_NAME, key };
+}
