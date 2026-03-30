@@ -9,19 +9,24 @@ import {
     standardizeValues,
     deduplicateFeatures
 } from "../lib/geo/index.js";
-import { uploadGeoJSONToS3 } from "./lib/storage.js";
+import { uploadGeoJSONToS3, downloadFromS3 } from "./lib/storage.js";
 
 const USAGE = `
 Usage: node cli/convert-dataset.js [options]
 
 Converts CSV, JSON, or GeoJSON files into a standardized GeoJSON format.
 
-Options:
-  --input,   -i   Path to input file (required)
-  --output,  -o   Path to output GeoJSON file (default: stdout)
-  --upload        Upload result to S3
-  --name,    -n   Dataset name (default: derived from filename)
-  --help,    -h   Show this help message
+Input (one required):
+  --input,      -i   Path to a local file
+  --input-s3,   -s   S3 key to read from (e.g. "poi-datasets/file.csv")
+
+Output:
+  --output,     -o   Path to output GeoJSON file (default: stdout)
+  --upload           Upload result to S3
+
+Other:
+  --name,       -n   Dataset name (default: derived from filename)
+  --help,       -h   Show this help message
 `.trim();
 
 function slugify(str) {
@@ -53,6 +58,7 @@ try {
     ({ values: args } = parseArgs({
         options: {
             input:  { type: "string",  short: "i" },
+            "input-s3": { type: "string",  short: "s" },
             output: { type: "string",  short: "o" },
             upload: { type: "boolean" },
             name:   { type: "string",  short: "n" },
@@ -74,27 +80,49 @@ if (args.help) {
 
 const quiet = args.quiet ?? false;
 
-if (!args.input) {
-    console.error("Error: --input is required.\n");
+if (!args.input && !args["input-s3"]) {
+    console.error("Error: --input or --input-s3 is required.\n");
     console.error(USAGE);
     process.exit(1);
 }
 
-try {
-    accessSync(args.input);
-} catch {
-    console.error(`Error: File not found: ${args.input}`);
-    process.exit(1);
+let content;
+let inputName;
+let ext;
+
+if (args["input-s3"]) {
+    // Read from S3
+    const s3Key = args["input-s3"];
+    inputName = s3Key.split("/").pop();
+    ext = inputName.split(".").pop().toLowerCase();
+
+    log(`Downloading from S3: ${s3Key}...`);
+    try {
+        content = await downloadFromS3(s3Key);
+    } catch (err) {
+        console.error(`Error: Could not read from S3 key "${s3Key}": ${err.message}`);
+        process.exit(1);
+    }
+    log(`Downloaded (${formatBytes(Buffer.byteLength(content))})`);
+} else {
+    // Read from local file
+    const inputPath = args.input;
+    try {
+        accessSync(inputPath);
+    } catch {
+        console.error(`Error: File not found: ${inputPath}`);
+        process.exit(1);
+    }
+
+    inputName = basename(inputPath);
+    ext = extname(inputPath).toLowerCase().replace(".", "");
+    const fileSize = statSync(inputPath).size;
+
+    log(`Reading ${inputName} (${formatBytes(fileSize)})...`);
+    content = readFileSync(inputPath, "utf-8");
 }
 
-// Read the file
-const inputPath = args.input;
-const fileSize = statSync(inputPath).size;
-const datasetName = args.name || deriveDatasetName(inputPath);
-const ext = extname(inputPath).toLowerCase().replace(".", "");
-
-log(`Reading ${basename(inputPath)} (${formatBytes(fileSize)})...`);
-const content = readFileSync(inputPath, "utf-8");
+const datasetName = args.name || deriveDatasetName(inputName);
 
 // Parse based on format
 let items;

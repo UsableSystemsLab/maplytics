@@ -1,4 +1,4 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, BUCKET_NAME, initBucket } from "../../configs/s3Client.js";
 
 export async function uploadToS3(csvContent, key) {
@@ -14,6 +14,19 @@ export async function uploadToS3(csvContent, key) {
   );
 
   return { bucket: BUCKET_NAME, key };
+}
+
+export async function downloadFromS3(key) {
+  await initBucket();
+
+  const response = await s3Client.send(
+    new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+    })
+  );
+
+  return response.Body.transformToString("utf-8");
 }
 
 export async function uploadGeoJSONToS3(content, key) {
