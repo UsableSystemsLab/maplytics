@@ -48,9 +48,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen flex bg-[#F5F5F5] relative overflow-hidden">
+    <div className="h-screen flex bg-[#F5F5F5] relative">
       <AuthLeftPanel />
-      <div className="flex-1 flex items-center justify-center p-6 md:p-12 relative overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-6 md:p-12">
 
         <div className="bg-white rounded-xl shadow-2xl p-6 md:p-10 w-full max-w-md hover:shadow-[0_20px_60px_rgba(19,69,101,0.15)] transition-all duration-500 border border-gray-100 relative z-10">
           <div className="text-center mb-6 md:mb-8">
@@ -162,6 +163,7 @@ export default function LoginPage() {
               Sign Up
             </Link>
           </p>
+        </div>
         </div>
       </div>
     </div>

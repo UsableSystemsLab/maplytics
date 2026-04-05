@@ -88,7 +88,7 @@ export default function SideBar(props) {
     const fetchProjectDatasets = async (projectId) => {
         if (!projectId || !user) return;
         try {
-            const response = await fetch(`http://localhost:4000/api/projects/${projectId}/datasets`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${projectId}/datasets`, {
                 headers: {
                     'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
                     'X-User-Id': user.uid
@@ -126,7 +126,7 @@ export default function SideBar(props) {
         if (!currentProjectId || !user) return;
 
         try {
-            const response = await fetch(`http://localhost:4000/api/projects/${currentProjectId}/datasets/${layerId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${currentProjectId}/datasets/${layerId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,

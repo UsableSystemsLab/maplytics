@@ -34,7 +34,7 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
     const fetchProjects = async () => {
         if (!user) return; // Don't fetch if no user
         try {
-            const response = await fetch('http://localhost:4000/api/projects', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects`, {
                 headers: {
                     'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
                     'X-User-Id': user.uid
@@ -67,7 +67,7 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
         e.stopPropagation();
         if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
             try {
-                const response = await fetch(`http://localhost:4000/api/projects/${projectId}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${projectId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,

@@ -89,9 +89,9 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
             if (!projectId) {
                 throw new Error('Project ID is required for private uploads');
             }
-            endpoint = `http://localhost:4000/api/upload/private?projectId=${projectId}`;
+            endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/upload/private?projectId=${projectId}`;
         } else {
-            endpoint = `http://localhost:4000/api/upload/public${projectId ? `?projectId=${projectId}` : ''}`;
+            endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/upload/public${projectId ? `?projectId=${projectId}` : ''}`;
         }
 
         const response = await fetch(endpoint, {
