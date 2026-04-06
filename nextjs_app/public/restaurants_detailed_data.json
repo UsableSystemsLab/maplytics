@@ -330,6 +330,504 @@
                 "cuisine": "Japanese",
                 "price_range": "$$$"
             }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1872, 21.4935] },
+            "properties": {
+                "restaurant_name": "Bab Al Bahr",
+                "district": "Al Balad",
+                "cuisine": "Seafood",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1831, 21.4908] },
+            "properties": {
+                "restaurant_name": "Red Sea Grill",
+                "district": "Al Balad",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1748, 21.5212] },
+            "properties": {
+                "restaurant_name": "Corniche Cafe",
+                "district": "Al Shati",
+                "cuisine": "Cafe",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1762, 21.5238] },
+            "properties": {
+                "restaurant_name": "Jeddah Fish Market",
+                "district": "Al Shati",
+                "cuisine": "Seafood",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1785, 21.5195] },
+            "properties": {
+                "restaurant_name": "Mama Noura Jeddah",
+                "district": "Al Shati",
+                "cuisine": "Levantine",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1541, 21.5842] },
+            "properties": {
+                "restaurant_name": "The Globe",
+                "district": "Al Hamra",
+                "cuisine": "International",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1558, 21.5861] },
+            "properties": {
+                "restaurant_name": "Piatto Italiano",
+                "district": "Al Hamra",
+                "cuisine": "Italian",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1523, 21.5823] },
+            "properties": {
+                "restaurant_name": "Hamra Burger",
+                "district": "Al Hamra",
+                "cuisine": "American",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1492, 21.5798] },
+            "properties": {
+                "restaurant_name": "Tokyo Table",
+                "district": "Al Hamra",
+                "cuisine": "Japanese",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.1575, 21.5878] },
+            "properties": {
+                "restaurant_name": "Al Dayaa",
+                "district": "Al Hamra",
+                "cuisine": "Saudi",
+                "price_range": "$$"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.1135, 26.4382] },
+            "properties": {
+                "restaurant_name": "Al Khobar Catch",
+                "district": "Al Khobar Seafront",
+                "cuisine": "Seafood",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.1108, 26.4365] },
+            "properties": {
+                "restaurant_name": "Eastern Flame",
+                "district": "Al Khobar Seafront",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.1152, 26.4401] },
+            "properties": {
+                "restaurant_name": "Gulf Spice",
+                "district": "Al Khobar Seafront",
+                "cuisine": "Indian",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.0982, 26.4251] },
+            "properties": {
+                "restaurant_name": "Dammam Diner",
+                "district": "Al Faisaliyah",
+                "cuisine": "American",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.0968, 26.4238] },
+            "properties": {
+                "restaurant_name": "Noodle House",
+                "district": "Al Faisaliyah",
+                "cuisine": "Chinese",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.1001, 26.4268] },
+            "properties": {
+                "restaurant_name": "Al Shurfa",
+                "district": "Al Faisaliyah",
+                "cuisine": "Saudi",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.2148, 26.3152] },
+            "properties": {
+                "restaurant_name": "Khobar Kabab",
+                "district": "Al Thuqbah",
+                "cuisine": "Turkish",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [50.2131, 26.3138] },
+            "properties": {
+                "restaurant_name": "Sushi Bay",
+                "district": "Al Thuqbah",
+                "cuisine": "Japanese",
+                "price_range": "$$$"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.6121, 24.4738] },
+            "properties": {
+                "restaurant_name": "Taibah Kitchen",
+                "district": "Al Haram",
+                "cuisine": "Saudi",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.6148, 24.4755] },
+            "properties": {
+                "restaurant_name": "Madinah Feast",
+                "district": "Al Haram",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.6098, 24.4721] },
+            "properties": {
+                "restaurant_name": "Al Noor Grill",
+                "district": "Al Haram",
+                "cuisine": "Levantine",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.5982, 24.4612] },
+            "properties": {
+                "restaurant_name": "Bab Al Madinah",
+                "district": "Quba",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.5998, 24.4631] },
+            "properties": {
+                "restaurant_name": "Green Olive",
+                "district": "Quba",
+                "cuisine": "Mediterranean",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.5965, 24.4598] },
+            "properties": {
+                "restaurant_name": "Chai & Chapati",
+                "district": "Quba",
+                "cuisine": "Indian",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.6212, 24.4842] },
+            "properties": {
+                "restaurant_name": "Royal Madinah",
+                "district": "Al Uyun",
+                "cuisine": "International",
+                "price_range": "$$$"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [42.5052, 18.2198] },
+            "properties": {
+                "restaurant_name": "Mountain View",
+                "district": "Al Sadd",
+                "cuisine": "Saudi",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [42.5038, 18.2181] },
+            "properties": {
+                "restaurant_name": "Abha Garden",
+                "district": "Al Sadd",
+                "cuisine": "Arabic",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [42.5071, 18.2215] },
+            "properties": {
+                "restaurant_name": "Cloud Nine Cafe",
+                "district": "Al Sadd",
+                "cuisine": "Cafe",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [42.4985, 18.2142] },
+            "properties": {
+                "restaurant_name": "Highland Grill",
+                "district": "Al Manhal",
+                "cuisine": "American",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [42.4998, 18.2158] },
+            "properties": {
+                "restaurant_name": "Asir Spice",
+                "district": "Al Manhal",
+                "cuisine": "Indian",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [42.5012, 18.2175] },
+            "properties": {
+                "restaurant_name": "Green Mountain",
+                "district": "Al Manhal",
+                "cuisine": "Mediterranean",
+                "price_range": "$$$"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [36.5381, 28.4182] },
+            "properties": {
+                "restaurant_name": "Tabuk House",
+                "district": "Al Faisaliyah",
+                "cuisine": "Saudi",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [36.5398, 28.4198] },
+            "properties": {
+                "restaurant_name": "Northern Grill",
+                "district": "Al Faisaliyah",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [36.5362, 28.4165] },
+            "properties": {
+                "restaurant_name": "Rose Garden",
+                "district": "Al Faisaliyah",
+                "cuisine": "Turkish",
+                "price_range": "$$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [36.5285, 28.4098] },
+            "properties": {
+                "restaurant_name": "Tabuk Shawarma",
+                "district": "Al Muruj",
+                "cuisine": "Levantine",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [36.5302, 28.4115] },
+            "properties": {
+                "restaurant_name": "Desert Flame",
+                "district": "Al Muruj",
+                "cuisine": "International",
+                "price_range": "$$$"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [43.9782, 26.3338] },
+            "properties": {
+                "restaurant_name": "Buraidah Palace",
+                "district": "Al Khalidiyah",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [43.9798, 26.3355] },
+            "properties": {
+                "restaurant_name": "Qassim Kitchen",
+                "district": "Al Khalidiyah",
+                "cuisine": "Saudi",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [43.9768, 26.3321] },
+            "properties": {
+                "restaurant_name": "Date Palm Cafe",
+                "district": "Al Khalidiyah",
+                "cuisine": "Cafe",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [43.9842, 26.3402] },
+            "properties": {
+                "restaurant_name": "Central Grill",
+                "district": "Al Rawdah",
+                "cuisine": "American",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [43.9858, 26.3418] },
+            "properties": {
+                "restaurant_name": "Spice Route",
+                "district": "Al Rawdah",
+                "cuisine": "Indian",
+                "price_range": "$$"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.8472, 21.4305] },
+            "properties": {
+                "restaurant_name": "Makkah Feast",
+                "district": "Al Aziziyah",
+                "cuisine": "Arabic",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.8488, 21.4321] },
+            "properties": {
+                "restaurant_name": "Al Haram Kitchen",
+                "district": "Al Aziziyah",
+                "cuisine": "Saudi",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.8455, 21.4288] },
+            "properties": {
+                "restaurant_name": "Tandoori House",
+                "district": "Al Aziziyah",
+                "cuisine": "Indian",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [39.8512, 21.4342] },
+            "properties": {
+                "restaurant_name": "Zamzam Cafe",
+                "district": "Al Aziziyah",
+                "cuisine": "Cafe",
+                "price_range": "$"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [41.7012, 27.5342] },
+            "properties": {
+                "restaurant_name": "Hail House",
+                "district": "Al Zahra",
+                "cuisine": "Saudi",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [41.7028, 27.5358] },
+            "properties": {
+                "restaurant_name": "Aja Grill",
+                "district": "Al Zahra",
+                "cuisine": "Arabic",
+                "price_range": "$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [41.6995, 27.5325] },
+            "properties": {
+                "restaurant_name": "Hail Kabab",
+                "district": "Al Zahra",
+                "cuisine": "Turkish",
+                "price_range": "$$"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [41.7048, 27.5378] },
+            "properties": {
+                "restaurant_name": "Oasis Cafe",
+                "district": "Al Zahra",
+                "cuisine": "Cafe",
+                "price_range": "$"
+            }
         }
     ]
 }

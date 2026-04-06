@@ -150,9 +150,13 @@ export default function PublicDatasetPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Header />
-
+        <div className="flex h-screen bg-gray-50">
+            <SideBar
+                name1="Overview" href1="/dashboard"
+                name2="Map view" href2="/dashboard/map"
+                name3="Comparison" href3="/dashboard/visualizeDataset"
+                name4="Public Dataset" href4="/public-dataset"
+            />
             <main className="flex-1 overflow-y-auto p-6 relative w-full pt-32">
                 <div className="max-w-7xl mx-auto space-y-6">
                     {/* Header Section */}

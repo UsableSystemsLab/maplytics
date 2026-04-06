@@ -277,20 +277,29 @@ export function pointInPolygon(point, ring) {
 }
 
 /**
- * Test if a point falls inside any ring of a Polygon or MultiPolygon geometry.
  * @param {[number,number]} point - [lng, lat]
  * @param {object} geometry - GeoJSON geometry (Polygon or MultiPolygon)
  * @returns {boolean}
  */
-function pointInGeometry(point, geometry) {
+export function pointInGeometry(point, geometry) {
     if (!geometry) return false;
 
     if (geometry.type === 'Polygon') {
-        return pointInPolygon(point, geometry.coordinates[0]);
+        let inside = false;
+        for (const ring of geometry.coordinates) {
+            if (pointInPolygon(point, ring)) inside = !inside;
+        }
+        return inside;
     }
 
     if (geometry.type === 'MultiPolygon') {
-        return geometry.coordinates.some(poly => pointInPolygon(point, poly[0]));
+        return geometry.coordinates.some(poly => {
+            let inside = false;
+            for (const ring of poly) {
+                if (pointInPolygon(point, ring)) inside = !inside;
+            }
+            return inside;
+        });
     }
 
     return false;

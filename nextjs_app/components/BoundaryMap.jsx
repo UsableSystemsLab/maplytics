@@ -50,17 +50,24 @@ const BoundaryMap = forwardRef(function BoundaryMap({
     fillOpacity = 0.3,
     showZoomControl = true,
     onZoomChange,
+    onMoveEnd,
 }, ref) {
     const containerRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const layerGroupRef = useRef(null);
     const onZoomChangeRef = useRef(onZoomChange);
     onZoomChangeRef.current = onZoomChange;
+    const onMoveEndRef = useRef(onMoveEnd);
+    onMoveEndRef.current = onMoveEnd;
 
     useImperativeHandle(ref, () => ({
         zoomIn: () => mapInstanceRef.current?.zoomIn(),
         zoomOut: () => mapInstanceRef.current?.zoomOut(),
         getZoom: () => mapInstanceRef.current?.getZoom(),
+        getCenter: () => {
+            const c = mapInstanceRef.current?.getCenter();
+            return c ? [c.lat, c.lng] : null;
+        },
     }));
 
     // Initialize map
@@ -88,6 +95,17 @@ const BoundaryMap = forwardRef(function BoundaryMap({
             onZoomChangeRef.current?.(map.getZoom());
         });
 
+        map.on('moveend', () => {
+            const c = map.getCenter();
+            onMoveEndRef.current?.({ center: [c.lat, c.lng], zoom: map.getZoom() });
+        });
+
+        // Add CSS transition to the overlay pane for smooth layer swaps
+        const overlayPane = map.getPane('overlayPane');
+        if (overlayPane) {
+            overlayPane.style.transition = 'opacity 0.3s ease';
+        }
+
         mapInstanceRef.current = map;
         layerGroupRef.current = L.layerGroup().addTo(map);
 
@@ -98,119 +116,135 @@ const BoundaryMap = forwardRef(function BoundaryMap({
         };
     }, []);
 
-    // Render GeoJSON when it changes
+    // Render GeoJSON when it changes — with fade transition
     useEffect(() => {
         const map = mapInstanceRef.current;
         const layerGroup = layerGroupRef.current;
         if (!map || !layerGroup) return;
 
-        layerGroup.clearLayers();
+        const overlayPane = map.getPane('overlayPane');
 
-        if (!geojson?.features?.length) return;
+        const renderLayers = () => {
+            layerGroup.clearLayers();
 
-        const bounds = [];
+            if (!geojson?.features?.length) return;
 
-        geojson.features.forEach((feature) => {
-            const geometry = feature.geometry;
-            if (!geometry) return;
+            const bounds = [];
 
-            const { type, coordinates } = geometry;
-            let color;
-            if (getFeatureColor) {
-                color = getFeatureColor(feature);
-            } else {
-                const colorKey = colorBy
-                    ? (feature.properties?.[colorBy] || 'Unknown')
-                    : (feature.properties?.name || feature.properties?.name_ar || feature.properties?.title || 'Unknown');
-                color = getDistrictColor(colorKey);
+            geojson.features.forEach((feature) => {
+                const geometry = feature.geometry;
+                if (!geometry) return;
+
+                const { type, coordinates } = geometry;
+                let color;
+                if (getFeatureColor) {
+                    color = getFeatureColor(feature);
+                } else {
+                    const colorKey = colorBy
+                        ? (feature.properties?.[colorBy] || 'Unknown')
+                        : (feature.properties?.name || feature.properties?.name_ar || feature.properties?.title || 'Unknown');
+                    color = getDistrictColor(colorKey);
+                }
+
+                if (type === 'Polygon' || type === 'MultiPolygon') {
+                    const coordsToLatLng = (coords) =>
+                        coords.map((ring) => ring.map(([lng, lat]) => [lat, lng]));
+
+                    let polygonCoords;
+                    if (type === 'Polygon') {
+                        polygonCoords = coordsToLatLng(coordinates);
+                        coordinates[0].forEach(([lng, lat]) => bounds.push([lat, lng]));
+                    } else {
+                        polygonCoords = coordinates.map((poly) => coordsToLatLng(poly));
+                        coordinates.forEach((poly) =>
+                            poly[0].forEach(([lng, lat]) => bounds.push([lat, lng]))
+                        );
+                    }
+
+                    const polygon = L.polygon(polygonCoords, {
+                        color,
+                        weight: 2,
+                        fillColor: color,
+                        fillOpacity,
+                    });
+
+                    polygon.bindPopup(generatePopupContent(feature.properties), {
+                        maxWidth: 300,
+                    });
+
+                    if (onFeatureClick) {
+                        polygon.on('click', () => onFeatureClick(feature));
+                    }
+
+                    layerGroup.addLayer(polygon);
+                } else if (type === 'Point') {
+                    const [lng, lat] = coordinates;
+                    bounds.push([lat, lng]);
+
+                    const circle = L.circleMarker([lat, lng], {
+                        radius: 7,
+                        color,
+                        fillColor: color,
+                        fillOpacity: 0.6,
+                        weight: 2,
+                    });
+
+                    circle.bindPopup(generatePopupContent(feature.properties), {
+                        maxWidth: 300,
+                    });
+
+                    if (onFeatureClick) {
+                        circle.on('click', () => onFeatureClick(feature));
+                    }
+
+                    layerGroup.addLayer(circle);
+                } else if (type === 'LineString' || type === 'MultiLineString') {
+                    let lineCoords;
+                    if (type === 'LineString') {
+                        lineCoords = coordinates.map(([lng, lat]) => [lat, lng]);
+                        coordinates.forEach(([lng, lat]) => bounds.push([lat, lng]));
+                    } else {
+                        lineCoords = coordinates.map((line) =>
+                            line.map(([lng, lat]) => [lat, lng])
+                        );
+                        coordinates.forEach((line) =>
+                            line.forEach(([lng, lat]) => bounds.push([lat, lng]))
+                        );
+                    }
+
+                    const polyline = L.polyline(lineCoords, {
+                        color,
+                        weight: 3,
+                        opacity: 0.8,
+                    });
+
+                    polyline.bindPopup(generatePopupContent(feature.properties), {
+                        maxWidth: 300,
+                    });
+
+                    if (onFeatureClick) {
+                        polyline.on('click', () => onFeatureClick(feature));
+                    }
+
+                    layerGroup.addLayer(polyline);
+                }
+            });
+
+            if (shouldFitBounds && bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [50, 50] });
             }
 
-            if (type === 'Polygon' || type === 'MultiPolygon') {
-                const coordsToLatLng = (coords) =>
-                    coords.map((ring) => ring.map(([lng, lat]) => [lat, lng]));
+            // Fade in
+            if (overlayPane) overlayPane.style.opacity = '1';
+        };
 
-                let polygonCoords;
-                if (type === 'Polygon') {
-                    polygonCoords = coordsToLatLng(coordinates);
-                    coordinates[0].forEach(([lng, lat]) => bounds.push([lat, lng]));
-                } else {
-                    polygonCoords = coordinates.map((poly) => coordsToLatLng(poly));
-                    coordinates.forEach((poly) =>
-                        poly[0].forEach(([lng, lat]) => bounds.push([lat, lng]))
-                    );
-                }
-
-                const polygon = L.polygon(polygonCoords, {
-                    color,
-                    weight: 2,
-                    fillColor: color,
-                    fillOpacity,
-                });
-
-                polygon.bindPopup(generatePopupContent(feature.properties), {
-                    maxWidth: 300,
-                });
-
-                if (onFeatureClick) {
-                    polygon.on('click', () => onFeatureClick(feature));
-                }
-
-                layerGroup.addLayer(polygon);
-            } else if (type === 'Point') {
-                const [lng, lat] = coordinates;
-                bounds.push([lat, lng]);
-
-                const circle = L.circleMarker([lat, lng], {
-                    radius: 7,
-                    color,
-                    fillColor: color,
-                    fillOpacity: 0.6,
-                    weight: 2,
-                });
-
-                circle.bindPopup(generatePopupContent(feature.properties), {
-                    maxWidth: 300,
-                });
-
-                if (onFeatureClick) {
-                    circle.on('click', () => onFeatureClick(feature));
-                }
-
-                layerGroup.addLayer(circle);
-            } else if (type === 'LineString' || type === 'MultiLineString') {
-                let lineCoords;
-                if (type === 'LineString') {
-                    lineCoords = coordinates.map(([lng, lat]) => [lat, lng]);
-                    coordinates.forEach(([lng, lat]) => bounds.push([lat, lng]));
-                } else {
-                    lineCoords = coordinates.map((line) =>
-                        line.map(([lng, lat]) => [lat, lng])
-                    );
-                    coordinates.forEach((line) =>
-                        line.forEach(([lng, lat]) => bounds.push([lat, lng]))
-                    );
-                }
-
-                const polyline = L.polyline(lineCoords, {
-                    color,
-                    weight: 3,
-                    opacity: 0.8,
-                });
-
-                polyline.bindPopup(generatePopupContent(feature.properties), {
-                    maxWidth: 300,
-                });
-
-                if (onFeatureClick) {
-                    polyline.on('click', () => onFeatureClick(feature));
-                }
-
-                layerGroup.addLayer(polyline);
-            }
-        });
-
-        if (shouldFitBounds && bounds.length > 0) {
-            map.fitBounds(bounds, { padding: [50, 50] });
+        // Fade out, then swap layers and fade back in
+        if (overlayPane && layerGroup.getLayers().length > 0) {
+            overlayPane.style.opacity = '0';
+            const timer = setTimeout(renderLayers, 300);
+            return () => clearTimeout(timer);
+        } else {
+            renderLayers();
         }
     }, [geojson, shouldFitBounds, onFeatureClick, colorBy, getFeatureColor, fillOpacity]);
 
