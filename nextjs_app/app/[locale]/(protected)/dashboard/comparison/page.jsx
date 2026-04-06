@@ -43,12 +43,7 @@ export default function ComparisonPage() {
 
     return (
         <div className="min-h-[93vh] bg-gray-50 flex">
-            <SideBar
-                name1="Overview" href1="/dashboard"
-                name2="Map view" href2="/dashboard/map"
-                name3="Comparison" href3="/dashboard/comparison"
-                name4="Chat" href4="/dashboard/chat"
-            />
+            <SideBar />
             <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
                 <div className="w-full max-w-7xl space-y-6">
                     {/* Header */}
