@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useMemo } from "react";
 
-export default function BarChartComparison({ data }) {
+export default function BarChartComparison({ data, color = "#13B38D" }) {
     const containerRef = useRef(null);
     const viewRef = useRef(null);
 
@@ -58,7 +58,7 @@ export default function BarChartComparison({ data }) {
                 mark: {
                     type: "bar",
                     cornerRadiusEnd: 4,
-                    color: "#13B38D",
+                    color: color,
                 },
                 encoding: {
                     y: {
@@ -128,7 +128,7 @@ export default function BarChartComparison({ data }) {
                 viewRef.current = null;
             }
         };
-    }, [chartData, chartHeight, maxCount, tickValues]);
+    }, [chartData, chartHeight, maxCount, tickValues, color]);
 
     if (!data || data.length === 0) {
         return (

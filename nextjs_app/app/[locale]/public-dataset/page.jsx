@@ -154,7 +154,7 @@ export default function PublicDatasetPage() {
                 name1="Overview" href1="/dashboard"
                 name2="Map view" href2="/dashboard/map"
                 name3="Comparison" href3="/dashboard/visualizeDataset"
-                name4="Public Dataset" href4="/dashboard/public-dataset"
+                name4="Public Dataset" href4="/public-dataset"
             />
 
             <main className="flex-1 overflow-y-auto p-6 relative">

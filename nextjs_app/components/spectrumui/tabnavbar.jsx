@@ -69,6 +69,13 @@ export default function Tabnavbar() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
+                <Link href="/public-dataset" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    {t('publicDataset')}
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()} href="#">
                   {t('about')}
                 </NavigationMenuLink>

@@ -1,6 +1,44 @@
 import { readProjects, writeProjects } from './project.controller.js';
+import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { parseFileToGeoJSON } from '../utils/fileParser.js';
+import { insertFeaturesIntoDB } from '../utils/featureInserter.js';
 
-export const uploadPublicFile = (req, res) => {
+/**
+ * After uploading file, fetch the file back, parse it, and insert features into Postgres.
+ * Runs asynchronously, does not block the upload response.
+ */
+async function insertFeaturesFromS3(s3Key, datasetName, userId, originalName) {
+    try {
+        const response = await s3Client.send(new GetObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: s3Key,
+        }));
+
+        const content = await response.Body.transformToString('utf-8');
+        const ext = (originalName || '').split('.').pop().toLowerCase();
+        const geojson = parseFileToGeoJSON(content, ext);
+
+        if (!geojson?.features?.length) {
+            console.warn('[upload] No features parsed from file:', s3Key);
+            return null;
+        }
+
+        const datasetId = await insertFeaturesIntoDB({
+            datasetName,
+            userId,
+            fileFormat: ext,
+            geojson,
+        });
+
+        return datasetId;
+    } catch (err) {
+        console.error('[upload] Failed to insert features into DB:', err);
+        return null;
+    }
+}
+
+export const uploadPublicFile = async (req, res) => {
     if (!req.file) {
         return res.status(400).json({
             success: false,
@@ -18,6 +56,11 @@ export const uploadPublicFile = (req, res) => {
     // Extract just the filename suffix from the S3 key
     // S3 key format: public/userId/timestamp-filename.csv
     const filenameSuffix = filename.split('/').pop();
+
+    // Insert features into Postgres (async, non-blocking)
+    const pgDatasetId = await insertFeaturesFromS3(
+        filename, displayName, req.userId, req.file.originalname
+    );
 
     // Persist metadata to project for public datasets
     if (projectId) {
@@ -38,7 +81,8 @@ export const uploadPublicFile = (req, res) => {
                     size: req.file.size,
                     createdAt: new Date().toISOString(),
                     type: 'public',
-                    userId: req.userId
+                    userId: req.userId,
+                    ...(pgDatasetId && { pgDatasetId }),
                 });
 
                 writeProjects(projects);
@@ -57,10 +101,11 @@ export const uploadPublicFile = (req, res) => {
         originalName: req.file.originalname,
         size: req.file.size,
         url: location,
+        ...(pgDatasetId && { pgDatasetId }),
     });
 };
 
-export const uploadPrivateFile = (req, res) => {
+export const uploadPrivateFile = async (req, res) => {
     if (!req.file) {
         return res.status(400).json({
             success: false,
@@ -80,6 +125,11 @@ export const uploadPrivateFile = (req, res) => {
     // S3 key format: private/projectId/timestamp-filename.csv
     const filenameSuffix = filename.split('/').pop();
 
+    // Insert features into Postgres
+    const pgDatasetId = await insertFeaturesFromS3(
+        filename, displayName, req.userId, req.file.originalname
+    );
+
     // Persist metadata to project
     try {
         const projects = readProjects();
@@ -97,7 +147,8 @@ export const uploadPrivateFile = (req, res) => {
                 originalName: req.file.originalname,
                 size: req.file.size,
                 createdAt: new Date().toISOString(),
-                type: 'private'
+                type: 'private',
+                ...(pgDatasetId && { pgDatasetId }),
             });
 
             writeProjects(projects);
@@ -114,5 +165,6 @@ export const uploadPrivateFile = (req, res) => {
         originalName: req.file.originalname,
         size: req.file.size,
         url: browserUrl || `/files/private/${projectId}/${filenameSuffix}`,
+        ...(pgDatasetId && { pgDatasetId }),
     });
 };
