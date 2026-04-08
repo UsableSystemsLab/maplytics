@@ -1,4 +1,4 @@
-import { isCoordinateField } from './coordinate-utils.js';
+import { isCoordinateField, isLatField } from './coordinate-utils.js';
 
 const MISSING_VALUE_STRINGS = new Set([
     '', 'null', 'NULL', 'N/A', 'n/a', 'NA', 'na', '-', 'undefined', 'none', 'None', 'NONE'
@@ -33,8 +33,7 @@ export const standardizeFieldNames = (items) => {
         let normalized;
         if (isCoordinateField(name)) {
             // Map all lat variants to 'latitude', all lng variants to 'longitude'
-            const lower = name.toLowerCase();
-            normalized = (lower === 'lat' || lower === 'latitude') ? 'latitude' : 'longitude';
+            normalized = isLatField(name) ? 'latitude' : 'longitude';
         } else {
             normalized = toSnakeCase(name);
         }
