@@ -25,7 +25,7 @@ export default function CreateProjectPage() {
         }
 
         try {
-            const response = await fetch('http://localhost:4000/api/projects', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
