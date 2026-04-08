@@ -79,8 +79,7 @@ export default function CreateProjectPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
-            <SideBar
-                name="History" href2="/" />
+            <SideBar />
 
             <div className="flex-1 flex flex-col items-center px-6 py-8">
 
