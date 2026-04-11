@@ -34,7 +34,7 @@ export default function SideBar() {
 
     const pageItems = [
         { id: "create-project", label: "Create Project", icon: Plus, href: "/dashboard/createProject" },
-        { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/public-dataset" },
+        { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/datasets" },
         { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
         { id: "account", label: "Account", icon: User, href: "/account" },
         { id: "settings", label: "Settings", icon: Settings, href: "/settings" },

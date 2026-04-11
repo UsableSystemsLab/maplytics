@@ -33,7 +33,7 @@ export default function LandingCTA() {
                                 <ChevronRight className="rtl:rotate-180" />
                             </Button>
                         </Link>
-                        <Link href="/auth/register">
+                        <Link href="/datasets">
                             <Button
                                 variant="ghost"
                                 className="sm:text-lg px-12 py-6 sm:py-8 rounded-md border-2 w-full flex gap-4 items-center"

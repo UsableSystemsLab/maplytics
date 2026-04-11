@@ -53,7 +53,7 @@ export default function Header({ variant = "light" }) {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
             <Link
-              href="/public-dataset"
+              href="/datasets"
               className={cn(
                 "text-sm font-medium transition-colors",
                 isDark ? "hover:text-slate-300" : "hover:text-slate-500"
@@ -107,7 +107,7 @@ export default function Header({ variant = "light" }) {
           </div>
 
           <Link
-            href="/public-dataset"
+            href="/datasets"
             onClick={() => setIsMenuOpen(false)}
             className="text-base font-medium py-2"
           >
