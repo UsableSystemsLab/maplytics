@@ -1,8 +1,137 @@
+"use client";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import Tabnavbar from "@/components/spectrumui/tabnavbar"
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+import { Menu, X } from "lucide-react";
 
-export default function Header() {
-    return (
-        <Tabnavbar />
-    )
+export default function Header({ variant = "light" }) {
+  const isDark = variant === "dark";
+  const { user, loading } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
+
+  // lock scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    return () => (document.body.style.overflow = "");
+  }, [isMenuOpen]);
+
+  return (
+    <>
+      <header
+        className={cn(
+          "w-full px-5 py-4 z-50 transition-colors duration-300",
+          isDark ? "bg-transparent text-white absolute" : "bg-white text-black shadow-sm"
+        )}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Link href="/" className="font-bold text-lg tracking-tight">
+            Maplytics
+          </Link>
+
+          {/* Mobile toggle */}
+          <button
+            className="md:hidden p-2 rounded-md active:scale-95 transition"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
+          </button>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              href="/public-dataset"
+              className={cn(
+                "text-sm font-medium transition-colors",
+                isDark ? "hover:text-slate-300" : "hover:text-slate-500"
+              )}
+            >
+              Public Dataset
+            </Link>
+
+            {!loading &&
+              (user ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              ) : (
+                <Link href="/login">
+                  <Button variant="secondary" size="sm">
+                    Login
+                  </Button>
+                </Link>
+              ))}
+          </nav>
+        </div>
+      </header>
+
+      {/* Backdrop */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/40 transition-opacity md:hidden",
+          isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        )}
+        onClick={() => setIsMenuOpen(false)}
+      />
+
+      {/* Mobile Menu */}
+      <div
+        className={cn(
+          "fixed top-0 right-0 h-full w-3/4 max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300 md:hidden",
+          isMenuOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="p-6 flex flex-col gap-6">
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-lg">Menu</span>
+            <button onClick={() => setIsMenuOpen(false)}>
+              <X size={24} />
+            </button>
+          </div>
+
+          <Link
+            href="/public-dataset"
+            onClick={() => setIsMenuOpen(false)}
+            className="text-base font-medium py-2"
+          >
+            Public Dataset
+          </Link>
+
+          {!loading &&
+            (user ? (
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            ) : (
+              <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                <Button variant="secondary" className="w-full">
+                  Login
+                </Button>
+              </Link>
+            ))}
+        </div>
+      </div>
+    </>
+  );
 }
