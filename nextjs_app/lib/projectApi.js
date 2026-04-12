@@ -1,23 +1,16 @@
-/**
- * Project API client for frontend operations
- */
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 const API_KEY = process.env.NEXT_PUBLIC_API_SERVER_KEY;
 
-const getHeaders = (userId) => ({
+const getHeaders = (userId, userEmail) => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${API_KEY}`,
-    ...(userId && { 'X-User-Id': userId })
+    ...(userId && { 'X-User-Id': userId }),
+    ...(userEmail && { 'X-User-Email': userEmail })
 });
 
-/**
- * Fetches all projects for the authenticated user
- * @param {string} userId - Firebase user UID
- */
 export const fetchProjects = async (userId) => {
     if (!userId) return [];
-    
+
     const response = await fetch(`${API_BASE_URL}/projects`, {
         headers: getHeaders(userId)
     });
@@ -30,11 +23,6 @@ export const fetchProjects = async (userId) => {
     return response.json();
 };
 
-/**
- * Deletes a project by ID
- * @param {string} projectId - Project UUID
- * @param {string} userId - Firebase user UID
- */
 export const deleteProject = async (projectId, userId) => {
     if (!projectId || !userId) throw new Error('Project ID and User ID are required');
 
@@ -51,17 +39,12 @@ export const deleteProject = async (projectId, userId) => {
     return response.json();
 };
 
-/**
- * Creates a new project
- * @param {Object} projectData - Project metadata
- * @param {string} userId - Firebase user UID
- */
 export const createProject = async (projectData, userId) => {
     if (!userId) throw new Error('User ID is required');
 
     const response = await fetch(`${API_BASE_URL}/projects`, {
         method: 'POST',
-        headers: getHeaders(userId),
+        headers: getHeaders(userId, projectData.email),
         body: JSON.stringify(projectData)
     });
 

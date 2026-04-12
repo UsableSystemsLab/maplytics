@@ -1,18 +1,11 @@
-/**
- * Dataset API client for frontend operations
- * Communicates with the backend API for dataset ingestion and retrieval
- */
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 const API_KEY = process.env.NEXT_PUBLIC_API_SERVER_KEY;
-
 
 const getHeaders = (userId) => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${API_KEY}`,
     ...(userId && { 'X-User-Id': userId })
 });
-
 
 export const ingestDataset = async (datasetName, data, entityType = 'generic', description = '', forceOverride = false) => {
     const response = await fetch(`${API_BASE_URL}/datasets/ingest`, {
@@ -29,7 +22,6 @@ export const ingestDataset = async (datasetName, data, entityType = 'generic', d
 
     if (!response.ok) {
         const error = await response.json();
-        // For 409 conflict, throw a special error with details
         if (response.status === 409) {
             const conflictError = new Error(error.error || 'Dataset already exists');
             conflictError.isConflict = true;
@@ -42,7 +34,6 @@ export const ingestDataset = async (datasetName, data, entityType = 'generic', d
 
     return response.json();
 };
-
 
 export const getDatasets = async () => {
     const response = await fetch(`${API_BASE_URL}/datasets`, {
@@ -86,7 +77,6 @@ export const getDatasetById = async (datasetId) => {
     return response.json();
 };
 
-
 export const deleteDataset = async (datasetId) => {
     const response = await fetch(`${API_BASE_URL}/datasets/${datasetId}`, {
         method: 'DELETE',
@@ -100,7 +90,6 @@ export const deleteDataset = async (datasetId) => {
 
     return response.json();
 };
-
 
 export const getProjectDatasetData = async (projectId, datasetId, userId) => {
     const response = await fetch(`${API_BASE_URL}/projects/${projectId}/datasets/${datasetId}/data`, {
@@ -129,9 +118,7 @@ export const ingestDatasetFromFile = async (file, datasetName, entityType = 'gen
 
                 let finalName, finalType, finalData;
 
-                // Check if the file is in wrapped format
                 if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.data) {
-                    // Wrapped format: { dataset_name, entity_type, data }
                     finalName = parsed.dataset_name || datasetName;
                     finalType = parsed.entity_type || entityType;
                     finalData = parsed.data;
@@ -159,7 +146,6 @@ export const ingestDatasetFromFile = async (file, datasetName, entityType = 'gen
     });
 };
 
-
 export const searchDatasets = async (query) => {
     const response = await fetch(`${API_BASE_URL}/datasets/search?q=${encodeURIComponent(query)}`, {
         method: 'GET',
@@ -174,9 +160,6 @@ export const searchDatasets = async (query) => {
     return response.json();
 };
 
-/**
- * Fetches all datasets (layers) associated with a specific project
- */
 export const fetchProjectDatasets = async (projectId, userId) => {
     if (!projectId || !userId) return [];
     
@@ -192,9 +175,6 @@ export const fetchProjectDatasets = async (projectId, userId) => {
     return response.json();
 };
 
-/**
- * Deletes a dataset link from a project
- */
 export const deleteProjectDataset = async (projectId, datasetId, userId) => {
     if (!projectId || !datasetId || !userId) throw new Error('Missing required IDs');
 

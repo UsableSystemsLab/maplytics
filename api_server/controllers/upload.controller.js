@@ -1,4 +1,4 @@
-import { readProjects, writeProjects } from './project.controller.js';
+import { Project, Dataset, Dataset_Project } from '../models/index.js';
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { parseFileToGeoJSON } from '../utils/fileParser.js';
@@ -49,46 +49,25 @@ export const uploadPublicFile = async (req, res) => {
     const projectId = req.query.projectId;
     const displayName = req.body.name || req.file.originalname;
 
-    // Adapt for S3 or local storage
     const filename = req.file.key || req.file.filename;
     const location = req.file.location || `/files/public/${req.userId}/${filename}`;
-
-    // Extract just the filename suffix from the S3 key
-    // S3 key format: public/userId/timestamp-filename.csv
     const filenameSuffix = filename.split('/').pop();
 
-    // Insert features into Postgres (async, non-blocking)
     const pgDatasetId = await insertFeaturesFromS3(
         filename, displayName, req.userId, req.file.originalname
     );
 
-    // Persist metadata to project for public datasets
-    if (projectId) {
+    if (projectId && pgDatasetId) {
         try {
-            const projects = readProjects();
-            const projectIndex = projects.findIndex(p => p.id === projectId);
-
-            if (projectIndex !== -1) {
-                if (!projects[projectIndex].datasets) {
-                    projects[projectIndex].datasets = [];
-                }
-
-                projects[projectIndex].datasets.push({
-                    id: `ds-${Date.now()}`,
-                    name: displayName,
-                    filename: filenameSuffix,
-                    originalName: req.file.originalname,
-                    size: req.file.size,
-                    createdAt: new Date().toISOString(),
-                    type: 'public',
-                    userId: req.userId,
-                    ...(pgDatasetId && { pgDatasetId }),
+            const project = await Project.findByPk(projectId);
+            if (project) {
+                await Dataset_Project.create({
+                    project_id: projectId,
+                    dataset_id: pgDatasetId
                 });
-
-                writeProjects(projects);
             }
         } catch (err) {
-            console.error("Error saving public dataset metadata:", err);
+            console.error("Error saving public dataset association:", err);
         }
     }
 
@@ -101,7 +80,8 @@ export const uploadPublicFile = async (req, res) => {
         originalName: req.file.originalname,
         size: req.file.size,
         url: location,
-        ...(pgDatasetId && { pgDatasetId }),
+        id: pgDatasetId, // Return the actual dataset ID
+        name: displayName
     });
 };
 
@@ -116,55 +96,36 @@ export const uploadPrivateFile = async (req, res) => {
     const projectId = req.query.projectId;
     const displayName = req.body.name || req.file.originalname;
 
-    // Adapt for S3 or local storage
     const filename = req.file.key || req.file.filename;
-    const s3Url = req.file.location; // http://rustfs:9000/datasets/... (docker network)
+    const s3Url = req.file.location;
     const browserUrl = s3Url ? s3Url.replace('http://rustfs:9000', 'http://localhost:9000') : null;
-
-    // Extract just the filename suffix from the S3 key
-    // S3 key format: private/projectId/timestamp-filename.csv
     const filenameSuffix = filename.split('/').pop();
 
-    // Insert features into Postgres
     const pgDatasetId = await insertFeaturesFromS3(
         filename, displayName, req.userId, req.file.originalname
     );
 
-    // Persist metadata to project
-    try {
-        const projects = readProjects();
-        const projectIndex = projects.findIndex(p => p.id === projectId);
-
-        if (projectIndex !== -1) {
-            if (!projects[projectIndex].datasets) {
-                projects[projectIndex].datasets = [];
+    if (projectId && pgDatasetId) {
+        try {
+            const project = await Project.findByPk(projectId);
+            if (project) {
+                await Dataset_Project.create({
+                    project_id: projectId,
+                    dataset_id: pgDatasetId
+                });
             }
-
-            projects[projectIndex].datasets.push({
-                id: `ds-${Date.now()}`,
-                name: displayName, // User provided name
-                filename: filenameSuffix, // Store only the suffix
-                originalName: req.file.originalname,
-                size: req.file.size,
-                createdAt: new Date().toISOString(),
-                type: 'private',
-                ...(pgDatasetId && { pgDatasetId }),
-            });
-
-            writeProjects(projects);
+        } catch (err) {
+            console.error("Error saving dataset association:", err);
         }
-    } catch (err) {
-        console.error("Error saving dataset metadata:", err);
     }
 
     res.status(201).json({
         message: 'File uploaded successfully',
-        id: `ds-${Date.now()}`,
+        id: pgDatasetId,
         name: displayName,
-        filename: filenameSuffix, // Return suffix for consistent frontend state
+        filename: filenameSuffix,
         originalName: req.file.originalname,
         size: req.file.size,
         url: browserUrl || `/files/private/${projectId}/${filenameSuffix}`,
-        ...(pgDatasetId && { pgDatasetId }),
     });
 };

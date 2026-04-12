@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react'
-import DashboardHeader from '@/components/DashboardHeader';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 

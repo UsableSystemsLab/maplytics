@@ -14,8 +14,7 @@ import {
   Bot,
   MapPin,
   ChevronsUpDown,
-  GalleryVerticalEnd,
-  LogOut,
+  FolderKanban,
 } from "lucide-react";
 
 import {
@@ -52,13 +51,13 @@ import * as projectApi from "@/lib/projectApi";
 import * as datasetApi from "@/lib/datasetApi";
 
 const mainNavItems = [
+  { id: "projects", label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },
   { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
   { id: "map-view", label: "Map view", icon: Map, href: "/dashboard/map" },
   { id: "comparison", label: "Comparison", icon: BarChart3, href: "/dashboard/comparison" },
 ];
 
 const secondaryNavItems = [
-  { id: "create-project", label: "Create Project", icon: Plus, href: "/dashboard/createProject" },
   { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/datasets" },
   { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
 ];
@@ -82,13 +81,15 @@ export function AppSidebar() {
   const [projects, setProjects] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
   const [selectedLayerId, setSelectedLayerId] = useState(null);
+  const [hasFetchedProjects, setHasFetchedProjects] = useState(false);
+
 
   const fetchProjects = async () => {
     if (!user) return;
     try {
       const data = await projectApi.fetchProjects(user.uid);
       setProjects(data);
-      
+
       const savedProjectStr = localStorage.getItem('current_project');
       if (savedProjectStr) {
         const savedProject = JSON.parse(savedProjectStr);
@@ -99,6 +100,8 @@ export function AppSidebar() {
       }
     } catch (error) {
       console.error('Error fetching projects:', error);
+    } finally {
+      setHasFetchedProjects(true);
     }
   };
 
@@ -114,12 +117,15 @@ export function AppSidebar() {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       try {
-        await projectApi.deleteProject(projectId, user?.uid);
-        fetchProjects();
-        if (activeProject?.id === projectId) {
-          setActiveProject(null);
-          localStorage.removeItem('current_project');
-          window.dispatchEvent(new Event('projectChanged'));
+        const response = await projectApi.deleteProject(projectId, user?.uid);
+        if (response.ok) {
+          await fetchProjects();
+          if (activeProject?.id === projectId) {
+            setActiveProject(null);
+            localStorage.removeItem('current_project');
+            window.dispatchEvent(new Event('projectChanged'));
+            router.push('/dashboard');
+          }
         }
       } catch (error) {
         console.error('Error deleting project:', error);
@@ -200,6 +206,24 @@ export function AppSidebar() {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (!authLoading && user && hasFetchedProjects) {
+      const isCreatePage = pathname.includes('/dashboard/createProject');
+      const isProjectsPage = pathname.includes('/dashboard/projects');
+      const isDashboardPage = pathname.includes('/dashboard');
+
+      // Only enforce if we are inside the dashboard and not already on a project management page
+      if (isDashboardPage && !isCreatePage && !isProjectsPage) {
+        // Redirect to projects hub if no project is active
+        if (projects.length === 0 || !activeProject) {
+          const segments = pathname.split('/').filter(Boolean);
+          const locale = segments[0] && segments[0].length === 2 ? `/${segments[0]}` : '';
+          router.push(`${locale}/dashboard/projects`);
+        }
+      }
+    }
+  }, [user, authLoading, hasFetchedProjects, projects, activeProject, pathname, router]);
+
   const handleLayerClick = (layer) => {
     const isDeselecting = selectedLayerId === layer.id;
     setSelectedLayerId(isDeselecting ? null : layer.id);
@@ -217,100 +241,19 @@ export function AppSidebar() {
   return (
     <>
       <Sidebar collapsible="icon">
-        <SidebarHeader className="border-b group-data-[collapsible=icon]:p-0">
-          <SidebarMenu className="group-data-[collapsible=icon]:items-center">
-            <SidebarMenuItem className="flex flex-row items-center gap-1 p-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:py-2">
-              <SidebarTrigger className="h-8 w-8 text-muted-foreground shrink-0 group-data-[collapsible=icon]:m-0" />
-              <div className="group-data-[collapsible=icon]:hidden w-full">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      size="lg"
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex-1"
-                    >
-                      <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-white">
-                        <Globe className="size-4" />
-                      </div>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {activeProject?.name || "Select Project"}
-                        </span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {projects.length} projects available
-                        </span>
-                      </div>
-                      <ChevronsUpDown className="ml-auto size-4" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                    align="start"
-                    side={isMobile ? "bottom" : "right"}
-                    sideOffset={4}
-                  >
-                    <DropdownMenuLabel className="text-xs text-muted-foreground">
-                      Projects
-                    </DropdownMenuLabel>
-                    {projects.map((project) => (
-                      <DropdownMenuItem
-                        key={project.id}
-                        onClick={() => handleProjectSelect(project)}
-                        className="gap-2 p-2"
-                      >
-                        <div className="flex size-6 items-center justify-center rounded-sm border">
-                          <Globe className="size-4 shrink-0" />
-                        </div>
-                        <span className="flex-1 truncate">{project.name}</span>
-                        <button
-                          onClick={(e) => handleDeleteProject(e, project.id)}
-                          className="ml-auto p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/createProject" className="gap-2 p-2">
-                        <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                          <Plus className="size-4" />
-                        </div>
-                        <div className="font-medium text-muted-foreground">New Project</div>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              
-              {/* Separate Minimized project icon/button if needed, or rely on trigger above */}
-              <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center mt-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-primary/10 text-primary hover:bg-primary/20">
-                       <Globe className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-56 rounded-lg"
-                    align="start"
-                    side="right"
-                    sideOffset={10}
-                  >
-                     <DropdownMenuLabel className="text-xs text-muted-foreground">
-                        Switch Project ({activeProject?.name || "None"})
-                      </DropdownMenuLabel>
-                      {projects.map((project) => (
-                        <DropdownMenuItem
-                          key={project.id}
-                          onClick={() => handleProjectSelect(project)}
-                          className="gap-2 p-2"
-                        >
-                          <Globe className="size-4 shrink-0" />
-                          <span className="truncate">{project.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+        <SidebarHeader className="border-b h-[60px] flex items-center px-2">
+          <SidebarMenu>
+            <SidebarMenuItem className="flex items-center">
+              <SidebarTrigger className="h-8 w-8 text-muted-foreground mr-2" />
+              <div className="flex-1 flex items-center justify-between group-data-[collapsible=icon]:hidden">
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold text-primary">
+                    {activeProject?.name || "No Project Selected"}
+                  </span>
+                  <span className="truncate text-[10px] text-muted-foreground">
+                    Workspace Active
+                  </span>
+                </div>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -395,7 +338,6 @@ export function AppSidebar() {
                     {activeProject ? "No layers" : "Select a project"}
                   </div>
                 )}
-                {/* Mobile/Collapsed specific plus button if needed would go here */}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
