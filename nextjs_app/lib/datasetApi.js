@@ -7,9 +7,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/a
 const API_KEY = process.env.NEXT_PUBLIC_API_SERVER_KEY;
 
 
-const getHeaders = () => ({
+const getHeaders = (userId) => ({
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_KEY}`
+    'Authorization': `Bearer ${API_KEY}`,
+    ...(userId && { 'X-User-Id': userId })
 });
 
 
@@ -168,6 +169,43 @@ export const searchDatasets = async (query) => {
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to search datasets');
+    }
+
+    return response.json();
+};
+
+/**
+ * Fetches all datasets (layers) associated with a specific project
+ */
+export const fetchProjectDatasets = async (projectId, userId) => {
+    if (!projectId || !userId) return [];
+    
+    const response = await fetch(`${API_BASE_URL}/projects/${projectId}/datasets`, {
+        headers: getHeaders(userId)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch project datasets');
+    }
+
+    return response.json();
+};
+
+/**
+ * Deletes a dataset link from a project
+ */
+export const deleteProjectDataset = async (projectId, datasetId, userId) => {
+    if (!projectId || !datasetId || !userId) throw new Error('Missing required IDs');
+
+    const response = await fetch(`${API_BASE_URL}/projects/${projectId}/datasets/${datasetId}`, {
+        method: 'DELETE',
+        headers: getHeaders(userId)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete project dataset');
     }
 
     return response.json();

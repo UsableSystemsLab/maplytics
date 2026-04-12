@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import AddLayerModal from "@/components/AddLayerModal";
 import PromptForm from "@/components/PromptForm";
-import SideBar from '@/components/sidebar';
+
 
 export default function CreateProjectPage() {
     const { user } = useAuth();
@@ -78,104 +78,100 @@ export default function CreateProjectPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
-            <SideBar />
+        <div className="flex-1 flex flex-col items-center px-6 py-8">
 
-            <div className="flex-1 flex flex-col items-center px-6 py-8">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-8">
+                Create New Project
+            </h1>
 
-                <h1 className="text-2xl font-semibold text-gray-900 mb-8">
-                    Create New Project
-                </h1>
+            <div className="w-full max-w-3xl mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Project Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    placeholder="e.g., Urban Analysis 2024"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all"
+                />
+            </div>
 
-                <div className="w-full max-w-3xl mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Project Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        value={projectName}
-                        onChange={(e) => setProjectName(e.target.value)}
-                        placeholder="e.g., Urban Analysis 2024"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all"
-                    />
-                </div>
+            <div className="w-full max-w-3xl mb-6">
+                <PromptForm />
+            </div>
 
-                <div className="w-full max-w-3xl mb-6">
-                    <PromptForm />
-                </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-3xl">
+                <div className="p-6 border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-gray-900">Layer</h2>
 
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-3xl">
-                    <div className="p-6 border-b border-gray-100">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900">Layer</h2>
-
-                            <div className="flex items-center gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="layer"
-                                        checked={layerOn}
-                                        onChange={() => setLayerOn(true)}
-                                        className="w-4 h-4"
-                                        style={{ accentColor: '#134565' }}
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">On</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="layer"
-                                        checked={!layerOn}
-                                        onChange={() => setLayerOn(false)}
-                                        className="w-4 h-4"
-                                        style={{ accentColor: '#134565' }}
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">Off</span>
-                                </label>
-                            </div>
+                        <div className="flex items-center gap-6">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="layer"
+                                    checked={layerOn}
+                                    onChange={() => setLayerOn(true)}
+                                    className="w-4 h-4"
+                                    style={{ accentColor: '#134565' }}
+                                />
+                                <span className="text-sm font-medium text-gray-700">On</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="layer"
+                                    checked={!layerOn}
+                                    onChange={() => setLayerOn(false)}
+                                    className="w-4 h-4"
+                                    style={{ accentColor: '#134565' }}
+                                />
+                                <span className="text-sm font-medium text-gray-700">Off</span>
+                            </label>
                         </div>
                     </div>
+                </div>
 
-                    {layerOn && (
-                        <div className="p-6">
-                            <h3 className="text-base font-semibold text-gray-900 mb-4">
-                                Datasets
-                            </h3>
+                {layerOn && (
+                    <div className="p-6">
+                        <h3 className="text-base font-semibold text-gray-900 mb-4">
+                            Datasets
+                        </h3>
 
-                            <div className="space-y-2 mb-4">
-                                {datasets.length === 0 && (
-                                    <p className="text-sm text-gray-500 italic">No datasets added yet.</p>
-                                )}
-                                {datasets.map(dataset => (
-                                    <div
-                                        key={dataset.id}
-                                        className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-                                        <span className="text-sm font-medium text-gray-900">
-                                            {dataset.name}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                            {dataset.enabled ? "Active" : "Inactive"}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={() => setAddModalOpen(true)}
-                                className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white font-medium text-sm rounded-lg transition-colors">
-                                + Add Dataset
-                            </button>
+                        <div className="space-y-2 mb-4">
+                            {datasets.length === 0 && (
+                                <p className="text-sm text-gray-500 italic">No datasets added yet.</p>
+                            )}
+                            {datasets.map(dataset => (
+                                <div
+                                    key={dataset.id}
+                                    className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
+                                    <span className="text-sm font-medium text-gray-900">
+                                        {dataset.name}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                        {dataset.enabled ? "Active" : "Inactive"}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
-                    )}
 
-                    <div className="p-6 border-t border-gray-100 w-full flex justify-end">
                         <button
-                            onClick={handleCreateProject}
-                            disabled={!projectName.trim()}
-                            className="py-3 px-8 bg-primary text-white font-semibold rounded-lg hover:scale-105 transition-all shadow-md disabled:opacity-50 disabled:hover:scale-100">
-                            Create Project
+                            onClick={() => setAddModalOpen(true)}
+                            className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white font-medium text-sm rounded-lg transition-colors">
+                            + Add Dataset
                         </button>
                     </div>
+                )}
+
+                <div className="p-6 border-t border-gray-100 w-full flex justify-end">
+                    <button
+                        onClick={handleCreateProject}
+                        disabled={!projectName.trim()}
+                        className="py-3 px-8 bg-primary text-white font-semibold rounded-lg hover:scale-105 transition-all shadow-md disabled:opacity-50 disabled:hover:scale-100">
+                        Create Project
+                    </button>
                 </div>
             </div>
 
