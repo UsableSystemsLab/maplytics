@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-cd /var/www/html/maplytics.org
+cd /var/www/maplytics.org
 
 git pull origin main
 
@@ -13,5 +13,3 @@ docker compose \
   up -d --build
 
 docker image prune -f
-
-sudo systemctl reload nginx

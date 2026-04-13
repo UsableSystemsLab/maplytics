@@ -2,7 +2,7 @@ name: Auto Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ autoDeploy ]
 
 jobs:
   deploy:
@@ -12,9 +12,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_KEY }}
           script: |
-            cd /var/www/html/maplytics.org
+            cd /var/www/maplytics.org
             ./deploy.sh
