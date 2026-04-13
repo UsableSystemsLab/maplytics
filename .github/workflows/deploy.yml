@@ -1,0 +1,20 @@
+name: Auto Deploy
+
+on:
+  push:
+    branches: [ autoDeploy ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_KEY }}
+          script: |
+            cd ${{ secrets.VM_APP_DIR }}
+            ./deploy.sh
