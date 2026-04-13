@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "node --watch app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
     "collect-pois": "node cli/collect-pois.js",
     "convert-dataset": "node cli/convert-dataset.js",
     "lint": "eslint .",
