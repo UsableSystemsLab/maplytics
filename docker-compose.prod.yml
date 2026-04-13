@@ -36,7 +36,7 @@ services:
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
     ports:
-      - ${API_SERVER_PORT}:4000
+      - "127.0.0.1:${API_SERVER_PORT}:4000"
     depends_on:
       - db
       - rustfs
@@ -70,7 +70,7 @@ services:
       - NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
       - NEXT_PUBLIC_API_SERVER_KEY=${API_SERVER_KEY}
     ports:
-      - ${NEXT_PUBLIC_PORT}:${NEXT_PUBLIC_PORT}
+      - "127.0.0.1:${NEXT_PUBLIC_PORT}:${NEXT_PUBLIC_PORT}"
     depends_on:
       - db
       - api_server
