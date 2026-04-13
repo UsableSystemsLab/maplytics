@@ -26,10 +26,8 @@ describe('convert-dataset CLI', () => {
 
         expect(exitCode).toBe(0);
         const output = JSON.parse(stdout);
-        expect(output).toHaveProperty('geojson');
-        expect(output).toHaveProperty('fields');
-        expect(output.geojson.type).toBe('FeatureCollection');
-        expect(output.geojson.features).toHaveLength(3);
+        expect(output.type).toBe('FeatureCollection');
+        expect(output.features).toHaveLength(3);
     });
 
     it('handles quoted CSV fields correctly', async () => {
@@ -37,9 +35,9 @@ describe('convert-dataset CLI', () => {
 
         expect(exitCode).toBe(0);
         const output = JSON.parse(stdout);
-        expect(output.geojson.features).toHaveLength(2);
+        expect(output.features).toHaveLength(2);
 
-        const descriptions = output.geojson.features.map(f => f.properties.description);
+        const descriptions = output.features.map(f => f.properties.description);
         expect(descriptions[0]).toContain(',');
     });
 
@@ -48,9 +46,9 @@ describe('convert-dataset CLI', () => {
 
         expect(exitCode).toBe(0);
         const output = JSON.parse(stdout);
-        expect(output.geojson.features).toHaveLength(2);
+        expect(output.features).toHaveLength(2);
         // Coordinates should be valid numbers
-        output.geojson.features.forEach(f => {
+        output.features.forEach(f => {
             expect(f.geometry.type).toBe('Point');
             expect(f.geometry.coordinates).toHaveLength(2);
             expect(typeof f.geometry.coordinates[0]).toBe('number');
@@ -68,7 +66,7 @@ describe('convert-dataset CLI', () => {
             expect(exitCode).toBe(0);
             const content = readFileSync(outPath, 'utf-8');
             const output = JSON.parse(content);
-            expect(output.geojson.features).toHaveLength(3);
+            expect(output.features).toHaveLength(3);
         } finally {
             rmSync(tmpDir, { recursive: true, force: true });
         }
@@ -118,13 +116,13 @@ describe('convert-dataset CLI', () => {
         expect(stderr).toContain('empty');
     });
 
-    it('produces fields with correct types in output', async () => {
+    it('produces valid GeoJSON with correct properties', async () => {
         const { stdout } = await run(['-i', join(FIXTURES, 'basic.csv'), '-q']);
         const output = JSON.parse(stdout);
 
-        const categoryField = output.fields.find(f => f.name === 'category');
-        expect(categoryField).toBeDefined();
-        expect(categoryField.type).toBe('string');
-        expect(categoryField.values).toContain('park');
+        const categories = output.features.map(f => f.properties.category);
+        expect(categories).toContain('park');
+        expect(categories).toContain('monument');
+        expect(categories).toContain('landmark');
     });
 });

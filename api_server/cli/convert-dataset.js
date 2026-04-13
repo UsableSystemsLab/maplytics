@@ -213,8 +213,7 @@ log(`Fields: ${fieldSummary}`);
 log(`Final: ${geojson.features.length} features, ${fields.length} fields`);
 
 // Build output
-const output = { geojson, fields };
-const outputJSON = JSON.stringify(output, null, 2);
+const outputJSON = JSON.stringify(geojson, null, 2);
 
 // Write output
 if (args.output) {
