@@ -1,9 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-
-const getHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
-});
+import apiClient from './apiClient';
 
 /**
  * Fetch comparison statistics for a dataset across specified districts.
@@ -12,19 +7,8 @@ const getHeaders = () => ({
  * @returns {Promise<{ fields: Array, districts: Array }>}
  */
 export const getComparisonStats = async (datasetId, districtIds) => {
-    const res = await fetch(`${API_BASE_URL}/comparison/stats`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-            dataset_id: datasetId,
-            district_ids: districtIds,
-        }),
+    return apiClient.post('/comparison/stats', {
+        dataset_id: datasetId,
+        district_ids: districtIds,
     });
-
-    if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        throw new Error(`Failed to fetch comparison stats (${res.status}): ${body}`);
-    }
-
-    return res.json();
 };

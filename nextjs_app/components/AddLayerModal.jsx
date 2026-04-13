@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { X, Upload, Layers, MapPin, Square, Flame, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { uploadFile } from "@/lib/uploadApi";
 
 export default function AddLayerModal({ isOpen, onClose, onSave, initialData = null, projectId = null }) {
     const { user } = useAuth();
@@ -78,37 +79,12 @@ export default function AddLayerModal({ isOpen, onClose, onSave, initialData = n
             throw new Error('User not authenticated');
         }
 
-        const formDataToSend = new FormData();
-        formDataToSend.append('file', file);
-        if (layerName) {
-            formDataToSend.append('name', layerName);
-        }
-
-        let endpoint;
-        if (isPrivate) {
-            if (!projectId) {
-                throw new Error('Project ID is required for private uploads');
-            }
-            endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/upload/private?projectId=${projectId}`;
-        } else {
-            endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/upload/public${projectId ? `?projectId=${projectId}` : ''}`;
-        }
-
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'X-User-Id': user.uid,
-                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
-            },
-            body: formDataToSend,
+        return await uploadFile({
+            file,
+            isPrivate,
+            projectId,
+            layerName
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Upload failed');
-        }
-
-        return await response.json();
     };
 
     const handleSubmit = async (e) => {

@@ -11,6 +11,7 @@ import {
     LogOut,
     HelpCircle
 } from "lucide-react";
+import { getProjects, deleteProject } from "@/lib/projectApi";
 
 export default function DashboardHeader({ pageTitle = "Dashboard Overview", breadcrumbs = [] }) {
     const { user } = useAuth();
@@ -34,16 +35,8 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
     const fetchProjects = async () => {
         if (!user) return; // Don't fetch if no user
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects`, {
-                headers: {
-                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
-                    'X-User-Id': user.uid
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setProjects(data);
-            }
+            const data = await getProjects();
+            setProjects(data);
         } catch (error) {
             console.error('Error fetching projects:', error);
         }
@@ -67,26 +60,19 @@ export default function DashboardHeader({ pageTitle = "Dashboard Overview", brea
         e.stopPropagation();
         if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${projectId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
-                        'X-User-Id': user?.uid || 'anonymous'
-                    }
-                });
-
-                if (response.ok) {
-                    // Refresh projects
-                    fetchProjects();
-                    // If deleted project was current, clear it
-                    if (currentProject.id === projectId) {
-                        setCurrentProject({ name: "Select Project" });
-                        localStorage.removeItem('current_project');
-                        window.dispatchEvent(new Event('projectChanged'));
-                    }
+                await deleteProject(projectId);
+                
+                // Refresh projects
+                fetchProjects();
+                // If deleted project was current, clear it
+                if (currentProject.id === projectId) {
+                    setCurrentProject({ name: "Select Project" });
+                    localStorage.removeItem('current_project');
+                    window.dispatchEvent(new Event('projectChanged'));
                 }
             } catch (error) {
                 console.error('Error deleting project:', error);
+                alert("Error deleting project: " + error.message);
             }
         }
     };

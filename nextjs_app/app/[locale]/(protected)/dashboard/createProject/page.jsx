@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import AddLayerModal from "@/components/AddLayerModal";
 import PromptForm from "@/components/PromptForm";
 import SideBar from '@/components/sidebar';
+import { createProject } from "@/lib/projectApi";
 
 export default function CreateProjectPage() {
     const { user } = useAuth();
@@ -25,30 +26,18 @@ export default function CreateProjectPage() {
         }
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
-                    'X-User-Id': user?.uid || 'anonymous'
-                },
-                body: JSON.stringify({
-                    id: projectId,
-                    name: projectName,
-                    datasets: datasets.map(d => ({
-                        name: d.name,
-                        filename: d.content.uploadedFileName,
-                        size: d.content.fileSize,
-                        originalName: d.content.file?.name,
-                        type: d.content.isPrivate ? 'private' : 'public',
-                        ...(d.content.isPrivate ? {} : { userId: user?.uid })
-                    }))
-                })
+            await createProject({
+                id: projectId,
+                name: projectName,
+                datasets: datasets.map(d => ({
+                    name: d.name,
+                    filename: d.content.uploadedFileName,
+                    size: d.content.fileSize,
+                    originalName: d.content.file?.name,
+                    type: d.content.isPrivate ? 'private' : 'public',
+                    ...(d.content.isPrivate ? {} : { userId: user?.uid })
+                }))
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to create project');
-            }
 
             localStorage.setItem('current_project', JSON.stringify({ id: projectId, name: projectName }));
             localStorage.removeItem('current_project_id');
