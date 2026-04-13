@@ -175,6 +175,15 @@ button.btn-shine:active::before {
   }
 }
 
+/* Leaflet z-index containment for auth pages */
+.auth-map-bg .leaflet-pane {
+  z-index: 0 !important;
+}
+
+.auth-map-bg .leaflet-control-container {
+  display: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -185,6 +194,10 @@ button.btn-shine:active::before {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.typing-animation {
+  animation: typing 2s steps(10, end) 1 both, blink 0.75s step-end 2s 3 both;
 }
 
 @keyframes typing {
