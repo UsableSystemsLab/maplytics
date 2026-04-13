@@ -16,5 +16,5 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_KEY }}
           script: |
-            cd /var/www/maplytics.org
+            cd ${{ secrets.VM_APP_DIR }}
             ./deploy.sh
