@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
-import { fetchAllPois } from "./lib/nominatim.js";
+import { fetchAllPois as fetchNominatim } from "./lib/nominatim.js";
+import { fetchAllPois as fetchGoogle } from "./lib/google-maps.js";
 import { toCsv } from "./lib/csv.js";
 import { uploadToS3 } from "./lib/storage.js";
 
@@ -12,6 +13,7 @@ Options:
   --region,   -r   Region or state (optional)
   --city           City name (optional)
   --district, -d   District name (optional)
+  --api,      -a   API to use: "nominatim" (default) or "google"
   --help,     -h   Show this help message
 `.trim();
 
@@ -31,6 +33,7 @@ try {
       region: { type: "string", short: "r" },
       city: { type: "string" },
       district: { type: "string", short: "d" },
+      api: { type: "string", short: "a", default: "nominatim" },
       help: { type: "boolean", short: "h" },
     },
     strict: true,
@@ -54,9 +57,11 @@ if (!args.poi || !args.country) {
 
 const locationParts = [args.district, args.city, args.region, args.country].filter(Boolean);
 
-console.log(`Searching for "${args.poi}" in ${locationParts.join(", ")}...`);
+console.log(`Searching for "${args.poi}" in ${locationParts.join(", ")} using ${args.api} API...`);
 
-const results = await fetchAllPois(args.poi, locationParts, {
+const fetchPois = args.api === "google" ? fetchGoogle : fetchNominatim;
+
+const results = await fetchPois(args.poi, locationParts, {
   onBatch(batchNumber, batchSize, totalSoFar) {
     console.log(`  Batch ${batchNumber}: ${batchSize} results (${totalSoFar} total)`);
   },

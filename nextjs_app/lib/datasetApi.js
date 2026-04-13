@@ -3,8 +3,8 @@
  * Communicates with the backend API for dataset ingestion and retrieval
  */
 
-const API_BASE_URL = "http://localhost:4000/api";
-const API_KEY = process.env.API_SERVER_KEY;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_KEY = process.env.NEXT_PUBLIC_API_SERVER_KEY;
 
 
 const getHeaders = () => ({

@@ -25,7 +25,7 @@ export default function CreateProjectPage() {
         }
 
         try {
-            const response = await fetch('http://localhost:4000/api/projects', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -79,8 +79,7 @@ export default function CreateProjectPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
-            <SideBar
-                name="History" href2="/" />
+            <SideBar />
 
             <div className="flex-1 flex flex-col items-center px-6 py-8">
 

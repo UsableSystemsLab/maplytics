@@ -132,36 +132,7 @@ export const getDatasetData = async (req, res) => {
         const bodyStr = await response.Body.transformToString('utf-8');
         const ext = (dataset.originalName || dataset.filename || '').split('.').pop().toLowerCase();
 
-        console.log('[getDatasetData] S3 key:', key);
-        console.log('[getDatasetData] Extension:', ext);
-        console.log('[getDatasetData] File content (first 500 chars):', bodyStr.substring(0, 500));
-
-        let geojson;
-
-        if (ext === 'csv') {
-            const rows = parseCSV(bodyStr);
-            console.log('[getDatasetData] CSV parsed rows:', rows.length, 'First row keys:', rows[0] ? Object.keys(rows[0]) : 'none');
-            geojson = buildGeoJSONFromObjects(rows);
-        } else {
-            // JSON or GeoJSON
-            const parsed = JSON.parse(bodyStr);
-            console.log('[getDatasetData] JSON type:', parsed.type, 'isArray:', Array.isArray(parsed), 'features:', parsed.features?.length);
-
-            if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
-                geojson = parsed;
-            } else if (Array.isArray(parsed)) {
-                geojson = buildGeoJSONFromObjects(parsed);
-            } else if (parsed.type === 'Feature' && parsed.geometry) {
-                geojson = { type: 'FeatureCollection', features: [parsed] };
-            } else if (Array.isArray(parsed.data)) {
-                // Wrapped format: { dataset_name: "...", data: [...] }
-                geojson = buildGeoJSONFromObjects(parsed.data);
-            } else {
-                // Try treating as a single object with lat/lng
-                geojson = buildGeoJSONFromObjects([parsed]);
-            }
-        }
-        console.log('[getDatasetData] Final features count:', geojson.features.length);
+        const geojson = parseFileToGeoJSON(bodyStr, ext);
 
         const fields = inferFields(geojson);
 
