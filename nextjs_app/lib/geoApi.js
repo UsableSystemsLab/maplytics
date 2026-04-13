@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:4000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 const getHeaders = () => ({
     'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,

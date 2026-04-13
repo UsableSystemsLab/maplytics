@@ -7,7 +7,6 @@ import {
     Map,
     BarChart3,
     User,
-    Users,
     Settings,
     Plus,
     Loader2,
@@ -17,7 +16,7 @@ import {
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
 
-export default function SideBar(props) {
+export default function SideBar() {
     const { user, loading } = useAuth();
     const [activeNav, setActiveNav] = useState("overview");
     const [layers, setLayers] = useState([]);
@@ -27,68 +26,24 @@ export default function SideBar(props) {
     const [currentProjectId, setCurrentProjectId] = useState(null);
     const [selectedLayerId, setSelectedLayerId] = useState(null);
 
-    // Build navItems array from props
-    const navItems = [];
+    const finalNavItems = [
+        { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
+        { id: "map-view", label: "Map view", icon: Map, href: "/dashboard/map" },
+        { id: "comparison", label: "Comparison", icon: BarChart3, href: "/dashboard/comparison" },
+    ];
 
-    // Check for old-style props (name1, href1, etc.)
-    if (props.name1) {
-        navItems.push({
-            id: props.name1.toLowerCase().replace(/\s+/g, '-'),
-            label: props.name1,
-            icon: props.icon1 || LayoutDashboard,
-            href: props.href1
-        });
-    }
-    if (props.name2) {
-        navItems.push({
-            id: props.name2.toLowerCase().replace(/\s+/g, '-'),
-            label: props.name2,
-            icon: props.icon2 || Map,
-            href: props.href2
-        });
-    }
-    if (props.name3) {
-        navItems.push({
-            id: props.name3.toLowerCase().replace(/\s+/g, '-'),
-            label: props.name3,
-            icon: props.icon3 || BarChart3,
-            href: props.href3
-        });
-    }
-    if (props.name4) {
-        navItems.push({
-            id: props.name4.toLowerCase().replace(/\s+/g, '-'),
-            label: props.name4,
-            icon: props.icon4 || LayoutDashboard,
-            href: props.href4
-        });
-    }
-    if (props.name5) {
-        navItems.push({
-            id: props.name5.toLowerCase().replace(/\s+/g, '-'),
-            label: props.name5,
-            icon: props.icon5 || LayoutDashboard,
-            href: props.href5
-        });
-    }
-
-    // If navItems prop exists (new style), use it instead
-    const finalNavItems = props.navItems || navItems;
-
-    // Static page items
     const pageItems = [
+        { id: "create-project", label: "Create Project", icon: Plus, href: "/dashboard/createProject" },
         { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/public-dataset" },
         { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
         { id: "account", label: "Account", icon: User, href: "/account" },
-        { id: "History", label: "History", icon: Map, href: "/dashboard/createProject" },
-        { id: "team", label: "Team", icon: Users, href: "/team" },
         { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
     ];
 
     const fetchProjectDatasets = async (projectId) => {
         if (!projectId || !user) return;
         try {
-            const response = await fetch(`http://localhost:4000/api/projects/${projectId}/datasets`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${projectId}/datasets`, {
                 headers: {
                     'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
                     'X-User-Id': user.uid
@@ -126,7 +81,7 @@ export default function SideBar(props) {
         if (!currentProjectId || !user) return;
 
         try {
-            const response = await fetch(`http://localhost:4000/api/projects/${currentProjectId}/datasets/${layerId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${currentProjectId}/datasets/${layerId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,

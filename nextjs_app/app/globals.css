@@ -65,16 +65,16 @@ header {
   background-color: #0E3147;
 }
 
-button {
+button.btn-shine {
   position: relative;
   overflow: hidden;
 }
 
-button:active {
+button.btn-shine:active {
   scale: 0.95;
 }
 
-button::before {
+button.btn-shine::before {
   content: "";
   position: absolute;
   top: 0;
@@ -88,7 +88,7 @@ button::before {
   pointer-events: none;
 }
 
-button:active::before {
+button.btn-shine:active::before {
   left: calc(100% + 30px);
 }
 
