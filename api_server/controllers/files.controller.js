@@ -1,8 +1,7 @@
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { readProjects, writeProjects } from './project.controller.js';
-import { inferFieldTypes } from '../utils/fieldUtils.js';
-import { parseFileToGeoJSON } from '../utils/fileParser.js';
+import { parseCSV, buildGeoJSONFromObjects, inferFields } from '../lib/geo/index.js';
 
 export const getPublicFile = async (req, res) => {
     res.status(501).json({ message: "getPublicFile not implemented yet" });
@@ -93,13 +92,6 @@ export const deleteDataset = async (req, res) => {
     res.status(200).json({ message: 'Dataset deleted successfully' });
 };
 
-
-/** Infer fields from a GeoJSON FeatureCollection using the functions from the shared utility. */
-const inferFields = (geojson) => {
-    if (!geojson.features || geojson.features.length === 0) return [];
-    const propertiesList = geojson.features.map(f => f.properties).filter(Boolean);
-    return inferFieldTypes(propertiesList);
-};
 
 export const getDatasetData = async (req, res) => {
     const { id: projectId, datasetId } = req.params;

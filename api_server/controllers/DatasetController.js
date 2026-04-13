@@ -2,20 +2,11 @@ import { Dataset, Feature, Feature_Property, Dataset_Metadata } from '../models/
 import { sequelize } from '../configs/postgresDB.js';
 import logger from '../configs/logger.js';
 import { Op } from 'sequelize';
+import { extractLatitude, extractLongitude, removeCoordinateFields } from '../lib/geo/index.js';
 
 /**
  * DatasetController - Responsible for managing geospatial datasets.
 **/
-
-
-const extractLatitude = (item) => {
-    // This is the nullish operator. Different data sources use different field names for latitude.
-    return item.latitude ?? item.lat ?? item.Latitude ?? item.LAT ?? item.Lat ?? null;
-};
-
-const extractLongitude = (item) => {
-    return item.longitude ?? item.lng ?? item.Longitude ?? item.LNG ?? item.Lng ?? item.lon ?? item.Lon ?? null;
-};
 
 const generateSlug = (name) => {
     return name
@@ -235,20 +226,7 @@ export const ingestDataset = async (req, res, next) => {
                 geometry: geomResult.geometry
             }, { transaction });
 
-            const properties = { ...item };
-            delete properties.geometry;
-            delete properties.latitude;
-            delete properties.lat;
-            delete properties.Latitude;
-            delete properties.LAT;
-            delete properties.Lat;
-            delete properties.longitude;
-            delete properties.lng;
-            delete properties.Longitude;
-            delete properties.LNG;
-            delete properties.Lng;
-            delete properties.lon;
-            delete properties.Lon;
+            const properties = removeCoordinateFields(item);
 
             await Feature_Property.create({
                 feature_id: feature.feature_id,
