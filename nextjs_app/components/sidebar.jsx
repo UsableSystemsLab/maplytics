@@ -15,6 +15,7 @@ import {
     Bot,
 } from "lucide-react";
 import AddLayerModal from "./AddLayerModal";
+import { getProjectDatasets, deleteProjectDataset } from "@/lib/projectApi";
 
 export default function SideBar() {
     const { user, loading } = useAuth();
@@ -43,18 +44,8 @@ export default function SideBar() {
     const fetchProjectDatasets = async (projectId) => {
         if (!projectId || !user) return;
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${projectId}/datasets`, {
-                headers: {
-                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
-                    'X-User-Id': user.uid
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setLayers(data);
-            } else {
-                setLayers([]);
-            }
+            const data = await getProjectDatasets(projectId);
+            setLayers(data);
         } catch (error) {
             console.error("Error fetching datasets:", error);
             setLayers([]);
@@ -81,23 +72,11 @@ export default function SideBar() {
         if (!currentProjectId || !user) return;
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/projects/${currentProjectId}/datasets/${layerId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_SERVER_KEY}`,
-                    'X-User-Id': user.uid
-                }
-            });
-
-            if (response.ok) {
-                setLayers(prev => prev.filter(l => l.id !== layerId));
-            } else {
-                console.error("Failed to delete dataset");
-                alert("Failed to delete dataset");
-            }
+            await deleteProjectDataset(currentProjectId, layerId);
+            setLayers(prev => prev.filter(l => l.id !== layerId));
         } catch (error) {
             console.error("Error deleting dataset:", error);
-            alert("Error deleting dataset");
+            alert("Error deleting dataset: " + error.message);
         }
     };
 
