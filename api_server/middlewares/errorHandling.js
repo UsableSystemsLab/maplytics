@@ -1,8 +1,8 @@
 import logger from '../configs/logger.js';
 
 // Error handling middleware. Logs the error and sends a 500 response.
-const errorHandlingMiddleware = (err, res) => {
-  logger.error(err.message, { metadata: err.stack });
+const errorHandlingMiddleware = (err, req, res, next) => {
+  logger.error({ message: err.message, stack: err.stack });
   res.status(500).json({ error: 'Internal Server Error' });
 };
 

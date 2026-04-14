@@ -6,12 +6,14 @@ import apiRoutes from './routes/index.js';
 import { postgresDB } from './configs/postgresDB.js';
 import { authenticate } from './middlewares/firebaseAuth.js';
 import errorHandling from './middlewares/errorHandling.js';
+import accessLogging from './middlewares/accessLogging.js';
 import { initBucket } from './configs/s3Client.js';
 const app = express();
 
 // middlewares
 app.use(cors());
 app.use(json());
+app.use(accessLogging); // Add access logging middleware
 
 const port = process.env.API_SERVER_PORT || 4000;
 
