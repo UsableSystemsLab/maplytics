@@ -4,7 +4,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerConfigs from './configs/swaggerConfig.js';
 import apiRoutes from './routes/index.js';
 import { postgresDB } from './configs/postgresDB.js';
-import validateApiKey from './middlewares/validateApiKey.js';
+import { authenticate } from './middlewares/firebaseAuth.js';
 import errorHandling from './middlewares/errorHandling.js';
 import { initBucket } from './configs/s3Client.js';
 const app = express();
@@ -19,7 +19,7 @@ const port = process.env.API_SERVER_PORT || 4000;
 // only requests to /api/* will be sent to our router
 const router = express.Router();
 apiRoutes(router);
-app.use('/api', validateApiKey, router);
+app.use('/api', authenticate, router);
 
 // API docs
 const swaggerUiOptions = {

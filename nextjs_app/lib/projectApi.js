@@ -1,57 +1,26 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-const API_KEY = process.env.NEXT_PUBLIC_API_SERVER_KEY;
+import apiClient from './apiClient';
 
-const getHeaders = (userId, userEmail) => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_KEY}`,
-    ...(userId && { 'X-User-Id': userId }),
-    ...(userEmail && { 'X-User-Email': userEmail })
-});
+/**
+ * Project API client for frontend operations.
+ * Identification is handled by the apiClient using Firebase ID tokens.
+ */
 
-export const fetchProjects = async (userId) => {
-    if (!userId) return [];
-
-    const response = await fetch(`${API_BASE_URL}/projects`, {
-        headers: getHeaders(userId)
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch projects');
-    }
-
-    return response.json();
+export const getProjects = async () => {
+    return apiClient.get('/projects');
 };
 
-export const deleteProject = async (projectId, userId) => {
-    if (!projectId || !userId) throw new Error('Project ID and User ID are required');
-
-    const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
-        method: 'DELETE',
-        headers: getHeaders(userId)
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete project');
-    }
-
-    return response.json();
+export const createProject = async ({ id, name, datasets }) => {
+    return apiClient.post('/projects', { id, name, datasets });
 };
 
-export const createProject = async (projectData, userId) => {
-    if (!userId) throw new Error('User ID is required');
+export const deleteProject = async (projectId) => {
+    return apiClient.delete(`/projects/${projectId}`);
+};
 
-    const response = await fetch(`${API_BASE_URL}/projects`, {
-        method: 'POST',
-        headers: getHeaders(userId, projectData.email),
-        body: JSON.stringify(projectData)
-    });
+export const getProjectDatasets = async (projectId) => {
+    return apiClient.get(`/projects/${projectId}/datasets`);
+};
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create project');
-    }
-
-    return response.json();
+export const deleteProjectDataset = async (projectId, datasetId) => {
+    return apiClient.delete(`/projects/${projectId}/datasets/${datasetId}`);
 };

@@ -1,12 +1,25 @@
-export const extractUserId = (req, res, next) => {
-    const userId = req.headers['x-user-id'];
+import admin from '../configs/firebaseAdmin.js';
 
-    if (!userId) {
-        return res.status(400).json({
-            error: 'User ID is required. Please log in.'
+export const authenticate = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+            error: 'No token provided. Please log in.'
         });
     }
 
-    req.userId = userId;
-    next();
+    const idToken = authHeader.split('Bearer ')[1];
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        req.user = decodedToken;
+        req.userId = decodedToken.uid;
+        next();
+    } catch (error) {
+        console.error('Error verifying Firebase ID token:', error);
+        return res.status(403).json({
+            error: 'Invalid or expired token. Please log in again.'
+        });
+    }
 };

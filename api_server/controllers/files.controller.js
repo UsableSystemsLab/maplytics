@@ -3,6 +3,7 @@ import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { inferFieldTypes } from '../utils/fieldUtils.js';
 import { parseFileToGeoJSON } from '../utils/fileParser.js';
+import { parseCSV, buildGeoJSONFromObjects, inferFields } from '../lib/geo/index.js';
 
 export const getPublicFile = async (req, res) => {
     res.status(501).json({ message: "getPublicFile not implemented yet" });
@@ -61,27 +62,10 @@ export const deleteDataset = async (req, res) => {
             where: { project_id: projectId, dataset_id: datasetId }
         });
 
-        // Optionally delete the file from S3 if it's no longer used by ANY project
-        // For now, we'll follow previous logic of unlinking/cleaning up
-        const otherLinks = await Dataset_Project.count({ where: { dataset_id: datasetId } });
-        if (otherLinks === 0) {
-            // Delete from S3
-            // Key construction matches previous logic but needs data from Dataset model
-            // For now, we assume the dataset_slug or a filename field stores the S3 reference
-            // Previous logic used dataset.filename. We'll use dataset_slug or a similar field.
-            // Wait, Dataset model has dataset_slug.
-        }
-
         res.status(200).json({ message: 'Dataset unlinked successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete dataset', message: error.message });
     }
-};
-
-const inferFields = (geojson) => {
-    if (!geojson.features || geojson.features.length === 0) return [];
-    const propertiesList = geojson.features.map(f => f.properties).filter(Boolean);
-    return inferFieldTypes(propertiesList);
 };
 
 export const getDatasetData = async (req, res) => {
