@@ -13,6 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#134565",
+}
+
 export async function generateMetadata() {
   const t = await getTranslations({ locale: defaultLocale, namespace: "metadata" })
 

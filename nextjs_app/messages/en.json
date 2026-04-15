@@ -1,7 +1,19 @@
 {
   "metadata": {
     "title": "Maplytics",
-    "description": "Transform geospatial data into actionable insights with powerful spatial analysis and visualization tools."
+    "description": "Maplytics makes geospatial analysis simple — upload your dataset and instantly visualize location data on interactive maps, charts, and graphs. No analytical skills required.",
+    "keywords": "geospatial analysis, location analytics, spatial data visualization, business location planning, urban planning tools, map visualization, choropleth maps, dataset analysis, GIS simplified, site selection",
+    "ogTitle": "Maplytics — Geospatial Analytics Made Simple",
+    "loginTitle": "Sign In",
+    "registerTitle": "Create Account",
+    "publicDatasetTitle": "Public Datasets",
+    "dashboardTitle": "Dashboard",
+    "mapTitle": "Map View",
+    "comparisonTitle": "Comparison",
+    "chatTitle": "Chat",
+    "profileTitle": "Profile",
+    "createProjectTitle": "Create Project",
+    "visualizeTitle": "Visualize Dataset"
   },
   "shared": {
     "maplytics": "Maplytics"
