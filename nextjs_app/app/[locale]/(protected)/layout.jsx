@@ -1,8 +1,11 @@
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { ConfirmDialogProvider } from '@/hooks/useConfirm'
 import React from 'react'
 
-export default function layout({children}) {
+export default function layout({ children }) {
   return (
-    <ProtectedRoute>{children}</ProtectedRoute>
+    <ProtectedRoute>
+      <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
+    </ProtectedRoute>
   )
 }

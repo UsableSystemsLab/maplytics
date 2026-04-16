@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useConfirm } from "@/hooks/useConfirm";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -68,6 +69,7 @@ const accountItems = [
 
 export function AppSidebar() {
   const { user, loading: authLoading } = useAuth();
+  const confirm = useConfirm();
   const pathname = usePathname();
   const router = useRouter();
   const { isMobile, state } = useSidebar();
@@ -112,21 +114,23 @@ export function AppSidebar() {
     router.push('/dashboard');
   };
 
-  const handleDeleteProject = async (e, projectId) => {
+  const handleDeleteProject = async (e, project) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      try {
-        await projectApi.deleteProject(projectId);
-        await fetchProjects();
-        if (activeProject?.id === projectId) {
-          setActiveProject(null);
-          localStorage.removeItem('current_project');
-          window.dispatchEvent(new Event('projectChanged'));
-          router.push('/dashboard');
-        }
-      } catch (error) {
-        console.error('Error deleting project:', error);
-      }
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Delete project?',
+      description: 'This action cannot be undone. All datasets and layers in this project will be permanently removed.',
+      itemName: project.name,
+      confirmLabel: 'Delete project',
+      onConfirm: () => projectApi.deleteProject(project.id),
+    });
+    if (!ok) return;
+    await fetchProjects();
+    if (activeProject?.id === project.id) {
+      setActiveProject(null);
+      localStorage.removeItem('current_project');
+      window.dispatchEvent(new Event('projectChanged'));
+      router.push('/dashboard');
     }
   };
 
@@ -154,16 +158,18 @@ export function AppSidebar() {
     }
   };
 
-  const handleDeleteLayer = async (layerId) => {
-    if (!confirm("Are you sure you want to delete this dataset?")) return;
+  const handleDeleteLayer = async (layer) => {
     if (!activeProject?.id || !user) return;
-
-    try {
-      await projectApi.deleteProjectDataset(activeProject.id, layerId);
-      setLayers(prev => prev.filter(l => l.id !== layerId));
-    } catch (error) {
-      console.error("Error deleting dataset:", error);
-    }
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Delete layer?',
+      description: 'This dataset will be removed from the project. This action cannot be undone.',
+      itemName: layer.name,
+      confirmLabel: 'Delete layer',
+      onConfirm: () => projectApi.deleteProjectDataset(activeProject.id, layer.id),
+    });
+    if (!ok) return;
+    setLayers(prev => prev.filter(l => l.id !== layer.id));
   };
 
   useEffect(() => {
@@ -323,7 +329,7 @@ export function AppSidebar() {
                       <span className="truncate">{layer.name}</span>
                     </SidebarMenuButton>
                     <SidebarMenuAction
-                      onClick={() => handleDeleteLayer(layer.id)}
+                      onClick={() => handleDeleteLayer(layer)}
                       showOnHover
                     >
                       <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />

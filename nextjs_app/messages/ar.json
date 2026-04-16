@@ -112,6 +112,16 @@
     "user": "مستخدم",
     "signOutConfirm": "تسجيل الخروج؟"
   },
+  "confirmDialog": {
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "deleteProjectTitle": "حذف المشروع؟",
+    "deleteProjectDescription": "لا يمكن التراجع عن هذا الإجراء. ستتم إزالة جميع مجموعات البيانات والطبقات في هذا المشروع نهائيًا.",
+    "deleteProjectConfirm": "حذف المشروع",
+    "deleteLayerTitle": "حذف الطبقة؟",
+    "deleteLayerDescription": "ستتم إزالة مجموعة البيانات هذه من المشروع. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteLayerConfirm": "حذف الطبقة"
+  },
   "auth": {
     "loginTitle": "تسجيل الدخول",
     "registerTitle": "إنشاء حساب",

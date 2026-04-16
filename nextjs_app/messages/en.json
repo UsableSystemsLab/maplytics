@@ -112,6 +112,16 @@
     "user": "User",
     "signOutConfirm": "Sign out?"
   },
+  "confirmDialog": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "deleteProjectTitle": "Delete project?",
+    "deleteProjectDescription": "This action cannot be undone. All datasets and layers in this project will be permanently removed.",
+    "deleteProjectConfirm": "Delete project",
+    "deleteLayerTitle": "Delete layer?",
+    "deleteLayerDescription": "This dataset will be removed from the project. This action cannot be undone.",
+    "deleteLayerConfirm": "Delete layer"
+  },
   "auth": {
     "loginTitle": "Login",
     "registerTitle": "Register",

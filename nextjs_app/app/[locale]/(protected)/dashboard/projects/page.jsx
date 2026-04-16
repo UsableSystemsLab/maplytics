@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useConfirm } from "@/hooks/useConfirm";
 import * as projectApi from "@/lib/api/projectApi";
 import {
     FolderKanban,
@@ -19,6 +20,7 @@ import { useRouter } from "next/navigation";
 
 export default function ProjectsPage() {
     const { user } = useAuth();
+    const confirm = useConfirm();
     const router = useRouter();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -52,16 +54,17 @@ export default function ProjectsPage() {
         router.push("/dashboard");
     };
 
-    const handleDeleteProject = async (e, projectId) => {
+    const handleDeleteProject = async (e, project) => {
         e.stopPropagation();
-        if (confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-            try {
-                await projectApi.deleteProject(projectId);
-                loadProjects();
-            } catch (error) {
-                console.error("Error deleting project:", error);
-            }
-        }
+        const ok = await confirm({
+            variant: "danger",
+            title: "Delete project?",
+            description: "This action cannot be undone. All datasets and layers in this project will be permanently removed.",
+            itemName: project.name,
+            confirmLabel: "Delete project",
+            onConfirm: () => projectApi.deleteProject(project.id),
+        });
+        if (ok) loadProjects();
     };
 
     const filteredProjects = projects.filter(p =>
@@ -132,7 +135,7 @@ export default function ProjectsPage() {
                                         variant="ghost"
                                         size="icon"
                                         className="opacity-0 group-hover:opacity-100 h-8 w-8 text-muted-foreground hover:text-destructive transition-opacity"
-                                        onClick={(e) => handleDeleteProject(e, project.id)}
+                                        onClick={(e) => handleDeleteProject(e, project)}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </Button>
