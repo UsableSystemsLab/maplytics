@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from "react";
-import BoundaryMap from "@/components/BoundaryMap";
-import ChoroplethRender from "@/components/ChoroplethRender";
+import BoundaryMap from "@/components/maps/BoundaryMap";
+import ChoroplethRender from "@/components/maps/ChoroplethRender";
 
 const MapComponent = forwardRef(function MapComponent(
     { type, view, displayGeojson, categoryField = null, onZoomChange, onMoveEnd, panelSlotRef, className = "" },

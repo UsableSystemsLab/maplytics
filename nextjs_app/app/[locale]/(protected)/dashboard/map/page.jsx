@@ -1,5 +1,5 @@
 "use client";
-import MapArea from '@/components/MapArea';
+import MapArea from '@/components/maps/MapArea';
 
 
 export default function MapViewPage() {

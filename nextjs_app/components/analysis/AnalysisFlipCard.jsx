@@ -10,7 +10,7 @@ import {
     X,
     Database,
 } from "lucide-react";
-import BarChartComparison from "@/components/BarChartComparison";
+import BarChartComparison from "@/components/analysis/BarChartComparison";
 import { useChartData, isBlocker } from "@/hooks/useChartData";
 
 export default function AnalysisFlipCard({

@@ -5,12 +5,12 @@ import {
     ChevronUp, ChevronDown, MapPin, Activity, Database,
     Filter, X, Loader2, Map as MapIcon, Layers, BarChart3,
 } from "lucide-react";
-import { getProjectDatasetData } from "@/lib/datasetApi";
+import { getProjectDatasetData } from "@/lib/api/datasetApi";
 import { getDistrictColor, resetDistrictColors } from "@/lib/districtColors";
 import { useAuth } from "@/hooks/useAuth";
-import StatCard from "@/components/StatCard";
-import MapComponent from "@/components/MapComponent";
-import ChartSidePanel from "@/components/ChartSidePanel";
+import StatCard from "@/components/analysis/StatCard";
+import MapComponent from "@/components/maps/MapComponent";
+import ChartSidePanel from "@/components/analysis/ChartSidePanel";
 
 export default function MapArea() {
     const { user } = useAuth();
@@ -49,7 +49,7 @@ export default function MapArea() {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await getProjectDatasetData(projectId, datasetId, userRef.current?.uid);
+            const result = await getProjectDatasetData(projectId, datasetId);
             const { geojson, fields } = result;
             resetDistrictColors();
             setGeojsonData(geojson);

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { getRegionBoundaries, getCityBoundaries, getChoroplethData } from "@/lib/geoApi";
+import { getRegionBoundaries, getCityBoundaries, getChoroplethData } from "@/lib/api/geoApi";
 import { pointInGeometry } from "@/lib/aggregateData";
 import { COLOR_SCHEMES, createChoroplethScale, getLegendEntries, getColorRange } from "@/lib/choroplethScale";
 

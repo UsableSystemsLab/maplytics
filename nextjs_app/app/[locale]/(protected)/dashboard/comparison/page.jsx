@@ -3,8 +3,8 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-import BarChartComparison from '@/components/BarChartComparison';
-import SearchableSelect from '@/components/SearchableSelect';
+import BarChartComparison from '@/components/analysis/BarChartComparison';
+import SearchableSelect from '@/components/common/SearchableSelect';
 import { useDistrictComparison } from '@/hooks/useDistrictComparison';
 import {
     ChevronDown,
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const ComparisonMap = dynamic(
-    () => import('@/components/ComparisonMap'),
+    () => import('@/components/maps/ComparisonMap'),
     {
         loading: () => <div className="w-full h-full min-h-[400px] bg-gray-100 animate-pulse flex items-center justify-center text-gray-400">Loading Map...</div>,
         ssr: false

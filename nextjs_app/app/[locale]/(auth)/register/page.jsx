@@ -7,7 +7,7 @@ import { auth } from "@/lib/firebase";
 import Link from "next/link";
 import { useTranslations } from 'next-intl';
 import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
-import AuthMapBackground from "@/components/AuthMapBackground";
+import AuthMapBackground from "@/components/auth/AuthMapBackground";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");

@@ -9,8 +9,8 @@ export const getProjects = async () => {
     return apiClient.get('/projects');
 };
 
-export const createProject = async ({ id, name, datasets }) => {
-    return apiClient.post('/projects', { id, name, datasets });
+export const createProject = async ({ name, description }) => {
+    return apiClient.post('/projects', { name, description });
 };
 
 export const deleteProject = async (projectId) => {

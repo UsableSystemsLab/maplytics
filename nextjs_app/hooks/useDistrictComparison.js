@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getDistrictBoundaries } from '@/lib/geoApi';
-import { getProjectDatasetData } from '@/lib/datasetApi';
+import { getDistrictBoundaries } from '@/lib/api/geoApi';
+import { getProjectDatasetData } from '@/lib/api/datasetApi';
 import { pointInGeometry } from '@/lib/aggregateData';
-import { getComparisonStats } from '@/lib/comparisonApi';
+import { getComparisonStats } from '@/lib/api/comparisonApi';
 import { computeFieldStats } from '@/lib/fieldStats';
 
 
@@ -34,9 +34,6 @@ export function useDistrictComparison() {
     const [comparisonResult, setComparisonResult] = useState(null);
     const [statsLoading, setStatsLoading] = useState(false);
 
-    const userRef = useRef(user);
-    userRef.current = user;
-
     // Load districts on mount
 
     useEffect(() => {
@@ -64,8 +61,7 @@ export function useDistrictComparison() {
         setLoading(true);
         setError(null);
         try {
-            const userId = userRef.current?.uid;
-            const result = await getProjectDatasetData(projectId, datasetId, userId);
+            const result = await getProjectDatasetData(projectId, datasetId);
             const { geojson, fields } = result;
 
             setGeojsonData(geojson);

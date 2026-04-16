@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import * as projectApi from "@/lib/projectApi";
+import * as projectApi from "@/lib/api/projectApi";
 import {
     FolderKanban,
     Plus,
@@ -28,7 +28,7 @@ export default function ProjectsPage() {
         if (!user) return;
         setLoading(true);
         try {
-            const data = await projectApi.fetchProjects(user.uid);
+            const data = await projectApi.getProjects();
             setProjects(data);
         } catch (error) {
             console.error("Error loading projects:", error);
@@ -56,7 +56,7 @@ export default function ProjectsPage() {
         e.stopPropagation();
         if (confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
             try {
-                await projectApi.deleteProject(projectId, user?.uid);
+                await projectApi.deleteProject(projectId);
                 loadProjects();
             } catch (error) {
                 console.error("Error deleting project:", error);

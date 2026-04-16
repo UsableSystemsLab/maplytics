@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { ChevronRight, Database } from "lucide-react";
 
 export default function LandingCTA() {

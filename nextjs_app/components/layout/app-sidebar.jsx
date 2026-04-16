@@ -45,10 +45,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import AddLayerModal from "./AddLayerModal";
-import { Button } from "./ui/button";
-import * as projectApi from "@/lib/projectApi";
-import * as datasetApi from "@/lib/datasetApi";
+import AddLayerModal from "@/components/datasets/AddLayerModal";
+import { Button } from "@/components/ui/button";
+import * as projectApi from "@/lib/api/projectApi";
 
 const mainNavItems = [
   { id: "projects", label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },
@@ -87,7 +86,7 @@ export function AppSidebar() {
   const fetchProjects = async () => {
     if (!user) return;
     try {
-      const data = await projectApi.fetchProjects(user.uid);
+      const data = await projectApi.getProjects();
       setProjects(data);
 
       const savedProjectStr = localStorage.getItem('current_project');
@@ -117,15 +116,13 @@ export function AppSidebar() {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       try {
-        const response = await projectApi.deleteProject(projectId, user?.uid);
-        if (response.ok) {
-          await fetchProjects();
-          if (activeProject?.id === projectId) {
-            setActiveProject(null);
-            localStorage.removeItem('current_project');
-            window.dispatchEvent(new Event('projectChanged'));
-            router.push('/dashboard');
-          }
+        await projectApi.deleteProject(projectId);
+        await fetchProjects();
+        if (activeProject?.id === projectId) {
+          setActiveProject(null);
+          localStorage.removeItem('current_project');
+          window.dispatchEvent(new Event('projectChanged'));
+          router.push('/dashboard');
         }
       } catch (error) {
         console.error('Error deleting project:', error);
@@ -136,7 +133,7 @@ export function AppSidebar() {
   const fetchProjectDatasets = async (projectId) => {
     if (!projectId || !user) return;
     try {
-      const data = await datasetApi.fetchProjectDatasets(projectId, user.uid);
+      const data = await projectApi.getProjectDatasets(projectId);
       setLayers(data);
     } catch (error) {
       console.error("Error fetching datasets:", error);
@@ -162,7 +159,7 @@ export function AppSidebar() {
     if (!activeProject?.id || !user) return;
 
     try {
-      await datasetApi.deleteProjectDataset(activeProject.id, layerId, user.uid);
+      await projectApi.deleteProjectDataset(activeProject.id, layerId);
       setLayers(prev => prev.filter(l => l.id !== layerId));
     } catch (error) {
       console.error("Error deleting dataset:", error);

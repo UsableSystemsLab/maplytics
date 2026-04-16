@@ -1,4 +1,4 @@
-import ProtectedRoute from '@/components/ProtectedRoute'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import React from 'react'
 
 export default function layout({children}) {

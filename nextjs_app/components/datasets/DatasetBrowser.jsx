@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
-import { getDatasets, searchDatasets, ingestDatasetFromFile } from '@/lib/datasetApi';
+import { getDatasets, searchDatasets, ingestDatasetFromFile } from '@/lib/api/datasetApi';
 
 export default function DatasetBrowser() {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);

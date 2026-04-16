@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { X, Upload, Layers, MapPin, Square, Flame, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { uploadFile } from "@/lib/uploadApi";
+import { uploadFile } from "@/lib/api/uploadApi";
 
 export default function AddLayerModal({ isOpen, onClose, onSave, initialData = null, projectId = null }) {
     const { user } = useAuth();

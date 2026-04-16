@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import * as projectApi from "@/lib/projectApi";
+import * as projectApi from "@/lib/api/projectApi";
 import { FolderPlus, TextQuote, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,8 +25,7 @@ export default function CreateProjectPage() {
             const newProject = await projectApi.createProject({
                 name: projectName,
                 description: description,
-                email: user.email
-            }, user.uid);
+            });
 
             localStorage.setItem('current_project', JSON.stringify({ 
                 id: newProject.id, 

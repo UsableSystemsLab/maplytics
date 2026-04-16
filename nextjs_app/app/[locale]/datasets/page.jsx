@@ -1,7 +1,7 @@
 import React from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import DatasetBrowser from '@/components/DatasetBrowser';
+import Header from '@/components/landing/Header';
+import Footer from '@/components/landing/Footer';
+import DatasetBrowser from '@/components/datasets/DatasetBrowser';
 
 export default function PublicDatasetPage() {
     return (

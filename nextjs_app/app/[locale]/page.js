@@ -1,11 +1,11 @@
 'use client'
-import HeroSection from "../../components/HeroSection";
-import FeatureOverview from "../../components/FeatureOverview";
-import HowItWorks from "../../components/HowItWorks";
-import Footer from "../../components/Footer";
+import HeroSection from "@/components/landing/HeroSection";
+import FeatureOverview from "@/components/landing/FeatureOverview";
+import HowItWorks from "@/components/landing/HowItWorks";
+import Footer from "@/components/landing/Footer";
 import { useRef } from "react";
-import LandingCTA from "../../components/LandingCTA";
-import Header from "@/components/Header";
+import LandingCTA from "@/components/landing/LandingCTA";
+import Header from "@/components/landing/Header";
 
 export default function Home() {
   const moreRef = useRef(null);

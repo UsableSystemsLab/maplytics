@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import AnalysisFlipCard from "@/components/AnalysisFlipCard";
-import { getProjectDatasetData } from "@/lib/datasetApi";
+import AnalysisFlipCard from "@/components/analysis/AnalysisFlipCard";
+import { getProjectDatasetData } from "@/lib/api/datasetApi";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
@@ -28,8 +28,7 @@ export default function DashboardPage() {
             try {
                 const result = await getProjectDatasetData(
                     projectId,
-                    datasetId,
-                    user?.uid
+                    datasetId
                 );
                 if (cancelled) return;
 

@@ -1,7 +1,7 @@
 "use client";
 import { BarChart3, X, AlertTriangle, Info } from "lucide-react";
 import { useChartData, isBlocker } from "@/hooks/useChartData";
-import BarChartComparison from "@/components/BarChartComparison";
+import BarChartComparison from "@/components/analysis/BarChartComparison";
 
 const BLOCKER_MESSAGES = {
     no_data: "No data available for chart analysis.",
