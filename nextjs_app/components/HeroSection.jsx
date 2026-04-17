@@ -200,8 +200,8 @@ export default function HeroSection({ onScrollDown }) {
                     {t('description')}
                 </p>
 
-                <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center w-full mx-auto md:max-w-md">
-                    <Link href="/dashboard" className="w-full sm:w-auto sm:flex-1">
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mx-auto md:max-w-md">
+                    <Link href="/dashboard" className="w-full">
                         <Button
                             size="lg"
                             className="w-full bg-primary text-white text-base sm:text-lg py-6 sm:py-8 rounded-md shadow-xl hover:bg-primary/90 transition-all"
@@ -212,7 +212,7 @@ export default function HeroSection({ onScrollDown }) {
                     <Button
                         onClick={onScrollDown}
                         variant="secondary"
-                        className="w-full sm:flex-1 text-base sm:text-lg py-6 sm:py-8 rounded-md"
+                        className="w-full text-base sm:text-lg py-6 sm:py-8 rounded-md"
                     >
                         {t('exploreMore')}
                     </Button>
