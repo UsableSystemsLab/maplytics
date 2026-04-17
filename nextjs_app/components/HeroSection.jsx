@@ -182,39 +182,39 @@ export default function HeroSection({ onScrollDown }) {
             {/* Content */}
             <div className="relative z-20 text-center max-w-5xl mx-auto">
                 <h1 className="
-                    text-2xl md:text-4xl lg:text-6xl
-                    font-bold leading-tight text-white
+                    text-2xl sm:text-4xl lg:text-6xl rtl:lg:text-7xl
+                    font-bold leading-12 md:leading-24 rtl:lg:leading-32 text-white capitalize
                 ">
                     {t.rich('title', {
-                        geo: (chunks) => <span className="bg-earthy-green">{chunks}</span>,
-                        into: (chunks) => <span className="bg-[#2C3580]">{chunks}</span>,
+                        line1: (chunks) => <div className="whitespace-nowrap">{chunks}</div>,
+                        line2: (chunks) => <div className="whitespace-nowrap">{chunks}</div>,
+                        geo: (chunks) => <span className="bg-earthy-green px-1">{chunks}</span>,
+                        maps: (chunks) => <span className="bg-[#2C3580] px-1">{chunks}</span>,
                     })}
                 </h1>
 
                 <p className="
                     mt-6 text-sm md:text-lg
-                    text-gray-300 font-medium max-w-2xl mx-auto
+                    text-gray-300 font-medium mx-auto
                 ">
-                    {t.rich('description', {
-                        visualize: (chunks) => <span className="bg-primary">{chunks}</span>,
-                        make: (chunks) => <span className="bg-earthy-green">{chunks}</span>,
-                        data: (chunks) => <span className="bg-primary">{chunks}</span>,
-                    })}
+                    {t('description')}
                 </p>
 
-                <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center ">
-                    <Link href="/dashboard/createProject">
-                        <Button size={"lg"} className="bg-primary text-white text-base sm:text-lg px-10 sm:px-12 py-6 sm:py-8 rounded-md shadow-xl hover:bg-primary/90 transition-all">
-                            {t('getStarted')}
+                <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center w-full mx-auto md:max-w-md">
+                    <Link href="/dashboard" className="w-full sm:w-auto sm:flex-1">
+                        <Button
+                            size="lg"
+                            className="w-full bg-primary text-white text-base sm:text-lg py-6 sm:py-8 rounded-md shadow-xl hover:bg-primary/90 transition-all"
+                        >
+                            {t('tryNow')}
                         </Button>
                     </Link>
-
                     <Button
                         onClick={onScrollDown}
                         variant="secondary"
-                        className="text-base sm:text-lg px-10 sm:px-12 py-6 sm:py-8 rounded-md"
+                        className="w-full sm:flex-1 text-base sm:text-lg py-6 sm:py-8 rounded-md"
                     >
-                        Read More
+                        {t('exploreMore')}
                     </Button>
                 </div>
             </div>
@@ -225,7 +225,7 @@ export default function HeroSection({ onScrollDown }) {
                     onClick={onScrollDown}
                     className="flex flex-col items-center text-white/80 hover:text-white transition"
                 >
-                    <span className="text-xs sm:text-sm mb-1 tracking-wide">Scroll</span>
+                    <span className="text-xs sm:text-sm mb-1 tracking-wide">{t('scroll')}</span>
                     <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 animate-bounce" />
                 </button>
             </div>

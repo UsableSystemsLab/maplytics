@@ -14,6 +14,7 @@ const cardAccents = [
 
 const FeatureOverview = forwardRef((props, ref) => {
   const t = useTranslations("landing.features");
+  const tShared = useTranslations("shared");
   const badge = t("badge");
   const title = t("title");
   const description = t("description");
@@ -31,7 +32,7 @@ const FeatureOverview = forwardRef((props, ref) => {
             fontSize: 'calc(100vw / 6)',
           }}
         >
-          Maplytics
+          {tShared('maplytics')}
         </h2>
         <p className="text-xs md:text-base lg:text-lg">{description}</p>
       </div>

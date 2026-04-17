@@ -8,10 +8,11 @@
   },
   "landing": {
     "hero": {
-      "title": "Transform <geo>Geospatial</geo> Data <into>into</into> Actionable Insights",
-      "description": "Unlock the power of spatial analysis to <visualize>visualize patterns</visualize>, <make>make smarter</make> <data>data-informed decisions</data> — All in one simple intuitive platform!",
-      "getStarted": "Get Started",
-      "continue": "Continue Your Journey"
+      "title": "<line1>Transform <geo>geospatial data</geo></line1><line2>into <maps>interactive maps</maps></line2>",
+      "description": "Turn simple prompts into interactive map visualizations. Just describe what you want to analyze.",
+      "tryNow": "Try now",
+      "exploreMore": "Explore More",
+      "scroll": "Scroll"
     },
     "features": {
       "badge": "Platform Features",
@@ -110,7 +111,9 @@
     "loading": "Loading...",
     "signIn": "Sign In",
     "user": "User",
-    "signOutConfirm": "Sign out?"
+    "signOutConfirm": "Sign out?",
+    "logout": "Logout",
+    "menu": "Menu"
   },
   "auth": {
     "loginTitle": "Login",
@@ -127,5 +130,45 @@
     "registerLink": "Register",
     "alreadyHaveAccount": "Already have an account?",
     "loginLink": "Login"
+  },
+  "datasets": {
+    "title": "Datasets",
+    "description": "Explore, understand, and share useful information. Learn about different types of data and how to work with them.",
+    "addDataset": "Add Dataset",
+    "searchPlaceholder": "Search datasets...",
+    "loading": "Loading datasets...",
+    "error": "Failed to load datasets. Please try again later.",
+    "tryAgain": "Try Again",
+    "noDatasetsFound": "No datasets found",
+    "noDatasetsDescription": "Try adjusting your search or add a new dataset.",
+    "unknown": "Unknown",
+    "unknownUser": "Unknown User",
+    "noDescription": "No description available.",
+    "featureCount": "Feature Count",
+    "lastUpdated": "Last Updated",
+    "preview": "Preview",
+    "previewDetails": "Preview Details",
+    "properties": "Dataset Properties",
+    "close": "Close",
+    "addNewTitle": "Add New Dataset",
+    "nameLabel": "Dataset Name",
+    "namePlaceholder": "e.g., Riyadh Restaurants",
+    "descriptionLabel": "Description",
+    "optional": "(Optional)",
+    "descriptionPlaceholder": "Describe your dataset...",
+    "uploadLabel": "Upload File (JSON/GeoJSON)",
+    "uploadButton": "Upload a file",
+    "dragDrop": "or drag and drop",
+    "uploadHint": "JSON, GeoJSON up to 10MB",
+    "selected": "Selected:",
+    "uploadSuccess": "Dataset uploaded successfully! Redirecting...",
+    "cancel": "Cancel",
+    "uploading": "Uploading...",
+    "uploadAction": "Upload Dataset",
+    "items": "{count} items",
+    "validation": {
+      "nameFileRequired": "Please provide a name and select a file.",
+      "failedUpload": "Failed to upload dataset."
+    }
   }
 }
