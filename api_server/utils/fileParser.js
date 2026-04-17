@@ -82,19 +82,24 @@ export function parseFileToGeoJSON(content, extension) {
         return buildGeoJSONFromObjects(rows);
     }
 
-    const parsed = JSON.parse(content);
+    try {
+        const parsed = JSON.parse(content);
 
-    if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
-        return parsed;
+        if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
+            return parsed;
+        }
+        if (Array.isArray(parsed)) {
+            return buildGeoJSONFromObjects(parsed);
+        }
+        if (parsed.type === 'Feature' && parsed.geometry) {
+            return { type: 'FeatureCollection', features: [parsed] };
+        }
+        if (Array.isArray(parsed.data)) {
+            return buildGeoJSONFromObjects(parsed.data);
+        }
+        return buildGeoJSONFromObjects([parsed]);
+    } catch (err) {
+        console.warn('[fileParser] Content is not valid JSON, returning empty FeatureCollection');
+        return { type: 'FeatureCollection', features: [] };
     }
-    if (Array.isArray(parsed)) {
-        return buildGeoJSONFromObjects(parsed);
-    }
-    if (parsed.type === 'Feature' && parsed.geometry) {
-        return { type: 'FeatureCollection', features: [parsed] };
-    }
-    if (Array.isArray(parsed.data)) {
-        return buildGeoJSONFromObjects(parsed.data);
-    }
-    return buildGeoJSONFromObjects([parsed]);
 }

@@ -106,9 +106,9 @@ const Dataset = sequelize.define(
             field: "user_id",
             allowNull: false,
         },
-        username: {
+        author: {
             type: DataTypes.STRING(255),
-            field: "username",
+            field: "author",
             allowNull: true,
         },
     },

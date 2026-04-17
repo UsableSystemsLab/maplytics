@@ -1,6 +1,5 @@
 import UserRoutes from './UserRoutes.js';
 import DatasetRoutes from './DatasetRoutes.js';
-import uploadRoutes from './upload.routes.js';
 import projectRoutes from './project.routes.js';
 import GeoRoutes from './geo.routes.js';
 import filesRoutes from './files.routes.js';
@@ -42,10 +41,9 @@ const apiRoutes = (router) => {
   router.get('/health', (req, res) => {
     res.status(200).json({ status: 'Healthy' });
   });
-
+ 
   router.use('/users', authenticate, UserRoutes);
   router.use('/datasets', DatasetRoutes);
-  router.use('/datasets/upload', authenticate, uploadRoutes);
   router.use('/projects', authenticate, projectRoutes);
   router.use('/geo', GeoRoutes);
   router.use('/files', authenticate, filesRoutes);

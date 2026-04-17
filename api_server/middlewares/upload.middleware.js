@@ -22,36 +22,12 @@ export const uploadPublic = multer({
       cb(null, { fieldName: file.fieldname });
     },
     key: function (req, file, cb) {
-      const userId = req.userId;
-      const uniqueName = `public/${userId}/${Date.now()}-${file.originalname}`;
+      const uniqueName = `public/${Date.now()}-${file.originalname}`;
       cb(null, uniqueName);
     }
   }),
   fileFilter,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB
-  },
-});
-
-// Private dataset upload - organized by project ID
-export const uploadPrivate = multer({
-  storage: multerS3({
-    s3: s3Client,
-    bucket: BUCKET_NAME,
-    metadata: function (req, file, cb) {
-      cb(null, { fieldName: file.fieldname });
-    },
-    key: function (req, file, cb) {
-      const projectId = req.query.projectId;
-      if (!projectId) {
-        return cb(new Error('Project ID is required for private uploads'));
-      }
-      const uniqueName = `private/${projectId}/${Date.now()}-${file.originalname}`;
-      cb(null, uniqueName);
-    }
-  }),
-  fileFilter,
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB (Limited to 50MB as per requirement)
   },
 });

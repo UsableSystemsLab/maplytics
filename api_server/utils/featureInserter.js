@@ -5,12 +5,7 @@ import logger from '../configs/logger.js';
 /**
  * Create a Dataset row and bulk insert all features into Postgres.
  **/
-export async function insertFeaturesIntoDB({ datasetName, userId, username, fileFormat, geojson }) {
-    if (!geojson?.features?.length) {
-        logger.warn('[featureInserter] No features to insert');
-        return null;
-    }
-
+export async function insertFeaturesIntoDB({ datasetName, description, userId, author, fileFormat, geojson }) {
     const transaction = await sequelize.transaction();
 
     try {
@@ -22,18 +17,25 @@ export async function insertFeaturesIntoDB({ datasetName, userId, username, file
 
         const dataset = await Dataset.create({
             name: datasetName,
+            description: description || null,
             slug: slug,
             file_format: fileFormat,
             user_id: userId,
-            username: username || 'unknown user',
-            feature_count: geojson.features.length,
-            geometry_type: geojson.features[0]?.geometry?.type || 'Point',
+            author: author || 'unknown author',
+            feature_count: geojson?.features?.length || 0,
+            geometry_type: geojson?.features?.[0]?.geometry?.type || 'Point',
         }, { transaction });
 
         const datasetId = dataset.id;
 
+        const features = geojson?.features || [];
+        if (features.length === 0) {
+            await transaction.commit();
+            logger.info(`[featureInserter] Created empty dataset "${datasetName}" (${datasetId})`);
+            return datasetId;
+        }
+
         const BATCH_SIZE = 500;
-        const features = geojson.features;
 
         for (let i = 0; i < features.length; i += BATCH_SIZE) {
             const batch = features.slice(i, i + BATCH_SIZE);

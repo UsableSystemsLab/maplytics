@@ -161,6 +161,16 @@ export default function DatasetBrowser() {
         }
     };
 
+    const handlePreview = (dataset) => {
+        // Strip out noisy or internal fields for a cleaner preview if necessary
+        const previewData = { ...dataset };
+        
+        setPreviewTitle(dataset.dataset_name || "Dataset Preview");
+        setPreviewContent(JSON.stringify(previewData, null, 2));
+        setIsPreviewModalOpen(true);
+    };
+
+
     const handleUpload = async (e) => {
         e.preventDefault();
         if (!newDatasetFile || !newDatasetName) {
@@ -175,7 +185,8 @@ export default function DatasetBrowser() {
             await uploadFile({
                 file: newDatasetFile,
                 isPrivate: false,
-                layerName: newDatasetName
+                layerName: newDatasetName,
+                description: newDatasetDescription
             });
 
             setUploadSuccess(true);
@@ -289,7 +300,7 @@ export default function DatasetBrowser() {
                                     </div>
                                 </div>
 
-                                <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={dataset.description}>
+                                <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={dataset.description || t('noDescription')}>
                                     {dataset.description || t('noDescription')}
                                 </p>
 
