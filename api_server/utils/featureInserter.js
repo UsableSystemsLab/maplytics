@@ -5,7 +5,7 @@ import logger from '../configs/logger.js';
 /**
  * Create a Dataset row and bulk insert all features into Postgres.
  **/
-export async function insertFeaturesIntoDB({ datasetName, userId, fileFormat, geojson }) {
+export async function insertFeaturesIntoDB({ datasetName, userId, username, fileFormat, geojson }) {
     if (!geojson?.features?.length) {
         logger.warn('[featureInserter] No features to insert');
         return null;
@@ -25,6 +25,7 @@ export async function insertFeaturesIntoDB({ datasetName, userId, fileFormat, ge
             slug: slug,
             file_format: fileFormat,
             user_id: userId,
+            username: username || 'unknown user',
             feature_count: geojson.features.length,
             geometry_type: geojson.features[0]?.geometry?.type || 'Point',
         }, { transaction });

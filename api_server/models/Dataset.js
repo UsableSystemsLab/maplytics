@@ -106,6 +106,11 @@ const Dataset = sequelize.define(
             field: "user_id",
             allowNull: false,
         },
+        username: {
+            type: DataTypes.STRING(255),
+            field: "username",
+            allowNull: true,
+        },
     },
     {
         tableName: "Dataset",

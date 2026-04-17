@@ -8,7 +8,7 @@ import { insertFeaturesIntoDB } from '../utils/featureInserter.js';
  * After uploading file, fetch the file back, parse it, and insert features into Postgres.
  * Runs asynchronously, does not block the upload response.
  */
-async function insertFeaturesFromS3(s3Key, datasetName, userId, originalName) {
+async function insertFeaturesFromS3(s3Key, datasetName, userId, username, originalName) {
     try {
         const response = await s3Client.send(new GetObjectCommand({
             Bucket: BUCKET_NAME,
@@ -27,6 +27,7 @@ async function insertFeaturesFromS3(s3Key, datasetName, userId, originalName) {
         const datasetId = await insertFeaturesIntoDB({
             datasetName,
             userId,
+            username,
             fileFormat: ext,
             geojson,
         });
@@ -53,8 +54,10 @@ export const uploadPublicFile = async (req, res) => {
     const location = req.file.location || `/files/public/${req.userId}/${filename}`;
     const filenameSuffix = filename.split('/').pop();
 
+    const username = req.user?.name || "unknown user";
+
     const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, req.userId, req.file.originalname
+        filename, displayName, req.userId, username, req.file.originalname
     );
 
     if (projectId && pgDatasetId) {
@@ -101,8 +104,10 @@ export const uploadPrivateFile = async (req, res) => {
     const browserUrl = s3Url ? s3Url.replace('http://rustfs:9000', 'http://localhost:9000') : null;
     const filenameSuffix = filename.split('/').pop();
 
+    const username = req.user?.name || "unknown user";
+
     const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, req.userId, req.file.originalname
+        filename, displayName, req.userId, username, req.file.originalname
     );
 
     if (projectId && pgDatasetId) {

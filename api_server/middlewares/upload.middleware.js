@@ -2,6 +2,17 @@ import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 
+const fileFilter = (req, file, cb) => {
+  const allowedExtensions = ['.json', '.geojson', '.xlsx', '.xls', '.sql'];
+  const ext = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+
+  if (allowedExtensions.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Invalid file type. Allowed: ${allowedExtensions.join(', ')}`), false);
+  }
+};
+
 // Public dataset upload - organized by user ID
 export const uploadPublic = multer({
   storage: multerS3({
@@ -16,8 +27,9 @@ export const uploadPublic = multer({
       cb(null, uniqueName);
     }
   }),
+  fileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100MB
+    fileSize: 50 * 1024 * 1024, // 50MB
   },
 });
 
@@ -38,7 +50,8 @@ export const uploadPrivate = multer({
       cb(null, uniqueName);
     }
   }),
+  fileFilter,
   limits: {
-    fileSize: 500 * 1024 * 1024, // 500MB
+    fileSize: 50 * 1024 * 1024, // 50MB (Limited to 50MB as per requirement)
   },
 });

@@ -17,9 +17,9 @@ export const uploadFile = async ({ file, isPrivate, projectId, layerName }) => {
         if (!projectId) {
             throw new Error('Project ID is required for private uploads');
         }
-        endpoint = `/upload/private?projectId=${projectId}`;
+        endpoint = `/datasets/upload/private?projectId=${projectId}`;
     } else {
-        endpoint = `/upload/public${projectId ? `?projectId=${projectId}` : ''}`;
+        endpoint = `/datasets/upload/public${projectId ? `?projectId=${projectId}` : ''}`;
     }
 
     return apiClient.post(endpoint, formData);

@@ -1,11 +1,17 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
-import { getDatasets, searchDatasets, ingestDatasetFromFile } from '@/lib/datasetApi';
+import { getDatasets, searchDatasets } from '@/lib/datasetApi';
+import { uploadFile } from '@/lib/uploadApi';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 export default function DatasetBrowser() {
     const t = useTranslations("datasets");
+    const { user } = useAuth();
+    const router = useRouter();
+
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [previewContent, setPreviewContent] = useState(null);
@@ -25,6 +31,7 @@ export default function DatasetBrowser() {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [uploadSuccess, setUploadSuccess] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         fetchDatasets();
@@ -71,11 +78,12 @@ export default function DatasetBrowser() {
         }
     };
 
-    const handlePreview = async (dataset) => {
-        setPreviewTitle(dataset.dataset_name);
-        setIsPreviewModalOpen(true);
-        setPreviewContent(null);
-        setPreviewContent(JSON.stringify(dataset, null, 2));
+    const handleOpenAddModal = () => {
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+        setIsAddModalOpen(true);
     };
 
     const closePreviewModal = () => {
@@ -92,14 +100,64 @@ export default function DatasetBrowser() {
         setUploadSuccess(false);
     };
 
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const file = e.dataTransfer.files[0];
+            processFile(file);
+        }
+    };
+
+    const processFile = (file) => {
+        // Format validation
+        const allowedExtensions = ['.json', '.geojson', '.xlsx', '.xls', '.sql'];
+        const fileName = file.name.toLowerCase();
+        const isValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+        if (!isValidExtension) {
+            setUploadError(t('validation.invalidFormat') || 'Invalid file format. Allowed: .json, .geojson, .xlsx, .xls, .sql');
+            setNewDatasetFile(null);
+            return;
+        }
+
+        // Size validation (50MB)
+        const maxSize = 50 * 1024 * 1024;
+        if (file.size > maxSize) {
+            setUploadError(t('validation.fileTooLarge') || 'File is too large. Maximum size is 50MB.');
+            setNewDatasetFile(null);
+            return;
+        }
+
+        setNewDatasetFile(file);
+        setUploadError(null);
+
+        // Auto-fill name if empty
+        if (!newDatasetName) {
+            const baseName = file.name.replace(/\.[^/.]+$/, "");
+            setNewDatasetName(baseName.charAt(0).toUpperCase() + baseName.slice(1));
+        }
+    };
+
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
-            setNewDatasetFile(e.target.files[0]);
-            // Auto-fill name if empty
-            if (!newDatasetName) {
-                const fileName = e.target.files[0].name.replace(/\.[^/.]+$/, "");
-                setNewDatasetName(fileName.charAt(0).toUpperCase() + fileName.slice(1));
-            }
+            processFile(e.target.files[0]);
+            // Clear the value so the same file can be selected again if needed
+            e.target.value = '';
         }
     };
 
@@ -114,18 +172,17 @@ export default function DatasetBrowser() {
             setIsUploading(true);
             setUploadError(null);
 
-            await ingestDatasetFromFile(
-                newDatasetFile,
-                newDatasetName,
-                'generic', // default entity type
-                false // no force override for now
-            );
+            await uploadFile({
+                file: newDatasetFile,
+                isPrivate: false,
+                layerName: newDatasetName
+            });
 
             setUploadSuccess(true);
             setTimeout(() => {
                 closeAddModal();
                 fetchDatasets(); // Refresh list
-            }, 1000); // Close after 1.5s
+            }, 1000);
         } catch (err) {
             console.error("Upload error:", err);
             setUploadError(err.message || t('validation.failedUpload'));
@@ -158,7 +215,7 @@ export default function DatasetBrowser() {
                     <p className="text-gray-500 mt-1">{t('description')}</p>
                 </div>
                 <button
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={handleOpenAddModal}
                     className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
                 >
                     <Plus className="w-4 h-4" />
@@ -349,23 +406,57 @@ export default function DatasetBrowser() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     {t('uploadLabel')}
                                 </label>
-                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:bg-gray-50 transition-colors cursor-pointer relative">
+                                <div
+                                    className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg transition-all cursor-pointer relative ${isDragging
+                                        ? 'border-primary bg-primary/5 shadow-inner'
+                                        : 'border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    onClick={() => document.getElementById('file-upload').click()}
+                                >
                                     <div className="space-y-1 text-center">
-                                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                        <div className="flex text-sm text-gray-600">
-                                            <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
-                                                <span>{t('uploadButton')}</span>
-                                                <input id="file-upload" name="file-upload" type="file" className="sr-only" accept=".json,.geojson" onChange={handleFileChange} />
-                                            </label>
-                                            <p className="pl-1">{t('dragDrop')}</p>
+                                        <Upload className={`mx-auto h-12 w-12 transition-colors ${isDragging ? 'text-primary' : 'text-gray-400'}`} />
+                                        <div className="flex text-sm text-gray-600 justify-center">
+                                            <input
+                                                id="file-upload"
+                                                name="file-upload"
+                                                type="file"
+                                                className="sr-only"
+                                                accept=".json,.geojson,.xlsx,.xls,.sql"
+                                                onChange={handleFileChange}
+                                                onClick={(e) => e.stopPropagation()} // Prevent double click
+                                            />
+                                            <p className="pl-1 text-gray-500">{t('dragDrop')}</p>
                                         </div>
                                         <p className="text-xs text-gray-500">
                                             {t('uploadHint')}
                                         </p>
+
                                         {newDatasetFile && (
-                                            <p className="text-sm text-green-600 font-medium mt-2">
-                                                {t('selected')} {newDatasetFile.name}
-                                            </p>
+                                            <div
+                                                className="mt-4 p-2 bg-primary/5 rounded-lg border border-primary/10 flex items-center justify-between gap-2 animate-in fade-in slide-in-from-top-1 duration-200"
+                                                onClick={(e) => e.stopPropagation()} // Prevent triggering file input
+                                            >
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <FileJson className="w-4 h-4 text-primary shrink-0" />
+                                                    <span className="text-sm text-primary font-medium truncate">
+                                                        {newDatasetFile.name}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-400 shrink-0">
+                                                        ({(newDatasetFile.size / 1024 / 1024).toFixed(2)} MB)
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setNewDatasetFile(null)}
+                                                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                                    title={t('remove') || 'Remove file'}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

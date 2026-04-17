@@ -1,0 +1,1 @@
+print("This file should be rejected by the backend.")
