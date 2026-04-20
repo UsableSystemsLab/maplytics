@@ -15,6 +15,8 @@ import {
   MapPin,
   ChevronsUpDown,
   FolderKanban,
+  Home,
+  Database,
 } from "lucide-react";
 
 import {
@@ -58,11 +60,12 @@ const mainNavItems = [
 ];
 
 const secondaryNavItems = [
-  { id: "public-datasets", label: "Public Datasets", icon: Globe, href: "/datasets" },
+  { id: "datasets", label: "Datasets", icon: Database, href: "/dashboard/datasets" },
   { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
 ];
 
 const accountItems = [
+  { id: "home", label: "Home", icon: Home, href: "/" },
   { id: "account", label: "Account", icon: User, href: "/account" },
   { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
 ];
@@ -70,7 +73,8 @@ const accountItems = [
 export function AppSidebar() {
   const { user, loading: authLoading } = useAuth();
   const confirm = useConfirm();
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
+  const normalizedPath = pathname.replace(/^\/(en|ar)(?=\/|$)/, "") || "/";
   const router = useRouter();
   const { isMobile, state } = useSidebar();
 
@@ -211,12 +215,14 @@ export function AppSidebar() {
 
   useEffect(() => {
     if (!authLoading && user && hasFetchedProjects) {
-      const isCreatePage = pathname.includes('/dashboard/createProject');
-      const isProjectsPage = pathname.includes('/dashboard/projects');
-      const isDashboardPage = pathname.includes('/dashboard');
+      const isExempt = 
+        normalizedPath === '/dashboard' ||
+        normalizedPath === '/dashboard/datasets' ||
+        normalizedPath.startsWith('/dashboard/projects') ||
+        normalizedPath.startsWith('/dashboard/createProject');
 
-      // Only enforce if we are inside the dashboard and not already on a project management page
-      if (isDashboardPage && !isCreatePage && !isProjectsPage) {
+      // Only enforce if we are inside the dashboard and not on an exempt page
+      if (normalizedPath.startsWith('/dashboard') && !isExempt) {
         // Redirect to projects hub if no project is active
         if (projects.length === 0 || !activeProject) {
           const segments = pathname.split('/').filter(Boolean);
@@ -225,7 +231,7 @@ export function AppSidebar() {
         }
       }
     }
-  }, [user, authLoading, hasFetchedProjects, projects, activeProject, pathname, router]);
+  }, [user, authLoading, hasFetchedProjects, projects, activeProject, pathname, normalizedPath, router]);
 
   const handleLayerClick = (layer) => {
     const isDeselecting = selectedLayerId === layer.id;
@@ -270,7 +276,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       asChild
-                      isActive={pathname === item.href}
+                      isActive={normalizedPath === item.href}
                       tooltip={item.label}
                     >
                       <Link href={item.href}>
@@ -292,7 +298,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       asChild
-                      isActive={pathname === item.href}
+                      isActive={normalizedPath === item.href}
                       tooltip={item.label}
                     >
                       <Link href={item.href}>
@@ -346,14 +352,14 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup className="mt-auto">
-            <SidebarGroupLabel>Account</SidebarGroupLabel>
+            <SidebarGroupLabel>General</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {accountItems.map((item) => (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       asChild
-                      isActive={pathname === item.href}
+                      isActive={normalizedPath === item.href}
                       tooltip={item.label}
                     >
                       <Link href={item.href}>

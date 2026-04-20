@@ -1,10 +1,10 @@
 import UserRoutes from './UserRoutes.js';
 import DatasetRoutes from './DatasetRoutes.js';
-import uploadRoutes from './upload.routes.js';
 import projectRoutes from './project.routes.js';
 import GeoRoutes from './geo.routes.js';
 import filesRoutes from './files.routes.js';
 import comparisonRoutes from './comparisonRoutes.js';
+import { authenticate } from '../middlewares/firebaseAuth.js';
 
 const apiRoutes = (router) => {
   /**
@@ -41,14 +41,13 @@ const apiRoutes = (router) => {
   router.get('/health', (req, res) => {
     res.status(200).json({ status: 'Healthy' });
   });
-
-  router.use('/users', UserRoutes);
+ 
+  router.use('/users', authenticate, UserRoutes);
   router.use('/datasets', DatasetRoutes);
-  router.use('/upload', uploadRoutes);
-  router.use('/projects', projectRoutes);
+  router.use('/projects', authenticate, projectRoutes);
   router.use('/geo', GeoRoutes);
-  router.use('/files', filesRoutes);
-  router.use('/comparison', comparisonRoutes);
+  router.use('/files', authenticate, filesRoutes);
+  router.use('/comparison', authenticate, comparisonRoutes);
 
   // Middleware to catch 404 errors
   router.use((req, res) => {

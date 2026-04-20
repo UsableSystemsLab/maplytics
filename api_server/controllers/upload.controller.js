@@ -8,7 +8,7 @@ import { insertFeaturesIntoDB } from '../utils/featureInserter.js';
  * After uploading file, fetch the file back, parse it, and insert features into Postgres.
  * Runs asynchronously, does not block the upload response.
  */
-async function insertFeaturesFromS3(s3Key, datasetName, userId, originalName) {
+async function insertFeaturesFromS3(s3Key, datasetName, description, userId, author, originalName) {
     try {
         const response = await s3Client.send(new GetObjectCommand({
             Bucket: BUCKET_NAME,
@@ -19,14 +19,11 @@ async function insertFeaturesFromS3(s3Key, datasetName, userId, originalName) {
         const ext = (originalName || '').split('.').pop().toLowerCase();
         const geojson = parseFileToGeoJSON(content, ext);
 
-        if (!geojson?.features?.length) {
-            console.warn('[upload] No features parsed from file:', s3Key);
-            return null;
-        }
-
         const datasetId = await insertFeaturesIntoDB({
             datasetName,
+            description,
             userId,
+            author,
             fileFormat: ext,
             geojson,
         });
@@ -48,14 +45,17 @@ export const uploadPublicFile = async (req, res) => {
 
     const projectId = req.query.projectId;
     const displayName = req.body.name || req.file.originalname;
+    const description = req.body.description || null;
 
     const filename = req.file.key || req.file.filename;
     const location = req.file.location || `/files/public/${req.userId}/${filename}`;
     const filenameSuffix = filename.split('/').pop();
 
+    const author = req.user?.displayName || "unknown user";
     const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, req.userId, req.file.originalname
+        filename, displayName, description, req.userId, author, req.file.originalname
     );
+
 
     if (projectId && pgDatasetId) {
         try {
@@ -76,56 +76,12 @@ export const uploadPublicFile = async (req, res) => {
         message: 'Public dataset uploaded successfully',
         type: 'public',
         userId: req.userId,
+        author: author,
         filename: filenameSuffix,
         originalName: req.file.originalname,
         size: req.file.size,
         url: location,
         id: pgDatasetId, // Return the actual dataset ID
         name: displayName
-    });
-};
-
-export const uploadPrivateFile = async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({
-            success: false,
-            message: 'No file uploaded'
-        });
-    }
-
-    const projectId = req.query.projectId;
-    const displayName = req.body.name || req.file.originalname;
-
-    const filename = req.file.key || req.file.filename;
-    const s3Url = req.file.location;
-    const browserUrl = s3Url ? s3Url.replace('http://rustfs:9000', 'http://localhost:9000') : null;
-    const filenameSuffix = filename.split('/').pop();
-
-    const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, req.userId, req.file.originalname
-    );
-
-    if (projectId && pgDatasetId) {
-        try {
-            const project = await Project.findByPk(projectId);
-            if (project) {
-                await Dataset_Project.create({
-                    project_id: projectId,
-                    dataset_id: pgDatasetId
-                });
-            }
-        } catch (err) {
-            console.error("Error saving dataset association:", err);
-        }
-    }
-
-    res.status(201).json({
-        message: 'File uploaded successfully',
-        id: pgDatasetId,
-        name: displayName,
-        filename: filenameSuffix,
-        originalName: req.file.originalname,
-        size: req.file.size,
-        url: browserUrl || `/files/private/${projectId}/${filenameSuffix}`,
     });
 };

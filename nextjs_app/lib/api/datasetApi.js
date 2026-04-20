@@ -47,44 +47,6 @@ export const getProjectDatasetData = async (projectId, datasetId) => {
     return apiClient.get(`/projects/${projectId}/datasets/${datasetId}/data`);
 };
 
-export const ingestDatasetFromFile = async (file, datasetName, entityType = 'generic', forceOverride = false) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = async (e) => {
-            try {
-                const parsed = JSON.parse(e.target.result);
-
-                let finalName, finalType, finalData;
-
-                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.data) {
-                    finalName = parsed.dataset_name || datasetName;
-                    finalType = parsed.entity_type || entityType;
-                    finalData = parsed.data;
-
-                    if (!Array.isArray(finalData)) {
-                        throw new Error('The "data" field must be an array');
-                    }
-                } else if (Array.isArray(parsed)) {
-                    finalName = datasetName;
-                    finalType = entityType;
-                    finalData = parsed;
-                } else {
-                    throw new Error('File must contain either a JSON array or an object with a "data" array');
-                }
-
-                const result = await ingestDataset(finalName, finalData, finalType, '', forceOverride);
-                resolve(result);
-            } catch (error) {
-                reject(error);
-            }
-        };
-
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsText(file);
-    });
-};
-
 export const searchDatasets = async (query) => {
     return apiClient.get(`/datasets/search?q=${encodeURIComponent(query)}`);
 };

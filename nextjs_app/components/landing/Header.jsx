@@ -7,11 +7,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { Menu, X } from "lucide-react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useTranslations } from "next-intl";
 
 export default function Header({ variant = "light" }) {
   const isDark = variant === "dark";
   const { user, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const t = useTranslations("header");
 
   const handleLogout = async () => {
     try {
@@ -42,13 +45,16 @@ export default function Header({ variant = "light" }) {
           </Link>
 
           {/* Mobile toggle */}
-          <button
-            className="md:hidden p-2 rounded-md active:scale-95 transition"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              className="p-2 rounded-md active:scale-95 transition"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
+            </button>
+            <LanguageSwitcher />
+          </div>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
@@ -59,7 +65,7 @@ export default function Header({ variant = "light" }) {
                 isDark ? "hover:text-slate-300" : "hover:text-slate-500"
               )}
             >
-              Public Dataset
+              {t('publicDataset')}
             </Link>
 
             {!loading &&
@@ -69,15 +75,16 @@ export default function Header({ variant = "light" }) {
                   size="sm"
                   onClick={handleLogout}
                 >
-                  Logout
+                  {t('logout')}
                 </Button>
               ) : (
                 <Link href="/login">
                   <Button variant="secondary" size="sm">
-                    Login
+                    {t('signIn')}
                   </Button>
                 </Link>
               ))}
+            <LanguageSwitcher />
           </nav>
         </div>
       </header>
@@ -90,7 +97,6 @@ export default function Header({ variant = "light" }) {
         )}
         onClick={() => setIsMenuOpen(false)}
       />
-
       {/* Mobile Menu */}
       <div
         className={cn(
@@ -100,7 +106,7 @@ export default function Header({ variant = "light" }) {
       >
         <div className="p-6 flex flex-col gap-6">
           <div className="flex justify-between items-center">
-            <span className="font-bold text-lg">Menu</span>
+            <span className="font-bold text-lg">{t('menu')}</span>
             <button onClick={() => setIsMenuOpen(false)}>
               <X size={24} />
             </button>
@@ -109,9 +115,9 @@ export default function Header({ variant = "light" }) {
           <Link
             href="/datasets"
             onClick={() => setIsMenuOpen(false)}
-            className="text-base font-medium py-2"
+            className="text-base text-center underline font-medium py-2"
           >
-            Public Dataset
+            {t('publicDataset')}
           </Link>
 
           {!loading &&
@@ -121,12 +127,12 @@ export default function Header({ variant = "light" }) {
                 className="w-full"
                 onClick={handleLogout}
               >
-                Logout
+                {t('logout')}
               </Button>
             ) : (
               <Link href="/login" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="secondary" className="w-full">
-                  Login
+                  {t('signIn')}
                 </Button>
               </Link>
             ))}

@@ -19,7 +19,7 @@ const port = process.env.API_SERVER_PORT || 4000;
 // only requests to /api/* will be sent to our router
 const router = express.Router();
 apiRoutes(router);
-app.use('/api', authenticate, router);
+app.use('/api', router);
 
 // API docs
 const swaggerUiOptions = {

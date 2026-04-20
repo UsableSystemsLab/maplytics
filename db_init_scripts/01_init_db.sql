@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS public."Dataset" (
     "last_updated" TIMESTAMP DEFAULT NOW(),           -- Date when dataset was last modified
     "file_format" VARCHAR(50),                        -- Format of uploaded file (CSV, GeoJSON, Shapefile, etc.)
     "uploaded_at" TIMESTAMP DEFAULT NOW(),            -- Upload timestamp for version tracking
-    "user_id" VARCHAR(128) NOT NULL,                           -- Reference to dataset owner
-    FOREIGN KEY ("user_id") REFERENCES public."User"("user_id") ON DELETE CASCADE
+    "author" VARCHAR(255),                          -- Name of the user who uploaded the dataset
+    "user_id" VARCHAR(128) NOT NULL                           -- Reference to dataset owner
 );
 
 

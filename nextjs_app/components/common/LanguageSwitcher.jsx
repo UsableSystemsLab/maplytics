@@ -25,9 +25,14 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <Button onClick={switchLocale} variant="outline" className="m-4" disabled={!mounted}>
-      <LanguagesIcon />
-      {currentLocale === "en" ? "العربية" : "English"}
+    <Button
+      onClick={switchLocale}
+      variant="secondary"
+      size="sm"
+      className="flex items-center gap-1"
+      disabled={!mounted}
+    >
+      {currentLocale === "en" ? "عربي" : "English"}
     </Button>
   );
 }
