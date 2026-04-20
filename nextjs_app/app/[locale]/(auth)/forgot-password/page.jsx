@@ -53,12 +53,12 @@ export default function ForgotPasswordPage() {
             )}
           </div>
           <h1 className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] text-2xl md:text-3xl font-bold text-white mb-2">
-            {success ? "Check Your Inbox" : "Reset Password"}
+            {success ? t('checkYourInbox') : t('resetPassword')}
           </h1>
           <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards] text-white/70 text-sm md:text-base">
             {success
-              ? `We sent a reset link to ${email}`
-              : "Enter your email and we'll send you a link to reset your password"}
+              ? t('resetLinkSent', { email })
+              : t('resetInstructions')}
           </p>
         </div>
 
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
           <div className="space-y-4 md:space-y-5">
             <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards] bg-white/5 border border-[#134565]/25 rounded-lg p-4 md:p-5 text-center">
               <p className="text-white/80 text-xs md:text-sm leading-relaxed">
-                Didn't receive it? Check your spam folder, or resend the email below.
+                {t('didntReceive')}
               </p>
             </div>
 
@@ -84,10 +84,10 @@ export default function ForgotPasswordPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Resending...
+                  {t('resending')}
                 </span>
               ) : (
-                "Resend Email"
+                t('resendEmail')
               )}
             </button>
 
@@ -95,22 +95,22 @@ export default function ForgotPasswordPage() {
               href="/login"
               className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards] w-full bg-ocean-blue text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg hover:bg-primary active:scale-95 transform transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 border border-white/10 flex items-center justify-center gap-2"
             >
-              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-              Back to Sign In
+              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 rtl:rotate-180" />
+              {t('backToSignIn')}
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
             <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards] space-y-1.5">
               <label htmlFor="email" className="text-xs md:text-sm font-semibold text-white/90 block">
-                Email Address
+                {t('emailLabel')}
               </label>
               <div className="relative group">
                 <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
                 <input
                   id="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder={t('emailInputPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
@@ -133,20 +133,20 @@ export default function ForgotPasswordPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Sending...
+                  {t('sending')}
                 </span>
               ) : (
-                "Send Reset Link"
+                t('sendResetLink')
               )}
             </button>
 
             <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards] text-center text-xs md:text-sm text-white/60">
-              Remember your password?{" "}
+              {t('rememberPassword')}{" "}
               <Link
                 href="/login"
                 className="text-earthy-green hover:text-white font-semibold transition-colors hover:underline"
               >
-                Sign In
+                {t('signIn')}
               </Link>
             </p>
           </form>

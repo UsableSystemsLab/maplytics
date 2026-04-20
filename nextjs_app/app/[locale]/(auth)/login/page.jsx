@@ -50,21 +50,21 @@ export default function LoginPage() {
     <AuthMapBackground>
       <div className="bg-[#134565]/15 backdrop-blur-xl rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-md border border-[#134565]/30 transition-all duration-500 relative">
         <div className="text-center mb-6 md:mb-8">
-          <h1 className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] text-2xl md:text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards] text-white/70 text-sm md:text-base">Sign in to analyze and visualize spatial data effortlessly</p>
+          <h1 className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] text-2xl md:text-3xl font-bold text-white mb-2">{t('welcomeBack')}</h1>
+          <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards] text-white/70 text-sm md:text-base">{t('loginSubtitle')}</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4 md:space-y-5">
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards] space-y-1.5">
             <label htmlFor="email" className="text-xs md:text-sm font-semibold text-white/90 block">
-              Email Address
+              {t('emailLabel')}
             </label>
             <div className="relative group">
               <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
               <input
                 id="email"
                 type="email"
-                placeholder="email@example.com"
+                placeholder={t('emailInputPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
@@ -74,7 +74,7 @@ export default function LoginPage() {
           </div>
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.3s_forwards] space-y-1.5">
             <label htmlFor="password" className="text-xs md:text-sm font-semibold text-white/90 block">
-              Password
+              {t('passwordLabel')}
             </label>
             <div className="relative group">
               <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
@@ -102,7 +102,7 @@ export default function LoginPage() {
               href="/forgot-password"
               className="text-earthy-green hover:text-white font-semibold transition-all hover:underline"
             >
-              Forgot Password?
+              {t('forgotPassword')}
             </Link>
           </div>
 
@@ -120,17 +120,17 @@ export default function LoginPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Signing In...
+                {t('signingIn')}
               </span>
             ) : (
-              "Sign In"
+              t('signIn')
             )}
           </button>
         </form>
 
         <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.6s_forwards] flex items-center gap-3 my-4 md:my-6">
           <div className="flex-1 h-px bg-[#134565]/40" />
-          <span className="text-white/50 text-xs md:text-sm">Or continue with</span>
+          <span className="text-white/50 text-xs md:text-sm">{t('orContinueWith')}</span>
           <div className="flex-1 h-px bg-[#134565]/40" />
         </div>
 
@@ -139,17 +139,17 @@ export default function LoginPage() {
           disabled={loading}
           className="opacity-0 animate-[fadeIn_1s_ease-out_0.7s_forwards] w-full border border-[#134565]/30 bg-white/5 hover:bg-white/10 text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <img src="/google.svg" alt="Google" className="w-4 h-4 md:w-5 md:h-5" />
-          Sign in with Google
+          <img src="/google.svg" alt={t('googleAlt')} className="w-4 h-4 md:w-5 md:h-5" />
+          {t('signInWithGoogle')}
         </button>
 
         <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.8s_forwards] mt-4 md:mt-6 text-center text-xs md:text-sm text-white/60">
-          Don't have an account?{" "}
+          {t('noAccount')}{" "}
           <Link
             href="/register"
             className="text-earthy-green hover:text-white font-semibold transition-colors hover:underline"
           >
-            Sign Up
+            {t('signUp')}
           </Link>
         </p>
       </div>
