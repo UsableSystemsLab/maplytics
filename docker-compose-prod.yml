@@ -9,8 +9,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PORT=${POSTGRES_PORT}
-    ports:
-      - ${POSTGRES_PORT}:5432
     restart: unless-stopped
     volumes:
       - pg_data:/var/lib/postgresql/data
@@ -23,35 +21,9 @@ services:
       timeout: 5s
       retries: 3
 
-  pgadmin:
-    image: dpage/pgadmin4:8.11.0
-    container_name: pgadmin_container
-    environment:
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - PGADMIN_PORT=${PGADMIN_PORT}
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
-      - PGADMIN_CONFIG_SERVER_MODE=False
-      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
-    volumes:
-      - ./pgadmin-init.sh:/entrypoint_custom.sh
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - db
-    user: root
-    entrypoint: /entrypoint_custom.sh
-    ports:
-      - $PGADMIN_PORT:80
-    networks:
-      - app_network
-
   api_server:
     env_file:
-      - .env
+      - .env.prod
     build:
       context: api_server
       dockerfile: Dockerfile
@@ -64,14 +36,13 @@ services:
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
     ports:
-      - ${API_SERVER_PORT}:4000
-    volumes:
-      - ./api_server:/app
+      - "127.0.0.1:${API_SERVER_PORT}:4000"
     depends_on:
       - db
       - rustfs
     networks:
       - app_network
+    restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${API_SERVER_PORT}/health", "-H", "accept: application/json", "-H", "Authorization: Bearer ${API_SERVER_KEY}" ]
       interval: 120s
@@ -79,46 +50,53 @@ services:
       retries: 3
 
   nextjs_app:
+    env_file:
+      - .env.prod
+    build:
+      context: nextjs_app
+      dockerfile: Dockerfile
+      args:
+        PORT: ${NEXT_PUBLIC_PORT}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_API_SERVER_KEY: ${NEXT_PUBLIC_API_SERVER_KEY}
+    image: nextjs_app_image
+    container_name: nextjs
     environment:
       - NEXT_PUBLIC_PORT=${NEXT_PUBLIC_PORT}
       - API_SERVER_KEY=${API_SERVER_KEY}
-      - WATCHPACK_POLLING_INTERVAL=500
-      - WATCHPACK_POLLING=true
       - NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}
       - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
       - NEXT_PUBLIC_FIREBASE_PROJECT_ID=${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
       - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
       - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
       - NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
-      - NEXT_PUBLIC_API_SERVER_KEY=${API_SERVER_KEY}
-    build:
-      context: nextjs_app
-      dockerfile: Dockerfile.prod
-      args:
-        PORT: ${NEXT_PUBLIC_PORT}
-    image: nextjs_app_image
-    container_name: nextjs
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_API_SERVER_KEY=${NEXT_PUBLIC_API_SERVER_KEY}
     ports:
-      - ${NEXT_PUBLIC_PORT}:${NEXT_PUBLIC_PORT}
+      - "127.0.0.1:${NEXT_PUBLIC_PORT}:${NEXT_PUBLIC_PORT}"
     depends_on:
       - db
       - api_server
     networks:
       - app_network
+    restart: unless-stopped
 
   rustfs:
     image: rustfs/rustfs
     container_name: rustfs_container
-    ports:
-      - "${RUSTFS_PORT1}:${RUSTFS_PORT1}"
-      - "${RUSTFS_PORT2}:${RUSTFS_PORT2}"
     volumes:
       - rustfs_data:/data
     environment:
       - RUSTFS_VOLUMES=/data
     networks:
       - app_network
-
+    restart: unless-stopped
 
 networks:
   app_network:
@@ -126,6 +104,4 @@ networks:
 
 volumes:
   pg_data:
-  pgadmin_data:
   rustfs_data:
-  
