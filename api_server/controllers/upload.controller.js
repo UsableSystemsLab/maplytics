@@ -85,3 +85,67 @@ export const uploadPublicFile = async (req, res) => {
         name: displayName
     });
 };
+
+export const uploadProjectFile = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({
+            success: false,
+            message: 'No file uploaded'
+        });
+    }
+
+    const projectId = req.query.projectId;
+    if (!projectId) {
+        return res.status(400).json({
+            success: false,
+            message: 'Project ID is required for project datasets'
+        });
+    }
+
+    const displayName = req.body.name || req.file.originalname;
+    const description = req.body.description || null;
+
+    const filename = req.file.key || req.file.filename;
+    const location = req.file.location || `/files/projects/${projectId}/${filename}`;
+    const filenameSuffix = filename.split('/').pop();
+
+    const author = req.user?.displayName || "unknown user";
+    const pgDatasetId = await insertFeaturesFromS3(
+        filename, displayName, description, req.userId, author, req.file.originalname
+    );
+
+    if (pgDatasetId) {
+        try {
+            const project = await Project.findByPk(projectId);
+            if (project) {
+                await Dataset_Project.create({
+                    project_id: projectId,
+                    dataset_id: pgDatasetId
+                });
+            } else {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Project not found'
+                });
+            }
+        } catch (err) {
+            console.error("Error saving project dataset association:", err);
+            return res.status(500).json({ success: false, message: 'Database failure linking dataset to project' });
+        }
+    }
+
+    res.status(201).json({
+        success: true,
+        message: 'Project dataset uploaded successfully',
+        type: 'project',
+        userId: req.userId,
+        projectId: projectId,
+        author: author,
+        filename: filenameSuffix,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        url: location,
+        id: pgDatasetId,
+        name: displayName
+    });
+};

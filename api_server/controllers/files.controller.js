@@ -90,7 +90,12 @@ export const getDatasetData = async (req, res) => {
         // High-level: we need to know where the file is stored.
         // Assuming file_format and slug identify it for now, or we add a filename field.
         // Legacy code used: key = dataset.filename;
-        const key = `private/${projectId}/${dataset.dataset_id}.${dataset.file_format.toLowerCase()}`;
+        const key = `projects/${projectId}/${dataset.dataValues.slug}.${dataset.file_format.toLowerCase()}`;
+        console.log(key);
+        console.log(dataset.dataValues.slug);
+        console.log(dataset.file_format.toLowerCase());
+        console.dir(dataset)
+
 
         const response = await s3Client.send(new GetObjectCommand({
             Bucket: BUCKET_NAME,

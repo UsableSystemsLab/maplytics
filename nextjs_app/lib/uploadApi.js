@@ -5,7 +5,7 @@
  * Handles both public and private file uploads.
  */
 
-export const uploadFile = async ({ file, isPrivate, projectId, layerName, description }) => {
+export const uploadFile = async ({ file, isProjectDataset, projectId, layerName, description }) => {
     const formData = new FormData();
     formData.append('file', file);
     if (layerName) {
@@ -16,11 +16,11 @@ export const uploadFile = async ({ file, isPrivate, projectId, layerName, descri
     }
 
     let endpoint;
-    if (isPrivate) {
+    if (isProjectDataset) {
         if (!projectId) {
-            throw new Error('Project ID is required for private uploads');
+            throw new Error('Project ID is required for project datasets');
         }
-        endpoint = `/datasets/upload/private?projectId=${projectId}`;
+        endpoint = `/datasets/upload/project?projectId=${projectId}`;
     } else {
         endpoint = `/datasets/upload/public${projectId ? `?projectId=${projectId}` : ''}`;
     }

@@ -31,3 +31,23 @@ export const uploadPublic = multer({
     fileSize: 50 * 1024 * 1024, // 50MB
   },
 });
+
+// Project dataset upload - organized by project ID
+export const uploadProject = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: BUCKET_NAME,
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      const projectId = req.query.projectId || 'unassigned';
+      const uniqueName = `projects/${projectId}/${Date.now()}-${file.originalname}`;
+      cb(null, uniqueName);
+    }
+  }),
+  fileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+  },
+});

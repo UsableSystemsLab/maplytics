@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
 import { getDatasets, searchDatasets } from '@/lib/datasetApi';
+import * as projectApi from '@/lib/projectApi';
 import { uploadFile } from '@/lib/uploadApi';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-export default function DatasetBrowser() {
+export default function PublicDatasetBrowser() {
     const t = useTranslations("datasets");
     const { user } = useAuth();
     const router = useRouter();
@@ -23,6 +24,8 @@ export default function DatasetBrowser() {
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
+
+
 
     // Add Dataset States
     const [newDatasetFile, setNewDatasetFile] = useState(null);
@@ -164,7 +167,7 @@ export default function DatasetBrowser() {
     const handlePreview = (dataset) => {
         // Strip out noisy or internal fields for a cleaner preview if necessary
         const previewData = { ...dataset };
-        
+
         setPreviewTitle(dataset.dataset_name || "Dataset Preview");
         setPreviewContent(JSON.stringify(previewData, null, 2));
         setIsPreviewModalOpen(true);
@@ -220,11 +223,7 @@ export default function DatasetBrowser() {
     return (
         <div className="space-y-6 w-full">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-                    <p className="text-gray-500 mt-1">{t('description')}</p>
-                </div>
+            <div className="flex justify-end mb-4">
                 <button
                     onClick={handleOpenAddModal}
                     className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
@@ -279,7 +278,7 @@ export default function DatasetBrowser() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {datasets.map((dataset) => (
-                        <div key={dataset.dataset_id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col group">
+                        <div key={dataset.dataset_id || dataset.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col group">
                             <div className="h-40 bg-gray-100 relative flex items-center justify-center group-hover:bg-primary/5 transition-colors">
                                 <FileJson className="w-12 h-12 text-gray-400 opacity-60 group-hover:text-primary/60 transition-colors" />
                                 <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md text-white text-xs px-2 py-1 rounded-full uppercase font-medium">
@@ -290,12 +289,12 @@ export default function DatasetBrowser() {
                             <div className="p-5 flex-1 flex flex-col">
                                 <div className="flex items-start justify-between mb-2">
                                     <div>
-                                        <h3 className="font-semibold text-gray-900 line-clamp-1" title={dataset.dataset_name}>
-                                            {dataset.dataset_name}
+                                        <h3 className="font-semibold text-gray-900 line-clamp-1" title={dataset.dataset_name || dataset.name}>
+                                            {dataset.dataset_name || dataset.name}
                                         </h3>
                                         <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                                             <User className="w-3 h-3" />
-                                            <span>{dataset.author || t('unknownUser')}</span>
+                                            <span>{dataset.author || user?.displayName || t('unknownUser')}</span>
                                         </div>
                                     </div>
                                 </div>
