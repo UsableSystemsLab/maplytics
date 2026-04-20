@@ -12,6 +12,35 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals"),
   {
+    files: ["app/**/*.{js,jsx,ts,tsx}", "components/**/*.{js,jsx,ts,tsx}"],
+    ...compat.extends("plugin:i18next/recommended")[0],
+  },
+  {
+    files: ["app/**/*.{js,jsx,ts,tsx}", "components/**/*.{js,jsx,ts,tsx}"],
+    rules: {
+      "i18next/no-literal-string": [
+        "warn",
+        {
+          markupOnly: true,
+          ignoreAttribute: [
+            "data-testid",
+            "className",
+            "id",
+            "href",
+            "src",
+            "role",
+            "type",
+            "name",
+            "key",
+            "style",
+            "alt",
+          ],
+          ignore: ["px", "rem", "em", "%"],
+        },
+      ],
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
