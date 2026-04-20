@@ -1,12 +1,8 @@
 import express from 'express';
-import {
-    ingestDataset,
-    getAllDatasets,
-    getDatasetAsGeoJSON,
-    getDatasetById,
-    // deleteDataset,
-    searchDatasets
-} from '../controllers/DatasetController.js';
+import { ingestDataset, getAllDatasets, getDatasetAsGeoJSON, getDatasetById, searchDatasets } from '../controllers/DatasetController.js';
+import { uploadPublicFile } from '../controllers/upload.controller.js';
+import { uploadPublic } from '../middlewares/upload.middleware.js';
+import { authenticate } from '../middlewares/firebaseAuth.js';
 
 const router = express.Router();
 
@@ -16,6 +12,9 @@ const router = express.Router();
  *   name: Datasets
  *   description: Generic geospatial dataset management
  */
+
+// POST /datasets/upload/public - Upload a dataset file (requires authentication)
+router.post('/upload/public', authenticate, uploadPublic.single('file'), uploadPublicFile);
 
 // POST /datasets/ingest - Ingest a new dataset
 router.post('/ingest', ingestDataset);

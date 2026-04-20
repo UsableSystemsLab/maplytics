@@ -6,6 +6,8 @@ import Dataset_Metadata from './Dataset_Metadata.js';
 import Region from './Region.js';
 import City from './City.js';
 import District from './District.js';
+import Project from './Project.js';
+import Dataset_Project from './Dataset_Project.js';
 
 // Define associations between models
 
@@ -59,6 +61,35 @@ Dataset.belongsTo(User, {
     as: 'owner'
 });
 
+// Project <-> Dataset many-to-many
+Project.belongsToMany(Dataset, {
+    through: Dataset_Project,
+    foreignKey: 'project_id',
+    otherKey: 'dataset_id',
+    as: 'datasets'
+});
+
+Dataset.belongsToMany(Project, {
+    through: Dataset_Project,
+    foreignKey: 'dataset_id',
+    otherKey: 'project_id',
+    as: 'projects'
+});
+
+
+// User has many Projects
+User.hasMany(Project, {
+    foreignKey: 'user_id',
+    as: 'projects',
+    onDelete: 'CASCADE'
+});
+
+// Project belongs to User
+Project.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'owner'
+});
+
 // Region has many Cities
 Region.hasMany(City, {
     foreignKey: 'region_id',
@@ -95,4 +126,4 @@ District.belongsTo(City, {
     as: 'city',
 });
 
-export { User, Dataset, Feature, Feature_Property, Dataset_Metadata, Region, City, District };
+export { User, Dataset, Feature, Feature_Property, Dataset_Metadata, Region, City, District, Project, Dataset_Project };

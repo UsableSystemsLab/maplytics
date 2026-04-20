@@ -17,7 +17,7 @@ CREATE TYPE role_type AS ENUM ('User', 'Admin');
 -- These attributes are for starter, more can be added as needed.
 ----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public."User" (
-    "user_id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Globally unique identifier for each user
+    "user_id" VARCHAR(128) PRIMARY KEY,             -- Globally unique identifier from Firebase
     "email" VARCHAR(255) UNIQUE NOT NULL,             -- Used for login and communication (must be unique)
     "first_name" VARCHAR(100),                        -- First name
     "last_name" VARCHAR(100),                         -- Last name
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public."Project" (
     "created_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp when the project was created
     "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
     "is_deleted" BOOLEAN DEFAULT FALSE,               -- Soft delete flag
-    "user_id" UUID NOT NULL,                           -- References the project owner
+    "user_id" VARCHAR(128) NOT NULL,                           -- References the project owner
     FOREIGN KEY ("user_id") REFERENCES public."User"("user_id") ON DELETE CASCADE
 );
 
@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS public."Dataset" (
     "last_updated" TIMESTAMP DEFAULT NOW(),           -- Date when dataset was last modified
     "file_format" VARCHAR(50),                        -- Format of uploaded file (CSV, GeoJSON, Shapefile, etc.)
     "uploaded_at" TIMESTAMP DEFAULT NOW(),            -- Upload timestamp for version tracking
-    "user_id" UUID NOT NULL,                           -- Reference to dataset owner
-    FOREIGN KEY ("user_id") REFERENCES public."User"("user_id") ON DELETE CASCADE
+    "author" VARCHAR(255),                          -- Name of the user who uploaded the dataset
+    "user_id" VARCHAR(128) NOT NULL                           -- Reference to dataset owner
 );
 
 

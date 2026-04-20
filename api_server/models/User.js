@@ -7,27 +7,39 @@ import { sequelize } from '../configs/postgresDB.js';
  *   schemas:
  *     User:
  *       type: object
+ *       required:
+ *         - id
+ *         - email
  *       properties:
  *         id:
  *           type: string
- *           example: '123e4567-e89b-12d3-a456-426614174000'
- *         user_name:
- *           type: string
- *           example: 'kalharbi'
+ *           description: The unique identifier for the user (Firebase UID).
+ *           example: "xC9jTEIaficN5qJe9RdW01mmHi02"
  *         email:
  *           type: string
- *           example: 'kalharbi@example.com'
- *         phone:
+ *           format: email
+ *           description: The user's email address.
+ *           example: "user@example.com"
+ *         first_name:
  *           type: string
- *           example: '+9661234567890'
+ *           description: The user's first name.
+ *           example: "John"
+ *         last_name:
+ *           type: string
+ *           description: The user's last name.
+ *           example: "Doe"
+ *         role:
+ *           type: string
+ *           enum: [Admin, User]
+ *           default: User
+ *           description: The user's role in the system.
+ *           example: "User"
  */
-// User model definition
 const User = sequelize.define(
   'User',
   {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.STRING(128),
       field: "user_id",
       primaryKey: true,
     },
@@ -57,7 +69,7 @@ const User = sequelize.define(
   {
     tableName: "User",
     schema: "public",
-    timestamps: true, //TODO: Enable timestamps after adding created_at and updated_at fields to the table ✅
+    timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
   },

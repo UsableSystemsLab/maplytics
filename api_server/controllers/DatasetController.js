@@ -283,6 +283,7 @@ export const getAllDatasets = async (req, res, next) => {
                 'geometry_type',
                 'feature_count',
                 'user_id',
+                'author',
                 'last_updated'
             ],
             order: [['last_updated', 'DESC']]

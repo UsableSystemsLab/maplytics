@@ -22,10 +22,55 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: "metadata" })
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://maplytics.org"
 
   return {
-    title: t("title"),
+    title: {
+      default: t("title"),
+      template: `%s | ${t("title")}`,
+    },
     description: t("description"),
+    keywords: t("keywords"),
+    authors: [{ name: "Maplytics" }],
+    creator: "Maplytics",
+    metadataBase: new URL(baseUrl),
+    alternates: {
+      canonical: `/${locale}`,
+      languages: {
+        en: "/en",
+        ar: "/ar",
+      },
+    },
+    openGraph: {
+      title: t("ogTitle"),
+      description: t("description"),
+      url: `/${locale}`,
+      siteName: t("title"),
+      locale: locale === "ar" ? "ar_SA" : "en_US",
+      type: "website",
+      images: [
+        {
+          url: "/logo.png",
+          width: 512,
+          height: 512,
+          alt: t("title"),
+        },
+      ],
+    },
+    twitter: {
+      card: "summary",
+      title: t("ogTitle"),
+      description: t("description"),
+      images: ["/logo.png"],
+    },
+    icons: {
+      icon: "/logo.png",
+      apple: "/logo.png",
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   }
 }
 

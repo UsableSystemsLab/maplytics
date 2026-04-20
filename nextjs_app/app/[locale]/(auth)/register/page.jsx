@@ -7,8 +7,7 @@ import { auth } from "@/lib/firebase";
 import Link from "next/link";
 import { useTranslations } from 'next-intl';
 import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
-import AuthLeftPanel from "@/components/AuthLeftPanel";
-import { fadeIn } from "@/lib/animationStyles";
+import AuthMapBackground from "@/components/AuthMapBackground";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -54,148 +53,134 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="h-screen flex bg-[#F5F5F5] relative">
-      <AuthLeftPanel />
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-6 md:p-12">
-        <div className="bg-white rounded-xl shadow-2xl p-6 md:p-10 w-full max-w-md hover:shadow-[0_20px_60px_rgba(19,69,101,0.15)] transition-all duration-500 border border-gray-100 relative z-10">
-          <div className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-ocean-blue/10 rounded-full mb-3" style={fadeIn('0s')}>
-              <UserPlus className="w-7 h-7 md:w-8 md:h-8 text-ocean-blue" />
+    <AuthMapBackground>
+      <div className="bg-[#134565]/15 backdrop-blur-xl rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-md border border-[#134565]/30 transition-all duration-500 relative">
+        <div className="text-center mb-6 md:mb-8">
+          <div className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-[#134565]/20 rounded-full border border-[#134565]/30 mb-3">
+            <UserPlus className="w-7 h-7 md:w-8 md:h-8 text-white" />
+          </div>
+          <h1 className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] text-2xl md:text-3xl font-bold text-white mb-2">Create Account</h1>
+          <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards] text-white/70 text-sm md:text-base">Join us to unlock powerful spatial analysis</p>
+        </div>
+
+        <form onSubmit={handleRegister} className="space-y-4 md:space-y-5">
+          <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards] space-y-1.5">
+            <label htmlFor="email" className="text-xs md:text-sm font-semibold text-white/90 block">
+              Email Address
+            </label>
+            <div className="relative group">
+              <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
+              <input
+                id="email"
+                type="email"
+                placeholder="email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
+                required
+              />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-heading mb-2" style={fadeIn('0s')}>Create Account</h1>
-            <p className="text-body-text text-sm md:text-base" style={fadeIn('0.1s')}>Join us to unlock powerful spatial analysis</p>
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-4 md:space-y-5">
-            <div className="space-y-1.5" style={fadeIn('0.2s')}>
-              <label htmlFor="email" className="text-xs md:text-sm font-semibold text-heading block">
-                Email Address
-              </label>
-              <div className="relative group">
-                <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5" style={fadeIn('0.3s')}>
-              <label htmlFor="password" className="text-xs md:text-sm font-semibold text-heading block">
-                Password
-              </label>
-              <div className="relative group">
-                <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
-                  required
-                  minLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-body-text hover:text-ocean-blue transition-colors hover:scale-110 active:scale-95 transform"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
-                </button>
-              </div>
-            </div>
-
-
-            <div className="space-y-1.5" style={fadeIn('0.4s')}>
-              <label htmlFor="confirmPassword" className="text-xs md:text-sm font-semibold text-heading block">
-                Confirm Password
-              </label>
-              <div className="relative group">
-                <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-body-text group-focus-within:text-ocean-blue transition-colors" />
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={confPass}
-                  onChange={(e) => setConfPass(e.target.value)}
-                  className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base border-2 border-gray-200 rounded-lg focus:border-ocean-blue focus:outline-none transition-all duration-200 text-heading placeholder:text-gray-400 hover:border-gray-300"
-                  required
-                  minLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-body-text hover:text-ocean-blue transition-colors hover:scale-110 active:scale-95 transform"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
-                </button>
-              </div>
-            </div>
-
-
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-3 md:p-4 rounded">
-                <p className="text-red-700 text-xs md:text-sm">{error}</p>
-              </div>
-            )}
-
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-ocean-blue text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg hover:bg-primary active:scale-95 transform transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-              style={fadeIn('0.5s')}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Creating Account...
-                </span>
-              ) : (
-                "Create Account"
-              )}
-            </button>
-          </form>
-
-          <div className="relative my-4 md:my-6" style={fadeIn('0.6s')}>
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-xs md:text-sm">
-              <span className="px-3 md:px-4 bg-white text-body-text">Or continue with</span>
+          <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.3s_forwards] space-y-1.5">
+            <label htmlFor="password" className="text-xs md:text-sm font-semibold text-white/90 block">
+              Password
+            </label>
+            <div className="relative group">
+              <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors hover:scale-110 active:scale-95 transform"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
+              </button>
             </div>
           </div>
+
+          <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards] space-y-1.5">
+            <label htmlFor="confirmPassword" className="text-xs md:text-sm font-semibold text-white/90 block">
+              Confirm Password
+            </label>
+            <div className="relative group">
+              <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={confPass}
+                onChange={(e) => setConfPass(e.target.value)}
+                className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors hover:scale-110 active:scale-95 transform"
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-500/20 border-l-4 border-red-400 p-3 md:p-4 rounded backdrop-blur-sm">
+              <p className="text-red-200 text-xs md:text-sm">{error}</p>
+            </div>
+          )}
 
           <button
-            onClick={handleGoogleRegister}
+            type="submit"
             disabled={loading}
-            className="w-full border-2 border-gray-200 bg-white hover:bg-gray-50 text-heading font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
-            style={fadeIn('0.7s')}
+            className="opacity-0 animate-[fadeIn_1s_ease-out_0.5s_forwards] w-full bg-ocean-blue text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg hover:bg-primary active:scale-95 transform transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5 border border-white/10"
           >
-            <img src="/google.svg" alt="Google" className="w-4 h-4 md:w-5 md:h-5" />
-            Sign up with Google
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Creating Account...
+              </span>
+            ) : (
+              "Create Account"
+            )}
           </button>
+        </form>
 
+        <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.6s_forwards] flex items-center gap-3 my-4 md:my-6">
+          <div className="flex-1 h-px bg-[#134565]/40" />
+          <span className="text-white/50 text-xs md:text-sm">Or continue with</span>
+          <div className="flex-1 h-px bg-[#134565]/40" />
+        </div>
 
-          <p className="mt-4 md:mt-6 text-center text-xs md:text-sm text-body-text" style={fadeIn('0.8s')}>
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-ocean-blue hover:text-primary font-semibold transition-colors hover:underline"
-            >
-              Sign In
-            </Link>
-          </p>
-        </div>
-        </div>
+        <button
+          onClick={handleGoogleRegister}
+          disabled={loading}
+          className="opacity-0 animate-[fadeIn_1s_ease-out_0.7s_forwards] w-full border border-[#134565]/30 bg-white/5 hover:bg-white/10 text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <img src="/google.svg" alt="Google" className="w-4 h-4 md:w-5 md:h-5" />
+          Sign up with Google
+        </button>
+
+        <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.8s_forwards] mt-4 md:mt-6 text-center text-xs md:text-sm text-white/60">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="text-earthy-green hover:text-white font-semibold transition-colors hover:underline"
+          >
+            Sign In
+          </Link>
+        </p>
       </div>
-    </div>
+    </AuthMapBackground>
   );
 }

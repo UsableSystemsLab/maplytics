@@ -1,41 +1,109 @@
 {
   "metadata": {
     "title": "Maplytics",
-    "description": "Transform geospatial data into actionable insights with powerful spatial analysis and visualization tools."
+    "description": "Maplytics makes geospatial analysis simple — upload your dataset and instantly visualize location data on interactive maps, charts, and graphs. No analytical skills required.",
+    "keywords": "geospatial analysis, location analytics, spatial data visualization, business location planning, urban planning tools, map visualization, choropleth maps, dataset analysis, GIS simplified, site selection",
+    "ogTitle": "Maplytics — Geospatial Analytics Made Simple",
+    "loginTitle": "Sign In",
+    "registerTitle": "Create Account",
+    "publicDatasetTitle": "Public Datasets",
+    "dashboardTitle": "Dashboard",
+    "mapTitle": "Map View",
+    "comparisonTitle": "Comparison",
+    "chatTitle": "Chat",
+    "profileTitle": "Profile",
+    "createProjectTitle": "Create Project",
+    "visualizeTitle": "Visualize Dataset"
   },
   "shared": {
     "maplytics": "Maplytics"
   },
   "landing": {
     "hero": {
-      "title": "Transform <geo>Geospatial</geo> Data <into>into</into> Actionable Insights",
-      "description": "Unlock the power of spatial analysis to <visualize>visualize patterns</visualize>, <make>make smarter</make> <data>data-informed decisions</data> — All in one simple intuitive platform!",
-      "getStarted": "Get Started",
-      "continue": "Continue Your Journey"
+      "title": "<line1>Transform <geo>geospatial data</geo></line1><line2>into <maps>interactive maps</maps></line2>",
+      "description": "Turn simple prompts into interactive map visualizations. Just describe what you want to analyze.",
+      "tryNow": "Try now",
+      "exploreMore": "Explore More",
+      "scroll": "Scroll"
     },
     "features": {
-      "title": "Features Overview",
+      "badge": "Platform Features",
+      "title": "Everything You Need to Understand Your World",
+      "description": "From raw geospatial data to stunning visual insights — Maplytics puts the power of spatial intelligence in your hands.",
       "cards": [
         {
-          "title": "Add <highlight1>Datasets</highlight1>",
-          "description": "You can add your own datasets to adjust the output depending on the data you add!"
+          "tag": "Data Sources",
+          "title": "Rich Datasets, Ready to Explore",
+          "description": "Dive into our curated library of public geospatial datasets covering regions, cities, and boundaries — or bring your own. Upload custom datasets in standard formats and instantly unlock spatial analysis tailored to your exact needs.",
+          "bullets": [
+            "Access free public geospatial datasets",
+            "Upload your own custom datasets",
+            "Supports GeoJSON, CSV, and more"
+          ]
         },
         {
-          "title": "Create <highlight2>Graphs</highlight2>",
-          "description": "You can create any type of supported graphs for statistical analysis!"
+          "tag": "Smart Prompts",
+          "title": "Just Describe What You Want to See",
+          "description": "No complex query syntax. No steep learning curve. Simply type what you want to visualize in plain language, and Maplytics intelligently translates your intent into precise spatial queries and visual outputs — instantly.",
+          "bullets": [
+            "Natural language to spatial query",
+            "Instant visualization from text prompts",
+            "Smart suggestions as you type"
+          ]
         },
         {
-          "title": "Invite <highlight1>Team</highlight1> Members",
-          "description": "You can add your team members to view your graphs and queries to plan together!"
+          "tag": "Visualizations",
+          "title": "Stunning Maps & Interactive Charts",
+          "description": "Turn your data into interactive maps, heatmaps, bar charts, scatter plots, and more. Every visualization is dynamic, responsive, and shareable — giving your team the clarity needed to make confident, data-driven decisions.",
+          "bullets": [
+            "Interactive maps and heatmaps",
+            "Statistical charts and graphs",
+            "Export and share with your team"
+          ]
         }
       ]
+    },
+    "howItWorks": {
+      "title": "How to Start",
+      "description": "From Raw Data to Visual Clarity in 3 Simple Steps",
+      "steps": [
+        {
+          "number": "01",
+          "title": "Create Project",
+          "description": "Start by choosing from our rich library of public geospatial datasets, or upload your own. Supports GeoJSON, CSV, Shapefiles, and more — your data is ready in seconds."
+        },
+        {
+          "number": "02",
+          "title": "Input Prompt",
+          "description": "No SQL. No complex filters. Just type your question in plain language and Maplytics intelligently translates it into precise spatial queries — instantly."
+        },
+        {
+          "number": "03",
+          "title": "Explore Interactive Visualizations",
+          "description": "Get beautiful, interactive maps, heatmaps, bar charts, and scatter plots instantly. Share your insights with teammates or export them for presentations and reports."
+        }
+      ]
+    },
+    "cta": {
+      "cta": "Get Started",
+      "title": "Start Turning Your Geospatial Data into Actionable Insights Today",
+      "description": "Join researchers, analysts, and planners who use Maplytics to understand their cities — no coding experience required.",
+      "primaryButton": "Create Your First Project",
+      "secondaryButton": "Browse Public Datasets",
+      "trustLine": "No credit card required · Free to get started · Saudi-focused data"
     }
   },
   "footer": {
     "copyright": "Maplytics rights reserved.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "contactUs": "Contact Us"
+    "aboutTitle": "About Maplytics",
+    "aboutDescription": "Empowering your spatial analysis with interactive maps, datasets, and powerful location intelligence tools.",
+    "quickLinks": "Quick Links",
+    "datasets": "Datasets",
+    "getStarted": "Get Started",
+    "startNow": "Start Now",
+    "login": "Login"
   },
   "header": {
     "products": "Products",
@@ -49,12 +117,15 @@
     "product3Description": "Description for Product 3",
     "publicDataset": "Public Dataset",
     "about": "About",
+    "datasets": "Datasets",
     "contact": "Contact",
     "searchPlaceholder": "Search...",
     "loading": "Loading...",
     "signIn": "Sign In",
     "user": "User",
-    "signOutConfirm": "Sign out?"
+    "signOutConfirm": "Sign out?",
+    "logout": "Logout",
+    "menu": "Menu"
   },
   "auth": {
     "loginTitle": "Login",
@@ -71,5 +142,44 @@
     "registerLink": "Register",
     "alreadyHaveAccount": "Already have an account?",
     "loginLink": "Login"
+  },
+  "datasets": {
+    "title": "Datasets",
+    "description": "Explore, understand, and share useful information. Learn about different types of data and how to work with them.",
+    "addDataset": "Add Dataset",
+    "searchPlaceholder": "Search datasets...",
+    "loading": "Loading datasets...",
+    "error": "Failed to load datasets. Please try again later.",
+    "tryAgain": "Try Again",
+    "noDatasetsFound": "No datasets found",
+    "noDatasetsDescription": "Try adjusting your search or add a new dataset.",
+    "unknown": "Unknown",
+    "unknownUser": "Unknown User",
+    "noDescription": "No description available.",
+    "featureCount": "Feature Count",
+    "lastUpdated": "Last Updated",
+    "preview": "Preview",
+    "previewDetails": "Preview Details",
+    "properties": "Dataset Properties",
+    "close": "Close",
+    "addNewTitle": "Add New Dataset",
+    "nameLabel": "Dataset Name",
+    "namePlaceholder": "e.g., Riyadh Restaurants",
+    "descriptionLabel": "Description",
+    "optional": "(Optional)",
+    "descriptionPlaceholder": "Describe your dataset...",
+    "uploadLabel": "Upload File (JSON/GeoJSON)",
+    "dragDrop": "Choose file or drag and drop",
+    "uploadHint": "JSON, GeoJSON up to 10MB",
+    "selected": "Selected:",
+    "uploadSuccess": "Dataset uploaded successfully! Redirecting...",
+    "cancel": "Cancel",
+    "uploading": "Uploading...",
+    "uploadAction": "Upload Dataset",
+    "items": "{count} items",
+    "validation": {
+      "nameFileRequired": "Please provide a name and select a file.",
+      "failedUpload": "Failed to upload dataset."
+    }
   }
 }
