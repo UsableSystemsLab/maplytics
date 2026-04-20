@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -48,10 +47,11 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+* {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: #F5F5F5;
-  margin: 0px;
-  font-family: "poppins", sans-serif;
   min-height: 100vh;
 }
 
@@ -127,6 +127,10 @@ button.btn-shine:active::before {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+.hero-polygon {
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.7));
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -171,6 +175,15 @@ button.btn-shine:active::before {
   }
 }
 
+/* Leaflet z-index containment for auth pages */
+.auth-map-bg .leaflet-pane {
+  z-index: 0 !important;
+}
+
+.auth-map-bg .leaflet-control-container {
+  display: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -181,6 +194,10 @@ button.btn-shine:active::before {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.typing-animation {
+  animation: typing 2s steps(10, end) 1 both, blink 0.75s step-end 2s 3 both;
 }
 
 @keyframes typing {

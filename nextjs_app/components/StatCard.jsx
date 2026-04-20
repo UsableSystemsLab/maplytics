@@ -11,7 +11,7 @@ export default function StatCard({
     iconColor = "text-[#2C3580]",
     label,
     value,
-    subtitle
+    description
 }) {
     return (
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -24,8 +24,8 @@ export default function StatCard({
             <p className="text-2xl font-bold text-gray-900 capitalize">
                 {value || 'N/A'}
             </p>
-            {subtitle && (
-                <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+            {description && (
+                <p className="text-xs text-gray-500 mt-1">{description}</p>
             )}
         </div>
     );

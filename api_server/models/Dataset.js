@@ -7,66 +7,55 @@ import { sequelize } from "../configs/postgresDB.js";
  *   schemas:
  *     Dataset:
  *       type: object
+ *       required:
+ *         - name
+ *         - slug
+ *         - user_id
  *       properties:
- *         dataset_id:
+ *         id:
  *           type: string
- *           example: '123e4567-e89b-12d3-a456-426614174000'
- *         dataset_slug:
+ *           format: uuid
+ *           description: The unique identifier for the dataset.
+ *           example: "b3f1a2c4-8d9b-41d4-a716-446655440001"
+ *         name:
  *           type: string
- *           example: 'traffic-data-jeddah'
- *         dataset_name:
+ *           description: Human-readable name of the dataset.
+ *           example: "Jeddah Traffic Zones"
+ *         slug:
  *           type: string
- *           example: 'Jeddah Traffic Flow Dataset'
+ *           description: URL-friendly identifier for the dataset.
+ *           example: "jeddah-traffic-zones"
  *         description:
  *           type: string
- *           example: 'A dataset containing real-time traffic information across Jeddah city.'
- *         data_source:
- *           type: string
- *           example: 'OpenStreetMap'
- *         entity_type:
- *           type: string
- *           example: 'traffic'
- *         geometry_type:
- *           type: string
- *           example: 'POINT'
- *         spatial_coverage:
- *           type: string
- *           example: 'Jeddah, Saudi Arabia'
- *         bounding_box:
- *           type: string
- *           example: 'POLYGON((39.1201 21.5433, 39.2001 21.5433, 39.2001 21.5933, 39.1201 21.5933, 39.1201 21.5433))'
- *         feature_count:
- *           type: integer
- *           example: 1245
- *         last_updated:
- *           type: string
- *           example: '2025-11-12T14:23:00Z'
+ *           description: Optional description of the dataset.
  *         file_format:
  *           type: string
- *           example: 'GeoJSON'
- *         uploaded_at:
- *           type: string
- *           example: '2025-11-10T09:45:00Z'
+ *           description: Format of the source file (GeoJSON, CSV, etc).
+ *           example: "GeoJSON"
  *         user_id:
  *           type: string
- *           example: '987e6543-e21b-65d3-a456-426614174999'
+ *           description: The ID of the user who owns the dataset (Firebase UID).
+ *           example: "xC9jTEIaficN5qJe9RdW01mmHi02"
+ *         feature_count:
+ *           type: integer
+ *           description: Number of spatial features in the dataset.
+ *           default: 0
  */
-// Dataset model definition
 const Dataset = sequelize.define(
   "Dataset",
     {
-        dataset_id: {
+        id: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
             field: "dataset_id",
             primaryKey: true,
         },
-        dataset_slug: {
+        slug: {
             type: DataTypes.STRING(255),
             field: "dataset_slug",
             allowNull: false,
         },
-        dataset_name: {
+        name: {
             type: DataTypes.STRING(255),
             field: "dataset_name",
             allowNull: false,
@@ -113,14 +102,14 @@ const Dataset = sequelize.define(
             allowNull: false,
         },
         user_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.STRING(128),
             field: "user_id",
             allowNull: false,
-            references: {
-                model: "User",
-                key: "user_id",
-            },
-            onDelete: "CASCADE",
+        },
+        author: {
+            type: DataTypes.STRING(255),
+            field: "author",
+            allowNull: true,
         },
     },
     {

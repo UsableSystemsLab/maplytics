@@ -13,7 +13,8 @@ export const authenticate = async (req, res, next) => {
 
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        req.user = decodedToken;
+        const userRecord = await admin.auth().getUser(decodedToken.uid);
+        req.user = userRecord;
         req.userId = decodedToken.uid;
         next();
     } catch (error) {

@@ -1,179 +1,128 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import AddLayerModal from "@/components/AddLayerModal";
-import PromptForm from "@/components/PromptForm";
-import SideBar from '@/components/sidebar';
-import { createProject } from "@/lib/projectApi";
+import * as projectApi from "@/lib/projectApi";
+import { FolderPlus, TextQuote, Loader2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function CreateProjectPage() {
     const { user } = useAuth();
     const router = useRouter();
-    const [layerOn, setLayerOn] = useState(true);
-    const [isAddModalOpen, setAddModalOpen] = useState(false);
-
     const [projectName, setProjectName] = useState("");
-    const [projectId] = useState(() => typeof crypto !== 'undefined' ? crypto.randomUUID() : `project-${Date.now()}`);
+    const [description, setDescription] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [datasets, setDatasets] = useState([]);
+    const handleCreateProject = async (e) => {
+        e.preventDefault();
+        if (!projectName.trim() || !user) return;
 
-    const handleCreateProject = async () => {
-        if (!projectName.trim()) {
-            alert("Please enter a project name");
-            return;
-        }
-
+        setIsSubmitting(true);
         try {
-            await createProject({
-                id: projectId,
+            const newProject = await projectApi.createProject({
                 name: projectName,
-                datasets: datasets.map(d => ({
-                    name: d.name,
-                    filename: d.content.uploadedFileName,
-                    size: d.content.fileSize,
-                    originalName: d.content.file?.name,
-                    type: d.content.isPrivate ? 'private' : 'public',
-                    ...(d.content.isPrivate ? {} : { userId: user?.uid })
-                }))
-            });
+                description: description,
+                email: user.email
+            }, user.uid);
 
-            localStorage.setItem('current_project', JSON.stringify({ id: projectId, name: projectName }));
+            localStorage.setItem('current_project', JSON.stringify({ 
+                id: newProject.id, 
+                name: newProject.name 
+            }));
             localStorage.removeItem('current_project_id');
 
             window.dispatchEvent(new Event('projectChanged'));
-
-            window.location.href = '/dashboard';
-
+            router.push('/dashboard');
         } catch (error) {
             console.error('Error creating project:', error);
-            alert("Failed to create project");
+            alert(error.message || "Failed to create project");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    const handleAddDataset = (data) => {
-        const nextId = datasets.length + 1;
-        setDatasets(prev => [
-            ...prev,
-            {
-                id: nextId,
-                name: data.name || `Dataset #${nextId}`,
-                enabled: true,
-                content: data
-            }
-        ]);
-        setAddModalOpen(false);
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50 flex">
-            <SideBar />
+        <div className="min-h-full bg-gray-50/50 p-6 md:p-12 flex flex-col items-center justify-center animate-in fade-in duration-500">
+            <div className="w-full max-w-2xl space-y-6">
+                <Link 
+                    href="/dashboard/projects" 
+                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Projects
+                </Link>
 
-            <div className="flex-1 flex flex-col items-center px-6 py-8">
-
-                <h1 className="text-2xl font-semibold text-gray-900 mb-8">
-                    Create New Project
-                </h1>
-
-                <div className="w-full max-w-3xl mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Project Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        value={projectName}
-                        onChange={(e) => setProjectName(e.target.value)}
-                        placeholder="e.g., Urban Analysis 2024"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent outline-none transition-all"
-                    />
-                </div>
-
-                <div className="w-full max-w-3xl mb-6">
-                    <PromptForm />
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-3xl">
-                    <div className="p-6 border-b border-gray-100">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900">Layer</h2>
-
-                            <div className="flex items-center gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="layer"
-                                        checked={layerOn}
-                                        onChange={() => setLayerOn(true)}
-                                        className="w-4 h-4"
-                                        style={{ accentColor: '#134565' }}
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">On</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="layer"
-                                        checked={!layerOn}
-                                        onChange={() => setLayerOn(false)}
-                                        className="w-4 h-4"
-                                        style={{ accentColor: '#134565' }}
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">Off</span>
-                                </label>
-                            </div>
+                <Card className="shadow-lg border-2 border-transparent hover:border-primary/5 transition-all">
+                    <CardHeader className="space-y-1 pb-8 border-b bg-white rounded-t-xl">
+                        <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+                            <FolderPlus className="w-6 h-6" />
                         </div>
-                    </div>
+                        <CardTitle className="text-2xl font-bold">Create New Project</CardTitle>
+                        <CardDescription>
+                            Define your workspace details to start organizing your datasets.
+                        </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-8">
+                        <form onSubmit={handleCreateProject} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    Project Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={projectName}
+                                    onChange={(e) => setProjectName(e.target.value)}
+                                    placeholder="e.g., Urban Mobility Analysis"
+                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400"
+                                />
+                            </div>
 
-                    {layerOn && (
-                        <div className="p-6">
-                            <h3 className="text-base font-semibold text-gray-900 mb-4">
-                                Datasets
-                            </h3>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    Description
+                                    <span className="text-xs font-normal text-muted-foreground">(Optional)</span>
+                                </label>
+                                <div className="relative">
+                                    <TextQuote className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Briefly describe the purpose of this project..."
+                                        rows={4}
+                                        className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400 resize-none"
+                                    />
+                                </div>
+                            </div>
 
-                            <div className="space-y-2 mb-4">
-                                {datasets.length === 0 && (
-                                    <p className="text-sm text-gray-500 italic">No datasets added yet.</p>
+                            <Button 
+                                type="submit" 
+                                disabled={isSubmitting || !projectName.trim()}
+                                className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all gap-2"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Creating Project...
+                                    </>
+                                ) : (
+                                    <>
+                                        Create Project
+                                    </>
                                 )}
-                                {datasets.map(dataset => (
-                                    <div
-                                        key={dataset.id}
-                                        className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-                                        <span className="text-sm font-medium text-gray-900">
-                                            {dataset.name}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                            {dataset.enabled ? "Active" : "Inactive"}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
 
-                            <button
-                                onClick={() => setAddModalOpen(true)}
-                                className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white font-medium text-sm rounded-lg transition-colors">
-                                + Add Dataset
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="p-6 border-t border-gray-100 w-full flex justify-end">
-                        <button
-                            onClick={handleCreateProject}
-                            disabled={!projectName.trim()}
-                            className="py-3 px-8 bg-primary text-white font-semibold rounded-lg hover:scale-105 transition-all shadow-md disabled:opacity-50 disabled:hover:scale-100">
-                            Create Project
-                        </button>
-                    </div>
-                </div>
+                <p className="text-center text-xs text-muted-foreground mt-8">
+                    By creating a project, you agree to our terms of service and workspace policies.
+                </p>
             </div>
-
-            <AddLayerModal
-                isOpen={isAddModalOpen}
-                onClose={() => setAddModalOpen(false)}
-                onSave={handleAddDataset}
-                projectId={projectId}
-            />
         </div>
     );
 }
