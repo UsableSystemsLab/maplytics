@@ -6,7 +6,7 @@ import { extractLatitude, extractLongitude, removeCoordinateFields } from '../li
 
 /**
  * DatasetController - Responsible for managing geospatial datasets.
-**/
+ **/
 
 const generateSlug = (name) => {
     return name
@@ -123,6 +123,9 @@ const flattenCoordinates = (coords, type) => {
  *         description: Invalid request data
  */
 export const ingestDataset = async (req, res, next) => {
+    if (!req.userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
     const transaction = await sequelize.transaction();
 
     try {
@@ -132,7 +135,7 @@ export const ingestDataset = async (req, res, next) => {
             description = '',
             data_source = 'user_upload',
             spatial_coverage = '',
-            user_id,
+            is_public = true,
             data
         } = req.body;
 
@@ -150,12 +153,10 @@ export const ingestDataset = async (req, res, next) => {
         }
 
         // Check for duplicate dataset (same name for same user)
-        // TODO: use actual user_id from middleware when authentication is implemented
-        // Default UUID is for testing purposes only
-        const effectiveUserId = user_id || '00000000-0000-0000-0000-000000000000';
+        const effectiveUserId = req.userId;
         const existingDataset = await Dataset.findOne({
             where: {
-                dataset_name: dataset_name,
+                name: dataset_name,
                 user_id: effectiveUserId
             }
         });
@@ -164,8 +165,8 @@ export const ingestDataset = async (req, res, next) => {
             return res.status(409).json({
                 error: 'A dataset with this name already exists.',
                 existing_dataset: {
-                    dataset_id: existingDataset.dataset_id,
-                    dataset_name: existingDataset.dataset_name,
+                    id: existingDataset.id,
+                    name: existingDataset.name,
                     feature_count: existingDataset.feature_count,
                     created_at: existingDataset.createdAt
                 },
@@ -174,7 +175,7 @@ export const ingestDataset = async (req, res, next) => {
         }
 
         if (existingDataset && req.body.force_override) {
-            logger.info(`Overriding existing dataset: ${existingDataset.dataset_id}`);
+            logger.info(`Overriding existing dataset: ${existingDataset.id}`);
             // delete the old dataset
             await existingDataset.destroy({ transaction });
         }
@@ -202,8 +203,8 @@ export const ingestDataset = async (req, res, next) => {
         const { minLat, maxLat, minLng, maxLng } = calculateBoundingBox(itemsWithGeometry);
 
         const dataset = await Dataset.create({
-            dataset_slug: generateSlug(dataset_name),
-            dataset_name,
+            slug: generateSlug(dataset_name),
+            name: dataset_name,
             description,
             data_source,
             entity_type,
@@ -215,14 +216,15 @@ export const ingestDataset = async (req, res, next) => {
             ),
             feature_count: itemsWithGeometry.length,
             file_format: 'JSON',
-            user_id: effectiveUserId
+            user_id: effectiveUserId,
+            is_public: is_public
         }, { transaction });
 
         for (const item of itemsWithGeometry) {
             const geomResult = extractGeometry(item);
 
             const feature = await Feature.create({
-                dataset_id: dataset.dataset_id,
+                dataset_id: dataset.id,
                 geometry: geomResult.geometry
             }, { transaction });
 
@@ -240,8 +242,8 @@ export const ingestDataset = async (req, res, next) => {
 
         res.status(201).json({
             message: 'Dataset ingested successfully',
-            dataset_id: dataset.dataset_id,
-            dataset_slug: dataset.dataset_slug,
+            id: dataset.id,
+            slug: dataset.slug,
             geometry_type: primaryGeometryType,
             feature_count: itemsWithGeometry.length
         });
@@ -265,25 +267,27 @@ export const ingestDataset = async (req, res, next) => {
  */
 export const getAllDatasets = async (req, res, next) => {
     try {
-        const { user_id } = req.query;
-
-        const whereClause = {};
-        if (user_id) {
-            whereClause.user_id = user_id;
+        // Authenticated endpoint - returns only the user's private datasets
+        if (!req.userId) {
+            return res.status(401).json({ error: 'Authentication required' });
         }
 
         const datasets = await Dataset.findAll({
-            where: whereClause,
+            where: {
+                user_id: req.userId,
+                is_public: false
+            },
             attributes: [
-                'dataset_id',
-                'dataset_slug',
-                'dataset_name',
+                'id',
+                'slug',
+                'name',
                 'description',
                 'entity_type',
                 'geometry_type',
                 'feature_count',
                 'user_id',
                 'author',
+                'is_public',
                 'last_updated'
             ],
             order: [['last_updated', 'DESC']]
@@ -291,11 +295,50 @@ export const getAllDatasets = async (req, res, next) => {
 
         res.status(200).json({
             count: datasets.length,
-            user_filter: user_id || null,
             datasets
         });
     } catch (error) {
-        logger.error('Error fetching datasets:', error);
+        logger.error('Error fetching user datasets:', error);
+        next(error);
+    }
+};
+
+/**
+ * @swagger
+ * /datasets/public:
+ *   get:
+ *     summary: Get all public datasets
+ *     tags: [Datasets]
+ *     responses:
+ *       200:
+ *         description: List of public datasets
+ */
+export const getAllPublicDatasets = async (req, res, next) => {
+    try {
+        const datasets = await Dataset.findAll({
+            where: { is_public: true },
+            attributes: [
+                'id',
+                'slug',
+                'name',
+                'description',
+                'entity_type',
+                'geometry_type',
+                'feature_count',
+                'user_id',
+                'author',
+                'is_public',
+                'last_updated'
+            ],
+            order: [['last_updated', 'DESC']]
+        });
+
+        res.status(200).json({
+            count: datasets.length,
+            datasets
+        });
+    } catch (error) {
+        logger.error('Error fetching public datasets:', error);
         next(error);
     }
 };
@@ -325,8 +368,8 @@ export const getDatasetAsGeoJSON = async (req, res, next) => {
 
         const dataset = await Dataset.findOne({
             where: sequelize.or(
-                { dataset_id: id },
-                { dataset_slug: id }
+                { id: id },
+                { slug: id }
             )
         });
 
@@ -336,7 +379,7 @@ export const getDatasetAsGeoJSON = async (req, res, next) => {
 
         // Fetch all features with their properties
         const features = await Feature.findAll({
-            where: { dataset_id: dataset.dataset_id },
+            where: { dataset_id: dataset.id },
             include: [{
                 model: Feature_Property,
                 as: 'properties'
@@ -351,8 +394,8 @@ export const getDatasetAsGeoJSON = async (req, res, next) => {
         const geojson = {
             type: 'FeatureCollection',
             metadata: {
-                dataset_id: dataset.dataset_id,
-                dataset_name: dataset.dataset_name,
+                id: dataset.id,
+                name: dataset.name,
                 entity_type: dataset.entity_type,
                 feature_count: dataset.feature_count
             },
@@ -395,8 +438,8 @@ export const getDatasetById = async (req, res, next) => {
 
         const dataset = await Dataset.findOne({
             where: sequelize.or(
-                { dataset_id: id },
-                { dataset_slug: id }
+                { id: id },
+                { slug: id }
             ),
             include: [{
                 model: Dataset_Metadata,
@@ -439,8 +482,8 @@ export const deleteDataset = async (req, res, next) => {
 
         const dataset = await Dataset.findOne({
             where: sequelize.or(
-                { dataset_id: id },
-                { dataset_slug: id }
+                { id: id },
+                { slug: id }
             )
         });
 
@@ -450,11 +493,11 @@ export const deleteDataset = async (req, res, next) => {
 
         await dataset.destroy(); // Cascade deletes features and properties
 
-        logger.info(`Dataset "${dataset.dataset_name}" deleted`);
+        logger.info(`Dataset "${dataset.name}" deleted`);
 
         res.status(200).json({
             message: 'Dataset deleted successfully',
-            dataset_id: dataset.dataset_id
+            id: dataset.id
         });
     } catch (error) {
         logger.error('Error deleting dataset:', error);
@@ -486,22 +529,35 @@ export const searchDatasets = async (req, res, next) => {
             return res.status(400).json({ error: 'Search query is required' });
         }
 
+        if (!req.userId) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        const whereClause = {
+            [Op.and]: [
+                {
+                    [Op.or]: [
+                        { name: { [Op.iLike]: `%${q}%` } },
+                        { description: { [Op.iLike]: `%${q}%` } }
+                    ]
+                },
+                { user_id: req.userId },
+                { is_public: false }
+            ]
+        };
+
         const datasets = await Dataset.findAll({
-            where: {
-                [Op.or]: [
-                    { dataset_name: { [Op.iLike]: `%${q}%` } },
-                    { description: { [Op.iLike]: `%${q}%` } }
-                ]
-            },
+            where: whereClause,
             attributes: [
-                'dataset_id',
-                'dataset_slug',
-                'dataset_name',
+                'id',
+                'slug',
+                'name',
                 'description',
                 'entity_type',
                 'geometry_type',
                 'feature_count',
                 'user_id',
+                'is_public',
                 'last_updated'
             ],
             order: [['last_updated', 'DESC']],
@@ -514,9 +570,71 @@ export const searchDatasets = async (req, res, next) => {
             datasets
         });
     } catch (error) {
-        logger.error('Error searching datasets:', error);
+        logger.error('Error searching user datasets:', error);
         next(error);
     }
 };
 
+/**
+ * @swagger
+ * /datasets/search/public:
+ *   get:
+ *     summary: Search public datasets
+ *     tags: [Datasets]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of public matching datasets
+ */
+export const searchPublicDatasets = async (req, res, next) => {
+    try {
+        const { q } = req.query;
 
+        if (!q) {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+
+        const whereClause = {
+            [Op.and]: [
+                {
+                    [Op.or]: [
+                        { name: { [Op.iLike]: `%${q}%` } },
+                        { description: { [Op.iLike]: `%${q}%` } }
+                    ]
+                },
+                { is_public: true }
+            ]
+        };
+
+        const datasets = await Dataset.findAll({
+            where: whereClause,
+            attributes: [
+                'id',
+                'slug',
+                'name',
+                'description',
+                'entity_type',
+                'geometry_type',
+                'feature_count',
+                'user_id',
+                'is_public',
+                'last_updated'
+            ],
+            order: [['last_updated', 'DESC']],
+            limit: 20
+        });
+
+        res.status(200).json({
+            count: datasets.length,
+            query: q,
+            datasets
+        });
+    } catch (error) {
+        logger.error('Error searching public datasets:', error);
+        next(error);
+    }
+};

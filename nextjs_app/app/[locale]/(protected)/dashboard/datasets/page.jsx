@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import PublicDatasetBrowser from '@/components/PublicDatasetBrowser';
-import ProjectDatasetBrowser from '@/components/ProjectDatasetBrowser';
+import MyDatasetBrowser from '@/components/MyDatasetBrowser';
 import { useTranslations } from 'next-intl';
 
 export default function DashboardDatasetsPage() {
@@ -16,31 +16,29 @@ export default function DashboardDatasetsPage() {
                     <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
                     <p className="text-gray-500 mt-1">{t('description')}</p>
                 </div>
-                
+
                 <div className="flex bg-gray-100 p-1 rounded-lg w-full max-w-sm mb-6">
                     <button
                         onClick={() => setActiveTab('public')}
-                        className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
-                            activeTab === 'public'
+                        className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'public'
                                 ? 'bg-white text-primary shadow-sm'
                                 : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                            }`}
                     >
-                        Public Datasets
+                        {t('publicTab')}
                     </button>
                     <button
                         onClick={() => setActiveTab('project')}
-                        className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
-                            activeTab === 'project'
+                        className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'project'
                                 ? 'bg-white text-primary shadow-sm'
                                 : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                            }`}
                     >
-                        Project Datasets
+                        {t('privateTab')}
                     </button>
                 </div>
 
-                {activeTab === 'public' ? <PublicDatasetBrowser /> : <ProjectDatasetBrowser />}
+                {activeTab === 'public' ? <PublicDatasetBrowser /> : <MyDatasetBrowser />}
             </div>
         </div>
     );

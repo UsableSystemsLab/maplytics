@@ -32,8 +32,8 @@ export const uploadPublic = multer({
   },
 });
 
-// Project dataset upload - organized by project ID
-export const uploadProject = multer({
+// Private dataset upload - organized by user ID
+export const uploadPrivate = multer({
   storage: multerS3({
     s3: s3Client,
     bucket: BUCKET_NAME,
@@ -41,8 +41,8 @@ export const uploadProject = multer({
       cb(null, { fieldName: file.fieldname });
     },
     key: function (req, file, cb) {
-      const projectId = req.query.projectId || 'unassigned';
-      const uniqueName = `projects/${projectId}/${Date.now()}-${file.originalname}`;
+      const userId = req.userId || 'unassigned';
+      const uniqueName = `private/${userId}/${Date.now()}-${file.originalname}`;
       cb(null, uniqueName);
     }
   }),

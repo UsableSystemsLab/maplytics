@@ -5,7 +5,7 @@ import logger from '../configs/logger.js';
 /**
  * Create a Dataset row and bulk insert all features into Postgres.
  **/
-export async function insertFeaturesIntoDB({ datasetName, description, userId, author, fileFormat, geojson }) {
+export async function insertFeaturesIntoDB({ datasetName, description, userId, author, fileFormat, geojson, isPublic = true }) {
     const transaction = await sequelize.transaction();
 
     try {
@@ -24,6 +24,7 @@ export async function insertFeaturesIntoDB({ datasetName, description, userId, a
             author: author || 'unknown author',
             feature_count: geojson?.features?.length || 0,
             geometry_type: geojson?.features?.[0]?.geometry?.type || 'Point',
+            is_public: isPublic,
         }, { transaction });
 
         const datasetId = dataset.id;

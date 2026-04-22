@@ -180,6 +180,8 @@
     "validation": {
       "nameFileRequired": "يرجى تقديم اسم واختيار ملف.",
       "failedUpload": "فشل رفع قاعدة البيانات."
-    }
+    },
+    "publicTab": "البيانات العامة",
+    "privateTab": "بياناتي"
   }
 }

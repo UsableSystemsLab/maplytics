@@ -8,7 +8,7 @@ import { insertFeaturesIntoDB } from '../utils/featureInserter.js';
  * After uploading file, fetch the file back, parse it, and insert features into Postgres.
  * Runs asynchronously, does not block the upload response.
  */
-async function insertFeaturesFromS3(s3Key, datasetName, description, userId, author, originalName) {
+async function insertFeaturesFromS3(s3Key, datasetName, description, userId, author, originalName, isPublic = true) {
     try {
         const response = await s3Client.send(new GetObjectCommand({
             Bucket: BUCKET_NAME,
@@ -26,6 +26,7 @@ async function insertFeaturesFromS3(s3Key, datasetName, description, userId, aut
             author,
             fileFormat: ext,
             geojson,
+            isPublic
         });
 
         return datasetId;
@@ -53,7 +54,7 @@ export const uploadPublicFile = async (req, res) => {
 
     const author = req.user?.displayName || "unknown user";
     const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, description, req.userId, author, req.file.originalname
+        filename, displayName, description, req.userId, author, req.file.originalname, true
     );
 
 
@@ -86,7 +87,7 @@ export const uploadPublicFile = async (req, res) => {
     });
 };
 
-export const uploadProjectFile = async (req, res) => {
+export const uploadPrivateFile = async (req, res) => {
     if (!req.file) {
         return res.status(400).json({
             success: false,
@@ -95,26 +96,22 @@ export const uploadProjectFile = async (req, res) => {
     }
 
     const projectId = req.query.projectId;
-    if (!projectId) {
-        return res.status(400).json({
-            success: false,
-            message: 'Project ID is required for project datasets'
-        });
-    }
+    // We still allow projectId for backward compatibility and linking, 
+    // but the dataset is primarily linked to the user and marked as private (is_public: false)
 
     const displayName = req.body.name || req.file.originalname;
     const description = req.body.description || null;
 
     const filename = req.file.key || req.file.filename;
-    const location = req.file.location || `/files/projects/${projectId}/${filename}`;
+    const location = req.file.location || `/files/private/${req.userId}/${filename}`;
     const filenameSuffix = filename.split('/').pop();
 
     const author = req.user?.displayName || "unknown user";
     const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, description, req.userId, author, req.file.originalname
+        filename, displayName, description, req.userId, author, req.file.originalname, false
     );
 
-    if (pgDatasetId) {
+    if (projectId && pgDatasetId) {
         try {
             const project = await Project.findByPk(projectId);
             if (project) {
@@ -122,22 +119,17 @@ export const uploadProjectFile = async (req, res) => {
                     project_id: projectId,
                     dataset_id: pgDatasetId
                 });
-            } else {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Project not found'
-                });
             }
         } catch (err) {
-            console.error("Error saving project dataset association:", err);
-            return res.status(500).json({ success: false, message: 'Database failure linking dataset to project' });
+            console.error("Error saving private dataset association:", err);
+            // Non-critical error, we still have the dataset linked to the user
         }
     }
 
     res.status(201).json({
         success: true,
-        message: 'Project dataset uploaded successfully',
-        type: 'project',
+        message: 'Private dataset uploaded successfully',
+        type: 'private',
         userId: req.userId,
         projectId: projectId,
         author: author,

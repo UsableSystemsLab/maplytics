@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS public."Dataset" (
     "file_format" VARCHAR(50),                        -- Format of uploaded file (CSV, GeoJSON, Shapefile, etc.)
     "uploaded_at" TIMESTAMP DEFAULT NOW(),            -- Upload timestamp for version tracking
     "author" VARCHAR(255),                          -- Name of the user who uploaded the dataset
-    "user_id" VARCHAR(128) NOT NULL                           -- Reference to dataset owner
+    "user_id" VARCHAR(128) NOT NULL,                           -- Reference to dataset owner
+    "is_public" BOOLEAN DEFAULT TRUE                 -- Whether the dataset is publicly available
 );
 
 

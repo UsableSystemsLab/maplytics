@@ -180,6 +180,8 @@
     "validation": {
       "nameFileRequired": "Please provide a name and select a file.",
       "failedUpload": "Failed to upload dataset."
-    }
+    },
+    "publicTab": "Public Datasets",
+    "privateTab": "My Datasets"
   }
 }

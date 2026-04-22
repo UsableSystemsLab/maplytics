@@ -26,8 +26,15 @@ export const ingestDataset = async (datasetName, data, entityType = 'generic', d
     }
 };
 
-export const getDatasets = async () => {
-    return apiClient.get('/datasets');
+export const getDatasets = async (params = {}) => {
+    // If is_public is true, we call the public endpoint
+    // Otherwise, we call the main endpoint which is authenticated and returns user's datasets
+    let url = '/datasets';
+    if (params.is_public === true) {
+        url = '/datasets/public';
+    }
+    
+    return apiClient.get(url);
 };
 
 export const getDatasetGeoJSON = async (datasetId) => {
@@ -47,6 +54,14 @@ export const getProjectDatasetData = async (projectId, datasetId) => {
     return apiClient.get(`/projects/${projectId}/datasets/${datasetId}/data`);
 };
 
-export const searchDatasets = async (query) => {
-    return apiClient.get(`/datasets/search?q=${encodeURIComponent(query)}`);
+export const searchDatasets = async (query, params = {}) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('q', query);
+    
+    let url = '/datasets/search';
+    if (params.is_public === true) {
+        url = '/datasets/search/public';
+    }
+    
+    return apiClient.get(`${url}?${queryParams.toString()}`);
 };

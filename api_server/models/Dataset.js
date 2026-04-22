@@ -40,9 +40,13 @@ import { sequelize } from "../configs/postgresDB.js";
  *           type: integer
  *           description: Number of spatial features in the dataset.
  *           default: 0
+ *         is_public:
+ *           type: boolean
+ *           description: Whether the dataset is publicly available.
+ *           default: true
  */
 const Dataset = sequelize.define(
-  "Dataset",
+    "Dataset",
     {
         id: {
             type: DataTypes.UUID,
@@ -110,6 +114,12 @@ const Dataset = sequelize.define(
             type: DataTypes.STRING(255),
             field: "author",
             allowNull: true,
+        },
+        is_public: {
+            type: DataTypes.BOOLEAN,
+            field: "is_public",
+            defaultValue: true,
+            allowNull: false,
         },
     },
     {

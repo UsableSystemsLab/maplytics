@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { getDatasets, searchDatasets } from '@/lib/datasetApi';
+import { getDatasets, searchDatasets, getDatasetGeoJSON } from '@/lib/datasetApi';
 import * as projectApi from '@/lib/projectApi';
 import { uploadFile } from '@/lib/uploadApi';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl';
 import { selectActiveProject } from '@/lib/store/features/projectSlice';
 import ProjectRequired from '@/components/ProjectRequired';
 
-export default function ProjectDatasetBrowser() {
+export default function MyDatasetBrowser() {
     const t = useTranslations("datasets");
     const { user } = useAuth();
     const router = useRouter();
@@ -20,6 +20,7 @@ export default function ProjectDatasetBrowser() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [previewContent, setPreviewContent] = useState(null);
     const [previewTitle, setPreviewTitle] = useState("");
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
     // Redux State
     const activeProject = useSelector(selectActiveProject);
@@ -41,13 +42,10 @@ export default function ProjectDatasetBrowser() {
     const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
-        if (activeProject) {
-            fetchDatasets(activeProject);
-        } else {
-            setIsLoading(false);
-            setError("Please select a project first to view its datasets.");
+        if (user) {
+            fetchDatasets();
         }
-    }, [activeProject]); // Run when activeProject changes
+    }, [user, activeProject]); // Refresh when user or project changes
 
     // Debounce search
     useEffect(() => {
@@ -55,24 +53,21 @@ export default function ProjectDatasetBrowser() {
             if (searchQuery.trim()) {
                 handleSearch();
             } else {
-                fetchDatasets(activeProject);
+                fetchDatasets();
             }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [searchQuery, activeProject?.id]);
+    }, [searchQuery]);
 
-    const fetchDatasets = async (proj = activeProject) => {
+    const fetchDatasets = async () => {
         try {
             setIsLoading(true);
-            setDatasets([]);
-            if (!proj) {
-                setError("Please select a project first to view its datasets.");
-                setIsLoading(false);
-                return;
-            }
-            const data = await projectApi.getProjectDatasets(proj.id);
-            setDatasets(data || []);
+            if (!user) return;
+            
+            // Fetch private datasets for the user
+            const data = await getDatasets({ is_public: false });
+            setDatasets(data.datasets || []);
             setError(null);
         } catch (err) {
             console.error("Error fetching datasets:", err);
@@ -83,18 +78,13 @@ export default function ProjectDatasetBrowser() {
     };
 
     const handleSearch = async () => {
-        if (!searchQuery.trim() || !activeProject) return;
+        if (!searchQuery.trim() || !user) return;
 
         try {
             setIsSearching(true);
-            // Local search for project datasets
-            const data = await projectApi.getProjectDatasets(activeProject.id);
-            const query = searchQuery.toLowerCase();
-            const filtered = (data || []).filter(d =>
-                d.name?.toLowerCase().includes(query) ||
-                d.dataset_name?.toLowerCase().includes(query)
-            );
-            setDatasets(filtered);
+            // Search user's private datasets
+            const data = await searchDatasets(searchQuery, { is_public: false });
+            setDatasets(data.datasets || []);
         } catch (err) {
             console.error("Error searching datasets:", err);
         } finally {
@@ -185,13 +175,21 @@ export default function ProjectDatasetBrowser() {
         }
     };
 
-    const handlePreview = (dataset) => {
-        // Strip out noisy or internal fields for a cleaner preview if necessary
-        const previewData = { ...dataset };
-
-        setPreviewTitle(dataset.dataset_name || "Dataset Preview");
-        setPreviewContent(JSON.stringify(previewData, null, 2));
-        setIsPreviewModalOpen(true);
+    const handlePreview = async (dataset) => {
+        try {
+            setIsPreviewLoading(true);
+            setPreviewTitle(dataset.name || "Dataset Preview");
+            setIsPreviewModalOpen(true);
+            
+            // Fetch actual GeoJSON data for preview
+            const geojson = await getDatasetGeoJSON(dataset.id || dataset.dataset_id);
+            setPreviewContent(JSON.stringify(geojson, null, 2));
+        } catch (err) {
+            console.error("Error fetching preview data:", err);
+            setPreviewContent("Error loading preview data.");
+        } finally {
+            setIsPreviewLoading(false);
+        }
     };
 
 
@@ -208,8 +206,8 @@ export default function ProjectDatasetBrowser() {
 
             await uploadFile({
                 file: newDatasetFile,
-                isProjectDataset: true,
-                projectId: activeProject.id,
+                isPrivate: true, // Use isPrivate instead of isProjectDataset
+                projectId: activeProject?.id,
                 layerName: newDatasetName,
                 description: newDatasetDescription
             });
@@ -242,8 +240,8 @@ export default function ProjectDatasetBrowser() {
         return t('items', { count });
     };
 
-    if (!activeProject && !isLoading) {
-        return <ProjectRequired />;
+    if (!user) {
+        return <div className="p-8 text-center">{t('pleaseLogin')}</div>;
     }
 
     return (
@@ -287,7 +285,7 @@ export default function ProjectDatasetBrowser() {
                     <AlertCircle className="w-8 h-8 mx-auto mb-2" />
                     <p>{error}</p>
                     <button
-                        onClick={() => fetchDatasets(activeProject)}
+                        onClick={fetchDatasets}
                         className="mt-4 text-sm font-medium underline hover:text-red-700"
                     >
                         {t('tryAgain')}
@@ -304,7 +302,7 @@ export default function ProjectDatasetBrowser() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {datasets.map((dataset) => (
-                        <div key={dataset.dataset_id || dataset.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col group">
+                        <div key={dataset.id || dataset.dataset_id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col group">
                             <div className="h-40 bg-gray-100 relative flex items-center justify-center group-hover:bg-primary/5 transition-colors">
                                 <FileJson className="w-12 h-12 text-gray-400 opacity-60 group-hover:text-primary/60 transition-colors" />
                                 <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md text-white text-xs px-2 py-1 rounded-full uppercase font-medium">
@@ -315,8 +313,8 @@ export default function ProjectDatasetBrowser() {
                             <div className="p-5 flex-1 flex flex-col">
                                 <div className="flex items-start justify-between mb-2">
                                     <div>
-                                        <h3 className="font-semibold text-gray-900 line-clamp-1" title={dataset.dataset_name || dataset.name}>
-                                            {dataset.dataset_name || dataset.name}
+                                        <h3 className="font-semibold text-gray-900 line-clamp-1" title={dataset.name}>
+                                            {dataset.name}
                                         </h3>
                                         <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                                             <User className="w-3 h-3" />
@@ -379,9 +377,16 @@ export default function ProjectDatasetBrowser() {
                         </div>
 
                         <div className="flex-1 overflow-auto p-4 bg-gray-50">
-                            <pre className="bg-white p-4 rounded-lg border border-gray-200 text-sm font-mono text-gray-700 overflow-auto shadow-sm">
-                                <code>{previewContent}</code>
-                            </pre>
+                            {isPreviewLoading ? (
+                                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                                    <Loader2 className="w-8 h-8 animate-spin mb-2" />
+                                    <p>{t('loading')}</p>
+                                </div>
+                            ) : (
+                                <pre className="bg-white p-4 rounded-lg border border-gray-200 text-sm font-mono text-gray-700 overflow-auto shadow-sm">
+                                    <code>{previewContent}</code>
+                                </pre>
+                            )}
                         </div>
 
                         <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
