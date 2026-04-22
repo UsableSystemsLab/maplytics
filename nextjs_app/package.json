@@ -14,6 +14,7 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@reduxjs/toolkit": "^2.11.2",
     "chart.js": "^4.5.1",
@@ -33,6 +34,7 @@
     "redux-persist": "^6.0.0",
     "shadcn-ui": "^0.9.5",
     "tailwind-merge": "^3.3.1",
+    "vaul": "^1.1.2",
     "vega": "^6.2.0",
     "vega-embed": "^7.1.0",
     "vega-lite": "^6.4.2"

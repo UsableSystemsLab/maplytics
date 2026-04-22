@@ -17,6 +17,8 @@ import {
   FolderKanban,
   Home,
   Database,
+  Wrench,
+  Layers,
 } from "lucide-react";
 
 import {
@@ -49,6 +51,7 @@ import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import AddLayerModal from "./AddLayerModal";
+import DatasetDrawer from "./DatasetDrawer";
 import { Button } from "./ui/button";
 import * as projectApi from "@/lib/projectApi";
 import * as datasetApi from "@/lib/datasetApi";
@@ -89,6 +92,7 @@ export function AppSidebar() {
 
   const [projects, setProjects] = useState([]);
   const [selectedLayerId, setSelectedLayerId] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [hasFetchedProjects, setHasFetchedProjects] = useState(false);
 
 
@@ -262,6 +266,24 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
+            <SidebarGroupLabel>Tools</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setIsDrawerOpen(true)}
+                    tooltip="Layers Browser"
+                    disabled={!activeProject}
+                  >
+                    <Layers className="w-4 h-4" />
+                    <span>Layers Browser</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
             <SidebarGroupLabel className="flex items-center justify-between">
               <span>Layers</span>
               <button
@@ -352,6 +374,13 @@ export function AppSidebar() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveLayer}
         projectId={activeProject?.id}
+      />
+
+      <DatasetDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        activeProject={activeProject}
+        onDatasetAdded={() => activeProject?.id && fetchProjectDatasets(activeProject.id)}
       />
     </>
   );

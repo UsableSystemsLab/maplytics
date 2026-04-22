@@ -5,7 +5,7 @@ import {
     ChevronUp, ChevronDown, MapPin, Activity, Database,
     Filter, X, Loader2, Map as MapIcon, Layers, BarChart3,
 } from "lucide-react";
-import { getProjectDatasetData } from "@/lib/datasetApi";
+import { getProjectDatasetData, getDatasetGeoJSON } from "@/lib/datasetApi";
 import { getDistrictColor, resetDistrictColors } from "@/lib/districtColors";
 import { useAuth } from "@/hooks/useAuth";
 import StatCard from "@/components/StatCard";
@@ -49,18 +49,62 @@ export default function MapArea() {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await getProjectDatasetData(projectId, datasetId, userRef.current?.uid);
-            const { geojson, fields } = result;
+            let result;
+            if (projectId) {
+                result = await getProjectDatasetData(projectId, datasetId);
+            } else {
+                result = await getDatasetGeoJSON(datasetId);
+            }
+
+            // Robust data extraction
+            let geojson = result?.geojson || (result?.type === "FeatureCollection" ? result : null);
+            let fields = result?.fields || [];
+
+            if (!geojson) {
+                console.error("Received invalid data structure:", result);
+                throw new Error("Invalid dataset format received from server");
+            }
+
+            // Fallback: Infer fields on frontend if they are missing
+            if (fields.length === 0 && geojson.features?.length > 0) {
+                const keySet = new Set();
+                geojson.features.forEach(f => {
+                    if (f.properties) Object.keys(f.properties).forEach(k => keySet.add(k));
+                });
+
+                fields = Array.from(keySet).map(key => {
+                    const values = geojson.features.map(f => f.properties?.[key]).filter(v => v != null && v !== '');
+                    const allNumbers = values.length > 0 && values.every(v => typeof v === 'number' || (!isNaN(Number(v)) && typeof v !== 'boolean'));
+                    const type = allNumbers ? 'number' : 'string';
+                    const field = { name: key, type };
+                    if (type === 'string') {
+                        const unique = [...new Set(values.map(String))];
+                        if (unique.length <= 100) field.values = unique;
+                    } else {
+                        const nums = values.map(Number);
+                        field.min = Math.min(...nums);
+                        field.max = Math.max(...nums);
+                    }
+                    return field;
+                });
+            }
+
             resetDistrictColors();
             setGeojsonData(geojson);
             setDisplayGeojson(geojson);
             setFieldsMetadata(fields || []);
             setFeatureCount(geojson.features?.length || 0);
+            
             const firstCategorical = (fields || []).find(
                 (f) => f.type === "string" && f.values?.length > 1 && f.values.length <= 20
             );
-            if (firstCategorical) { setCategoryField(firstCategorical.name); setCategories(firstCategorical.values); }
-            else { setCategoryField(null); setCategories([]); }
+            if (firstCategorical) { 
+                setCategoryField(firstCategorical.name); 
+                setCategories(firstCategorical.values); 
+            } else { 
+                setCategoryField(null); 
+                setCategories([]); 
+            }
         } catch (err) {
             console.error("Failed to load layer data:", err);
             setError(err.message);
