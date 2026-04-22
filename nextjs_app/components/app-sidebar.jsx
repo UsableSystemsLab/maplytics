@@ -45,12 +45,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import AddLayerModal from "./AddLayerModal";
 import { Button } from "./ui/button";
 import * as projectApi from "@/lib/projectApi";
 import * as datasetApi from "@/lib/datasetApi";
+import { setActiveProject, clearActiveProject, selectActiveProject } from "@/lib/store/features/projectSlice";
 
 const mainNavItems = [
   { id: "projects", label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },
@@ -77,13 +79,15 @@ export function AppSidebar() {
   const router = useRouter();
   const { isMobile, state } = useSidebar();
 
+  const dispatch = useDispatch();
+  const activeProject = useSelector(selectActiveProject);
+
   const [layers, setLayers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
 
   const [projects, setProjects] = useState([]);
-  const [activeProject, setActiveProject] = useState(null);
   const [selectedLayerId, setSelectedLayerId] = useState(null);
   const [hasFetchedProjects, setHasFetchedProjects] = useState(false);
 
@@ -94,12 +98,11 @@ export function AppSidebar() {
       const data = await projectApi.getProjects();
       setProjects(data);
 
-      const savedProjectStr = localStorage.getItem('current_project');
-      if (savedProjectStr) {
-        const savedProject = JSON.parse(savedProjectStr);
-        const matched = data.find(p => p.id === savedProject.id);
-        if (matched) {
-          setActiveProject(matched);
+      // If we have an active project, verify it still exists
+      if (activeProject) {
+        const matched = data.find(p => p.id === activeProject.id);
+        if (!matched) {
+          dispatch(clearActiveProject());
         }
       }
     } catch (error) {
@@ -110,10 +113,7 @@ export function AppSidebar() {
   };
 
   const handleProjectSelect = (project) => {
-    setActiveProject(project);
-    localStorage.setItem('current_project', JSON.stringify(project));
-    localStorage.removeItem('current_project_id');
-    window.dispatchEvent(new Event('projectChanged'));
+    dispatch(setActiveProject(project));
     router.push('/dashboard');
   };
 
@@ -121,16 +121,12 @@ export function AppSidebar() {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       try {
-        const response = await projectApi.deleteProject(projectId);
-        if (response.ok) {
-          await fetchProjects();
-          if (activeProject?.id === projectId) {
-            setActiveProject(null);
-            localStorage.removeItem('current_project');
-            window.dispatchEvent(new Event('projectChanged'));
-            router.push('/dashboard');
-          }
+        await projectApi.deleteProject(projectId);
+        if (activeProject?.id === projectId) {
+          dispatch(clearActiveProject());
         }
+        await fetchProjects();
+        router.push('/dashboard/projects');
       } catch (error) {
         console.error('Error deleting project:', error);
       }
@@ -178,57 +174,13 @@ export function AppSidebar() {
   }, [user]);
 
   useEffect(() => {
-    const updateCurrentProject = () => {
-      const savedProject = localStorage.getItem('current_project');
-      if (savedProject) {
-        try {
-          const parsed = JSON.parse(savedProject);
-          if (activeProject?.id !== parsed.id) {
-            setActiveProject(parsed);
-          }
-          fetchProjectDatasets(parsed.id);
-        } catch (e) {
-          console.error("Error parsing current_project", e);
-          setLayers([]);
-        }
-      } else {
-        setActiveProject(null);
-        setLayers([]);
-      }
-    };
-
-    const handleStorageChange = () => {
-      updateCurrentProject();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('projectChanged', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('projectChanged', handleStorageChange);
-    };
-  }, [user]);
-
-  useEffect(() => {
-    if (!authLoading && user && hasFetchedProjects) {
-      const isExempt = 
-        normalizedPath === '/dashboard' ||
-        normalizedPath === '/dashboard/datasets' ||
-        normalizedPath.startsWith('/dashboard/projects') ||
-        normalizedPath.startsWith('/dashboard/createProject');
-
-      // Only enforce if we are inside the dashboard and not on an exempt page
-      if (normalizedPath.startsWith('/dashboard') && !isExempt) {
-        // Redirect to projects hub if no project is active
-        if (projects.length === 0 || !activeProject) {
-          const segments = pathname.split('/').filter(Boolean);
-          const locale = segments[0] && segments[0].length === 2 ? `/${segments[0]}` : '';
-          router.push(`${locale}/dashboard/projects`);
-        }
-      }
+    if (activeProject?.id) {
+      fetchProjectDatasets(activeProject.id);
+    } else {
+      setLayers([]);
     }
-  }, [user, authLoading, hasFetchedProjects, projects, activeProject, pathname, normalizedPath, router]);
+  }, [activeProject?.id]);
+
 
   const handleLayerClick = (layer) => {
     const isDeselecting = selectedLayerId === layer.id;

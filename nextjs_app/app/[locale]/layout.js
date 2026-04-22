@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages, getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import "../globals.css"
+import StoreProvider from "@/components/providers/StoreProvider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -86,7 +87,9 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} >
       <body className={`${geistMono.variable} ${geistSans.variable} antialiased`} >
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        <StoreProvider>
+          <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        </StoreProvider>
       </body>
     </html>
   )

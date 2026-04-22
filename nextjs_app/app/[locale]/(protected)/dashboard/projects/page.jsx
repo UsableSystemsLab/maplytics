@@ -16,9 +16,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { setActiveProject, clearActiveProject, selectActiveProject } from "@/lib/store/features/projectSlice";
 
 export default function ProjectsPage() {
     const { user } = useAuth();
+    const dispatch = useDispatch();
+    const activeProject = useSelector(selectActiveProject);
     const router = useRouter();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,13 +46,10 @@ export default function ProjectsPage() {
     }, [user]);
 
     const handleSelectProject = (project) => {
-        const projectData = {
+        dispatch(setActiveProject({
             id: project.id,
             name: project.name
-        };
-        localStorage.setItem("current_project", JSON.stringify(projectData));
-        localStorage.removeItem("current_project_id");
-        window.dispatchEvent(new Event("projectChanged"));
+        }));
         router.push("/dashboard");
     };
 
@@ -57,6 +58,9 @@ export default function ProjectsPage() {
         if (confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
             try {
                 await projectApi.deleteProject(projectId);
+                if (activeProject?.id === projectId) {
+                    dispatch(clearActiveProject());
+                }
                 loadProjects();
             } catch (error) {
                 console.error("Error deleting project:", error);
@@ -148,7 +152,7 @@ export default function ProjectsPage() {
                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-3.5 h-3.5" />
-                                        {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : "N/A"}
+                                        {project.created_at ? new Date(project.created_at).toLocaleString() : "N/A"}
                                     </div>
                                 </div>
                             </CardContent>

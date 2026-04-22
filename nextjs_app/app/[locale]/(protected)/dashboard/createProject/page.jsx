@@ -8,10 +8,13 @@ import { FolderPlus, TextQuote, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { useDispatch } from "react-redux";
+import { setActiveProject } from "@/lib/store/features/projectSlice";
 
 export default function CreateProjectPage() {
     const { user } = useAuth();
     const router = useRouter();
+    const dispatch = useDispatch();
     const [projectName, setProjectName] = useState("");
     const [description, setDescription] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,13 +31,11 @@ export default function CreateProjectPage() {
                 email: user.email
             }, user.uid);
 
-            localStorage.setItem('current_project', JSON.stringify({ 
+            dispatch(setActiveProject({ 
                 id: newProject.id, 
                 name: newProject.name 
             }));
-            localStorage.removeItem('current_project_id');
 
-            window.dispatchEvent(new Event('projectChanged'));
             router.push('/dashboard');
         } catch (error) {
             console.error('Error creating project:', error);

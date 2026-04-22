@@ -1,12 +1,15 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import { getDatasets, searchDatasets } from '@/lib/datasetApi';
 import * as projectApi from '@/lib/projectApi';
 import { uploadFile } from '@/lib/uploadApi';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { selectActiveProject } from '@/lib/store/features/projectSlice';
+import ProjectRequired from '@/components/ProjectRequired';
 
 export default function ProjectDatasetBrowser() {
     const t = useTranslations("datasets");
@@ -18,15 +21,15 @@ export default function ProjectDatasetBrowser() {
     const [previewContent, setPreviewContent] = useState(null);
     const [previewTitle, setPreviewTitle] = useState("");
 
+    // Redux State
+    const activeProject = useSelector(selectActiveProject);
+
     // Data States
     const [datasets, setDatasets] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
-
-    const [activeProject, setActiveProject] = useState(null);
-    const activeProjectRef = React.useRef(null);
 
     // Add Dataset States
     const [newDatasetFile, setNewDatasetFile] = useState(null);
@@ -38,31 +41,26 @@ export default function ProjectDatasetBrowser() {
     const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
-        const projStr = localStorage.getItem('current_project');
-        let currentProj = null;
-        if (projStr) {
-            try {
-                currentProj = JSON.parse(projStr);
-                setActiveProject(currentProj);
-                activeProjectRef.current = currentProj;
-            } catch (e) { }
+        if (activeProject) {
+            fetchDatasets(activeProject);
+        } else {
+            setIsLoading(false);
+            setError("Please select a project first to view its datasets.");
         }
-        fetchDatasets(currentProj);
-    }, []); // Run on mount
+    }, [activeProject]); // Run when activeProject changes
 
     // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
-            const proj = activeProjectRef.current;
             if (searchQuery.trim()) {
                 handleSearch();
             } else {
-                fetchDatasets(proj);
+                fetchDatasets(activeProject);
             }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, activeProject?.id]);
 
     const fetchDatasets = async (proj = activeProject) => {
         try {
@@ -243,6 +241,10 @@ export default function ProjectDatasetBrowser() {
     const formatSize = (count) => {
         return t('items', { count });
     };
+
+    if (!activeProject && !isLoading) {
+        return <ProjectRequired />;
+    }
 
     return (
         <div className="space-y-6 w-full">
