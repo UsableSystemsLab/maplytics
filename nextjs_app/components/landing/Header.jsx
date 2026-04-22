@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { auth } from "@/lib/firebase";
@@ -15,6 +16,12 @@ export default function Header({ variant = "light" }) {
   const { user, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = useTranslations("header");
+  const pathname = usePathname();
+  const pathWithoutLocale = pathname.replace(/^\/(en|ar)/, "") || "/";
+  const isActive = (href) =>
+    href === "/"
+      ? pathWithoutLocale === "/"
+      : pathWithoutLocale === href || pathWithoutLocale.startsWith(href + "/");
 
   const handleLogout = async () => {
     try {
@@ -61,11 +68,25 @@ export default function Header({ variant = "light" }) {
             <Link
               href="/datasets"
               className={cn(
-                "text-sm font-medium transition-colors",
+                "relative text-sm font-medium transition-colors py-1",
+                "after:absolute after:bottom-0 after:left-0 rtl:after:left-auto rtl:after:right-0 after:h-0.5 after:bg-earthy-green after:transition-all after:duration-300",
+                isActive("/datasets") ? "after:w-full" : "after:w-0 hover:after:w-full",
                 isDark ? "hover:text-slate-300" : "hover:text-slate-500"
               )}
             >
               {t('publicDataset')}
+            </Link>
+
+            <Link
+              href="/about"
+              className={cn(
+                "relative text-sm font-medium transition-colors py-1",
+                "after:absolute after:bottom-0 after:left-0 rtl:after:left-auto rtl:after:right-0 after:h-0.5 after:bg-earthy-green after:transition-all after:duration-300",
+                isActive("/about") ? "after:w-full" : "after:w-0 hover:after:w-full",
+                isDark ? "hover:text-slate-300" : "hover:text-slate-500"
+              )}
+            >
+              {t('about')}
             </Link>
 
             {!loading &&
@@ -115,9 +136,23 @@ export default function Header({ variant = "light" }) {
           <Link
             href="/datasets"
             onClick={() => setIsMenuOpen(false)}
-            className="text-base text-center underline font-medium py-2"
+            className={cn(
+              "text-base text-center underline py-2 transition-colors",
+              isActive("/datasets") ? "text-earthy-green font-bold" : "font-medium"
+            )}
           >
             {t('publicDataset')}
+          </Link>
+
+          <Link
+            href="/about"
+            onClick={() => setIsMenuOpen(false)}
+            className={cn(
+              "text-base text-center underline py-2 transition-colors",
+              isActive("/about") ? "text-earthy-green font-bold" : "font-medium"
+            )}
+          >
+            {t('about')}
           </Link>
 
           {!loading &&

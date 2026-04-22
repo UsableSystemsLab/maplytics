@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
-import { getDatasets, searchDatasets } from '@/lib/datasetApi';
-import { uploadFile } from '@/lib/uploadApi';
+import { getDatasets, searchDatasets } from '@/lib/api/datasetApi';
+import { uploadFile } from '@/lib/api/uploadApi';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';

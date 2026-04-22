@@ -17,6 +17,7 @@ export default function Footer() {
                     <h3 className="text-base font-semibold tracking-wide">{t('quickLinks')}</h3>
                     <nav className="flex flex-col gap-y-3 text-sm mt-1">
                         <Link href="/datasets" className="hover:text-white transition-opacity duration-200 w-fit">{t('datasets')}</Link>
+                        <Link href="/about" className="hover:text-white transition-opacity duration-200 w-fit">{t('about')}</Link>
                         <Link href="/privacy" className="hover:text-white transition-opacity duration-200 w-fit">{t('privacyPolicy')}</Link>
                         <Link href="/terms" className="hover:text-white transition-opacity duration-200 w-fit">{t('termsOfService')}</Link>
                     </nav>

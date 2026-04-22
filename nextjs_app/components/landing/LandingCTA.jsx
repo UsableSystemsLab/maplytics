@@ -5,8 +5,12 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Database } from "lucide-react";
 
-export default function LandingCTA() {
-    const t = useTranslations("landing.cta");
+export default function LandingCTA({
+    namespace = "landing.cta",
+    primaryHref = "/auth/login",
+    secondaryHref = "/datasets",
+}) {
+    const t = useTranslations(namespace);
 
     return (
         <section className="flex flex-col items-center justify-center gap-10 p-2 md:p-10">
@@ -24,7 +28,7 @@ export default function LandingCTA() {
                         {t("description")}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Link href="/auth/login">
+                        <Link href={primaryHref}>
                             <Button
                                 variant="outline"
                                 className="bg-white text-black sm:text-lg px-12 py-6 sm:py-8 rounded-md w-full flex gap-4 items-center"
@@ -33,7 +37,7 @@ export default function LandingCTA() {
                                 <ChevronRight className="rtl:rotate-180" />
                             </Button>
                         </Link>
-                        <Link href="/datasets">
+                        <Link href={secondaryHref}>
                             <Button
                                 variant="ghost"
                                 className="sm:text-lg px-12 py-6 sm:py-8 rounded-md border-2 w-full flex gap-4 items-center"

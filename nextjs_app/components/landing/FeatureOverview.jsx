@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import { useTranslations } from "next-intl";
 import { Database, Wand2, BarChart2 } from "lucide-react";
 
-const lucideIcons = [Database, Wand2, BarChart2];
+const DEFAULT_ICONS = [Database, Wand2, BarChart2];
 
 const cardAccents = [
   { border: "#134565", tagBg: "rgba(19,69,101,0.08)", tagColor: "#134565", bullet: "#134565" },
@@ -12,8 +12,11 @@ const cardAccents = [
   { border: "#13B38D", tagBg: "rgba(19,179,141,0.08)", tagColor: "#0e8a6c", bullet: "#13B38D" },
 ];
 
-const FeatureOverview = forwardRef((props, ref) => {
-  const t = useTranslations("landing.features");
+const FeatureOverview = forwardRef(function FeatureOverview(
+  { namespace = "landing.features", icons = DEFAULT_ICONS, showBrandBanner = true },
+  ref
+) {
+  const t = useTranslations(namespace);
   const tShared = useTranslations("shared");
   const badge = t("badge");
   const title = t("title");
@@ -25,17 +28,19 @@ const FeatureOverview = forwardRef((props, ref) => {
       ref={ref}
       className="bg-[#F5F5F5] relative overflow-hidden py-24 px-4"
     >
-      <div className="text-center py-10">
-        <h2
-          className="font-bold p-5 pb-10 text-black whitespace-nowrap leading-none"
-          style={{
-            fontSize: 'calc(100vw / 6)',
-          }}
-        >
-          {tShared('maplytics')}
-        </h2>
-        <p className="text-xs md:text-base lg:text-lg">{description}</p>
-      </div>
+      {showBrandBanner && (
+        <div className="text-center py-10">
+          <h2
+            className="font-bold p-5 pb-10 text-black whitespace-nowrap leading-none"
+            style={{
+              fontSize: 'calc(100vw / 6)',
+            }}
+          >
+            {tShared('maplytics')}
+          </h2>
+          <p className="text-xs md:text-base lg:text-lg">{description}</p>
+        </div>
+      )}
 
       <div className="container mx-auto max-w-6xl relative z-10">
         {/* Section heading */}
@@ -59,8 +64,8 @@ const FeatureOverview = forwardRef((props, ref) => {
         {/* Feature cards grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
           {cards.map((card, index) => {
-            const LucideIcon = lucideIcons[index];
-            const accent = cardAccents[index];
+            const LucideIcon = icons[index % icons.length];
+            const accent = cardAccents[index % cardAccents.length];
 
             return (
               <div
@@ -137,7 +142,5 @@ const FeatureOverview = forwardRef((props, ref) => {
     </section>
   );
 });
-
-FeatureOverview.displayName = "FeatureOverview";
 
 export default FeatureOverview;

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Plus, MessageSquare, LayoutDashboard } from "lucide-react";
 
-const lucideIcons = [Plus, MessageSquare, LayoutDashboard];
+const DEFAULT_ICONS = [Plus, MessageSquare, LayoutDashboard];
 
 const stepStyles = [
     { border: "border-[#134565]/20 hover:border-[#134565]/30", iconBg: "bg-[#134565]/10", iconColor: "#134565", text: "text-[#134565]/20", divider: "from-[#134565]" },
@@ -11,8 +11,14 @@ const stepStyles = [
     { border: "border-[#13B38D]/20 hover:border-[#13B38D]/30", iconBg: "bg-[#13B38D]/10", iconColor: "#13B38D", text: "text-[#13B38D]/20", divider: "from-[#13B38D]" },
 ];
 
-export default function HowItWorks() {
-    const t = useTranslations("landing.howItWorks");
+const STAIR_OFFSETS = ["mt-0", "mt-0 lg:mt-6", "mt-0 lg:mt-12"];
+
+export default function HowItWorks({
+    namespace = "landing.howItWorks",
+    icons = DEFAULT_ICONS,
+    stairs = true,
+}) {
+    const t = useTranslations(namespace);
     const title = t("title");
     const description = t("description");
     const steps = t.raw("steps");
@@ -36,14 +42,9 @@ export default function HowItWorks() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     {steps.map((step, idx) => {
-                        const LucideIcon = lucideIcons[idx];
-                        const style = stepStyles[idx];
-
-                        const stairOffset = [
-                            "mt-0",
-                            "mt-0 lg:mt-6",
-                            "mt-0 lg:mt-12"
-                        ][idx];
+                        const LucideIcon = icons[idx % icons.length];
+                        const style = stepStyles[idx % stepStyles.length];
+                        const stairOffset = stairs ? STAIR_OFFSETS[idx % STAIR_OFFSETS.length] : "mt-0";
 
                         return (
                             <div

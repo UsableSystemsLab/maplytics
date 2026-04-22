@@ -89,9 +89,91 @@
     "aboutDescription": "Empowering your spatial analysis with interactive maps, datasets, and powerful location intelligence tools.",
     "quickLinks": "Quick Links",
     "datasets": "Datasets",
+    "about": "About",
     "getStarted": "Get Started",
     "startNow": "Start Now",
     "login": "Login"
+  },
+  "about": {
+    "hero": {
+      "title": "<line1>Mapping <geo>what matters</geo></line1><line2>for <maps>your world</maps></line2>",
+      "description": "Maplytics is a spatial intelligence platform built to make geospatial analysis effortless — no code, no friction, just insight.",
+      "scroll": "Scroll"
+    },
+    "mission": {
+      "badge": "Why We Built Maplytics",
+      "title": "Our Mission",
+      "description": "We believe spatial understanding should be universal — not locked behind specialized tools or technical gatekeepers.",
+      "cards": [
+        {
+          "tag": "Accessibility",
+          "title": "Make spatial analysis available to everyone",
+          "description": "Planners, researchers, and students shouldn't need a GIS degree to explore their data. We strip away the complexity so anyone can ask geospatial questions and get meaningful answers.",
+          "bullets": [
+            "No GIS expertise required",
+            "Natural language queries",
+            "Free, open access to public datasets"
+          ]
+        },
+        {
+          "tag": "Clarity",
+          "title": "Turn raw data into visual understanding",
+          "description": "Numbers in a spreadsheet hide the story. We turn them into interactive maps, heatmaps, and charts that make patterns impossible to miss.",
+          "bullets": [
+            "Interactive visualizations by default",
+            "Beautiful, shareable outputs",
+            "Responsive on any device"
+          ]
+        },
+        {
+          "tag": "Local Focus",
+          "title": "Built for the region we know",
+          "description": "Maplytics is tuned for Saudi Arabia and the wider region — with local datasets, Arabic-first language support, and context that global tools miss.",
+          "bullets": [
+            "Arabic and English, fully bidirectional",
+            "Saudi-focused public datasets",
+            "Built with the region's needs in mind"
+          ]
+        }
+      ]
+    },
+    "stats": {
+      "title": "Maplytics at a Glance",
+      "items": [
+        { "value": "3+", "label": "Saudi Regions Mapped" },
+        { "value": "10+", "label": "Visualization Types" },
+        { "value": "2", "label": "Languages Supported" },
+        { "value": "∞", "label": "Custom Datasets" }
+      ]
+    },
+    "story": {
+      "title": "How We Got Here",
+      "description": "Maplytics started as a graduation project at King Abdulaziz University — and grew into the tool we wished existed.",
+      "steps": [
+        {
+          "number": "01",
+          "title": "The Problem",
+          "description": "We saw students, planners, and analysts struggle with heavy GIS software just to answer simple spatial questions. The tools existed — but they weren't for everyone."
+        },
+        {
+          "number": "02",
+          "title": "The Idea",
+          "description": "What if spatial analysis felt as easy as typing a question? We set out to bridge natural language, geospatial data, and beautiful visualizations in a single web platform."
+        },
+        {
+          "number": "03",
+          "title": "The Platform",
+          "description": "Maplytics is the result — an open, fast, bilingual spatial intelligence platform that puts powerful analysis one prompt away."
+        }
+      ]
+    },
+    "cta": {
+      "cta": "Ready to Explore?",
+      "title": "Start turning your ideas into maps today",
+      "description": "Jump into the platform, explore public datasets, or create your first project — no setup required.",
+      "primaryButton": "Open Dashboard",
+      "secondaryButton": "Browse Datasets"
+    }
   },
   "header": {
     "products": "Products",
