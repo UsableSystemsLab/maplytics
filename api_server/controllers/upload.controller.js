@@ -8,7 +8,7 @@ import { insertFeaturesIntoDB } from '../utils/featureInserter.js';
  * After uploading file, fetch the file back, parse it, and insert features into Postgres.
  * Runs asynchronously, does not block the upload response.
  */
-async function insertFeaturesFromS3(s3Key, datasetName, description, userId, author, originalName, isPublic = true) {
+async function insertFeaturesFromS3(s3Key, datasetName, description, userId, author, originalName, isPublic = true, isVerified = false) {
     try {
         const response = await s3Client.send(new GetObjectCommand({
             Bucket: BUCKET_NAME,
@@ -26,7 +26,8 @@ async function insertFeaturesFromS3(s3Key, datasetName, description, userId, aut
             author,
             fileFormat: ext,
             geojson,
-            isPublic
+            isPublic,
+            isVerified
         });
 
         return datasetId;
@@ -54,7 +55,7 @@ export const uploadPublicFile = async (req, res) => {
 
     const author = req.user?.displayName || "unknown user";
     const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, description, req.userId, author, req.file.originalname, true
+        filename, displayName, description, req.userId, author, req.file.originalname, true, req.isAdmin
     );
 
 
@@ -108,7 +109,7 @@ export const uploadPrivateFile = async (req, res) => {
 
     const author = req.user?.displayName || "unknown user";
     const pgDatasetId = await insertFeaturesFromS3(
-        filename, displayName, description, req.userId, author, req.file.originalname, false
+        filename, displayName, description, req.userId, author, req.file.originalname, false, req.isAdmin
     );
 
     if (projectId && pgDatasetId) {

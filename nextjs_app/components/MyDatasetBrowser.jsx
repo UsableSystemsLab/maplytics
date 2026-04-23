@@ -64,7 +64,7 @@ export default function MyDatasetBrowser() {
         try {
             setIsLoading(true);
             if (!user) return;
-            
+
             // Fetch private datasets for the user
             const data = await getDatasets({ is_public: false });
             setDatasets(data.datasets || []);
@@ -180,7 +180,7 @@ export default function MyDatasetBrowser() {
             setIsPreviewLoading(true);
             setPreviewTitle(dataset.name || "Dataset Preview");
             setIsPreviewModalOpen(true);
-            
+
             // Fetch actual GeoJSON data for preview
             const geojson = await getDatasetGeoJSON(dataset.id || dataset.dataset_id);
             setPreviewContent(JSON.stringify(geojson, null, 2));

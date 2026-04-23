@@ -202,7 +202,9 @@ export const ingestDataset = async (req, res, next) => {
 
         const { minLat, maxLat, minLng, maxLng } = calculateBoundingBox(itemsWithGeometry);
 
-        const dataset = await Dataset.create({
+
+
+        const dataset = await Dataset.create({  
             slug: generateSlug(dataset_name),
             name: dataset_name,
             description,
@@ -217,7 +219,8 @@ export const ingestDataset = async (req, res, next) => {
             feature_count: itemsWithGeometry.length,
             file_format: 'JSON',
             user_id: effectiveUserId,
-            is_public: is_public
+            is_public: is_public,
+            is_verified: req.isAdmin || false
         }, { transaction });
 
         for (const item of itemsWithGeometry) {
@@ -288,6 +291,7 @@ export const getAllDatasets = async (req, res, next) => {
                 'user_id',
                 'author',
                 'is_public',
+                'is_verified',
                 'last_updated'
             ],
             order: [['last_updated', 'DESC']]
@@ -328,6 +332,7 @@ export const getAllPublicDatasets = async (req, res, next) => {
                 'user_id',
                 'author',
                 'is_public',
+                'is_verified',
                 'last_updated'
             ],
             order: [['last_updated', 'DESC']]
@@ -558,6 +563,7 @@ export const searchDatasets = async (req, res, next) => {
                 'feature_count',
                 'user_id',
                 'is_public',
+                'is_verified',
                 'last_updated'
             ],
             order: [['last_updated', 'DESC']],
@@ -622,6 +628,7 @@ export const searchPublicDatasets = async (req, res, next) => {
                 'feature_count',
                 'user_id',
                 'is_public',
+                'is_verified',
                 'last_updated'
             ],
             order: [['last_updated', 'DESC']],

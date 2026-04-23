@@ -182,6 +182,7 @@
       "failedUpload": "Failed to upload dataset."
     },
     "publicTab": "Public Datasets",
-    "privateTab": "My Datasets"
+    "privateTab": "My Datasets",
+    "verified": "By Maplytics"
   }
 }

@@ -16,6 +16,8 @@ export const authenticate = async (req, res, next) => {
         const userRecord = await admin.auth().getUser(decodedToken.uid);
         req.user = userRecord;
         req.userId = decodedToken.uid;
+        req.isAdmin = !!decodedToken.admin;
+
         next();
     } catch (error) {
         console.error('Error verifying Firebase ID token:', error);

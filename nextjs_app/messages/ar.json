@@ -182,6 +182,7 @@
       "failedUpload": "فشل رفع قاعدة البيانات."
     },
     "publicTab": "البيانات العامة",
-    "privateTab": "بياناتي"
+    "privateTab": "بياناتي",
+    "verified": "بواسطة مابليتيكس"
   }
 }

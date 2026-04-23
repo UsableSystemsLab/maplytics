@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle } from 'lucide-react';
+import { Eye, FileJson, Clock, HardDrive, User, X, Loader2, Search, Plus, Upload, AlertCircle, BadgeCheck } from 'lucide-react';
 import { getDatasets, searchDatasets, getDatasetGeoJSON } from '@/lib/datasetApi';
 import * as projectApi from '@/lib/projectApi';
 import { uploadFile } from '@/lib/uploadApi';
@@ -173,7 +173,7 @@ export default function PublicDatasetBrowser() {
             setIsPreviewLoading(true);
             setPreviewTitle(dataset.name || "Dataset Preview");
             setIsPreviewModalOpen(true);
-            
+
             // Fetch actual GeoJSON data for preview
             const geojson = await getDatasetGeoJSON(dataset.id || dataset.dataset_id);
             setPreviewContent(JSON.stringify(geojson, null, 2));
@@ -304,10 +304,19 @@ export default function PublicDatasetBrowser() {
                                         <h3 className="font-semibold text-gray-900 line-clamp-1" title={dataset.name}>
                                             {dataset.name}
                                         </h3>
-                                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                                            <User className="w-3 h-3" />
-                                            <span>{dataset.author || user?.displayName || t('unknownUser')}</span>
-                                        </div>
+                                        {dataset.is_verified ? (
+                                            <div className="flex items-center gap-1 text-green-600 py-0.5 text-[12px] font-bold">
+                                                <BadgeCheck className="w-4 h-4" />
+                                                <p>{t('verified')}</p>
+                                            </div>
+                                        ) :
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                    <User className="w-3 h-3" />
+                                                    <span>{dataset.author || user?.displayName || t('unknownUser')}</span>
+                                                </div>
+
+                                            </div>}
                                     </div>
                                 </div>
 

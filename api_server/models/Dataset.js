@@ -121,6 +121,12 @@ const Dataset = sequelize.define(
             defaultValue: true,
             allowNull: false,
         },
+        is_verified: {
+            type: DataTypes.BOOLEAN,
+            field: "is_verified",
+            defaultValue: false,
+            allowNull: false,
+        },
     },
     {
         tableName: "Dataset",
