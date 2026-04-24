@@ -17,4 +17,5 @@ jobs:
           key: ${{ secrets.VM_KEY }}
           script: |
             cd ${{ secrets.VM_APP_DIR }}
+            chmod +x deploy.sh
             ./deploy.sh
