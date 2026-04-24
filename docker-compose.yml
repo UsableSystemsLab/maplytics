@@ -91,6 +91,7 @@ services:
       - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
       - NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
       - NEXT_PUBLIC_API_SERVER_KEY=${API_SERVER_KEY}
+      - NEXT_PUBLIC_LLM_SERVICE_URL=${NEXT_PUBLIC_LLM_SERVICE_URL:-http://localhost:8000}
     build:
       context: nextjs_app
       dockerfile: Dockerfile
@@ -120,6 +121,35 @@ services:
       - rustfs_data:/data
     environment:
       - RUSTFS_VOLUMES=/data
+    networks:
+      - app_network
+
+  llm_service:
+    build:
+      context: llm_service
+      dockerfile: Dockerfile
+    image: llm_service_image
+    container_name: llm_service_container
+    environment:
+      - API_SERVER_URL=http://api_server:4000
+      - PRIMARY_LLM_BASE_URL=${PRIMARY_LLM_BASE_URL}
+      - PRIMARY_LLM_MODEL=${PRIMARY_LLM_MODEL}
+      - PRIMARY_LLM_API_KEY=${PRIMARY_LLM_API_KEY}
+      - VERIFIER_LLM_BASE_URL=${VERIFIER_LLM_BASE_URL}
+      - VERIFIER_LLM_MODEL=${VERIFIER_LLM_MODEL}
+      - VERIFIER_LLM_API_KEY=${VERIFIER_LLM_API_KEY}
+      - MAX_FEATURES_IN_CONTEXT=${MAX_FEATURES_IN_CONTEXT:-200}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_TIMEOUT_SECONDS=${LLM_TIMEOUT_SECONDS:-120}
+      - CORS_ORIGINS=${LLM_CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "${LLM_SERVICE_PORT:-8000}:8000"
+    volumes:
+      - ./llm_service/app:/app/app
+    depends_on:
+      - api_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - app_network
 

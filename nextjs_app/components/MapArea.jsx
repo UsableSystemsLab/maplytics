@@ -5,6 +5,8 @@ import {
     ChevronUp, ChevronDown, MapPin, Activity, Database,
     Filter, X, Loader2, Map as MapIcon, Layers, BarChart3,
 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { selectSelectedLayer } from "@/lib/store/features/layerSlice";
 import { getProjectDatasetData, getDatasetGeoJSON } from "@/lib/datasetApi";
 import { getDistrictColor, resetDistrictColors } from "@/lib/districtColors";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +16,7 @@ import ChartSidePanel from "@/components/ChartSidePanel";
 
 export default function MapArea() {
     const { user } = useAuth();
+    const persistedLayer = useSelector(selectSelectedLayer);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(5);
     const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
@@ -132,7 +135,15 @@ export default function MapArea() {
             await loadLayerDataRef.current(projectId, datasetId);
         };
         window.addEventListener("layerSelected", handleLayerSelected);
+
+        // Rehydrate on mount: if Redux already has a selected layer (from a
+        // prior navigation), replay it so the map fetches and renders.
+        if (persistedLayer?.datasetId && !selectedLayer) {
+            handleLayerSelected({ detail: persistedLayer });
+        }
+
         return () => window.removeEventListener("layerSelected", handleLayerSelected);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const applyFilters = useCallback(() => {

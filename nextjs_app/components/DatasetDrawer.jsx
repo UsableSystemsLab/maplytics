@@ -1,29 +1,37 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  Drawer, 
-  DrawerContent, 
-  DrawerHeader, 
-  DrawerTitle, 
-  DrawerDescription, 
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
   DrawerFooter,
   DrawerClose
 } from "@/components/ui/drawer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, Database, Globe, MapPin, FileJson } from "lucide-react";
+import { Search, Loader2, Database, Globe, MapPin, FileJson, Check } from "lucide-react";
 import { getDatasets, searchDatasets } from "@/lib/datasetApi";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import {
+  selectSelectedLayer,
+  setSelectedLayer,
+  clearSelectedLayer,
+} from "@/lib/store/features/layerSlice";
 
 export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
   const { user } = useAuth();
+  const dispatch = useDispatch();
+  const selectedLayer = useSelector(selectSelectedLayer);
+  const selectedDatasetId = selectedLayer?.datasetId || null;
   const [activeTab, setActiveTab] = useState("my");
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDatasetId, setSelectedDatasetId] = useState(null);
 
   const fetchDatasets = async (tab = activeTab, query = searchQuery) => {
     if (!user && tab === "my") {
@@ -62,19 +70,22 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handlePlotDataset = (dataset) => {
-    setSelectedDatasetId(dataset.id);
-    
-    window.dispatchEvent(new CustomEvent('layerSelected', {
-      detail: {
-        projectId: null, // Plot directly without adding to project
-        datasetId: dataset.id,
-        datasetName: dataset.name,
-      }
-    }));
-    
-    // Optional: Close drawer on plot
-    // onClose();
+  const handleToggleDataset = (dataset) => {
+    const alreadySelected = selectedDatasetId === dataset.id;
+
+    if (alreadySelected) {
+      dispatch(clearSelectedLayer());
+      window.dispatchEvent(new CustomEvent('layerSelected', { detail: null }));
+      return;
+    }
+
+    const payload = {
+      projectId: null,
+      datasetId: dataset.id,
+      datasetName: dataset.name,
+    };
+    dispatch(setSelectedLayer(payload));
+    window.dispatchEvent(new CustomEvent('layerSelected', { detail: payload }));
   };
 
   return (
@@ -130,13 +141,13 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
                     const isSelected = selectedDatasetId === dataset.id;
                     
                     return (
-                      <div 
-                        key={dataset.id} 
+                      <div
+                        key={dataset.id}
                         className={cn(
                           "p-4 border rounded-xl hover:border-primary/50 transition-all bg-card group relative flex flex-col cursor-pointer",
                           isSelected && "border-primary ring-1 ring-primary bg-primary/5"
                         )}
-                        onClick={() => handlePlotDataset(dataset)}
+                        onClick={() => handleToggleDataset(dataset)}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className={cn(
@@ -161,8 +172,8 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
                           </span>
                           
                           <div className="flex items-center gap-1.5 text-primary text-xs font-bold">
-                            <MapPin className="w-3.5 h-3.5" />
-                            {isSelected ? "Plotting..." : "Plot on Map"}
+                            {isSelected ? <Check className="w-3.5 h-3.5" /> : <MapPin className="w-3.5 h-3.5" />}
+                            {isSelected ? "Selected · click to deselect" : "Select"}
                           </div>
                         </div>
                       </div>

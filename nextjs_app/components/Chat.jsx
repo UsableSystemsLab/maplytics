@@ -1,17 +1,26 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { Send, Bot, User, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { selectSelectedLayer } from "@/lib/store/features/layerSlice";
+import {
+    selectChatMessages,
+    selectChatIsLoading,
+    appendChatMessage,
+    resetChat,
+    setChatLoading,
+} from "@/lib/store/features/chatSlice";
+import { askLLM } from "@/lib/llmApi";
+import MarkdownText from "@/components/MarkdownText";
 
-export default function Chat({
-    greeting = "Hello! How can I help you today?",
-    className = "",
-}) {
-    const [messages, setMessages] = useState([
-        { id: 1, role: "bot", text: greeting },
-    ]);
+export default function Chat({ className = "" }) {
+    const dispatch = useDispatch();
+    const selectedLayer = useSelector(selectSelectedLayer);
+    const messages = useSelector(selectChatMessages);
+    const isLoading = useSelector(selectChatIsLoading);
+
     const [input, setInput] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
 
@@ -38,49 +47,80 @@ export default function Chat({
         scrollToBottom();
     }, [messages, isLoading]);
 
-    const handleSubmit = (e) => {
+    const formatBotText = (result) => {
+        if (!result) return "No response from the server.";
+        if (result.status === "rejected") {
+            return `I can't answer that (${result.stage}): ${result.reason || "no reason provided"}`;
+        }
+        const verification = result.verification || {};
+        const lines = [result.answer || "(empty answer)"];
+        if (result.status === "unverified") {
+            const issues = verification.issues ? ` — ${verification.issues}` : "";
+            lines.push(`\n\n⚠ Verification flagged this answer as not fully grounded${issues}.`);
+        }
+        return lines.join("");
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 
-        const userMessage = {
-            id: Date.now(),
-            role: "user",
-            text: input.trim(),
-        };
+        const projectId = selectedLayer?.projectId ?? null;
+        const datasetId = selectedLayer?.datasetId;
+        const query = input.trim();
 
-        setMessages((prev) => [...prev, userMessage]);
+        dispatch(appendChatMessage({ id: Date.now(), role: "user", text: query }));
         setInput("");
-        setIsLoading(true);
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-        }
+        if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
-        // Fake backend response simulation
-        setTimeout(() => {
-            const botResponses = [
-                "That's an interesting point! Tell me more.",
-                "I'm just a demo bot, but I hear you.",
-                "Can you clarify what you mean?",
-                "I've received your message. Processing...",
-                "Here's a fake response to your inquiry!",
-            ];
-
-            const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
-
-            const botMessage = {
+        if (!datasetId) {
+            dispatch(appendChatMessage({
                 id: Date.now() + 1,
                 role: "bot",
-                text: randomResponse,
-            };
+                text: "Please open the Layers Browser and select a dataset before asking a question.",
+            }));
+            return;
+        }
 
-            setMessages((prev) => [...prev, botMessage]);
-            setIsLoading(false);
-        }, 1500); // 1.5 second fake delay
+        dispatch(setChatLoading(true));
+        try {
+            const result = await askLLM({ projectId, datasetId, query });
+            dispatch(appendChatMessage({
+                id: Date.now() + 1,
+                role: "bot",
+                text: formatBotText(result),
+            }));
+        } catch (err) {
+            console.error("LLM request failed:", err);
+            dispatch(appendChatMessage({
+                id: Date.now() + 1,
+                role: "bot",
+                text: `Error: ${err.message}`,
+            }));
+        } finally {
+            dispatch(setChatLoading(false));
+        }
     };
+
+    const contextBadge = selectedLayer?.datasetName
+        ? `Dataset: ${selectedLayer.datasetName}`
+        : "No dataset selected";
 
     return (
         <div className={`flex flex-col h-screen w-full bg-white dark:bg-gray-950 ${className}`}>
-            {/* Messages Area */}
+            <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                {!selectedLayer && <AlertTriangle size={14} className="text-amber-500" />}
+                <span className="flex-1">{contextBadge}</span>
+                <button
+                    type="button"
+                    onClick={() => dispatch(resetChat())}
+                    className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 flex items-center gap-1"
+                    title="Clear conversation"
+                >
+                    <RefreshCw size={12} /> Clear
+                </button>
+            </div>
+
             <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50/50 dark:bg-gray-950/50 pt-10">
                 {messages.map((msg) => (
                     <div
@@ -99,7 +139,9 @@ export default function Chat({
                                 : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm shadow-sm"
                                 }`}
                         >
-                            <p className="whitespace-pre-wrap wrap-break-word">{msg.text}</p>
+                            {msg.role === "user"
+                                ? <p className="whitespace-pre-wrap wrap-break-word">{msg.text}</p>
+                                : <MarkdownText text={msg.text} />}
                         </div>
                     </div>
                 ))}
@@ -119,7 +161,6 @@ export default function Chat({
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <div className="p-3 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
                 <form onSubmit={handleSubmit} className="flex gap-2 items-end">
                     <textarea
