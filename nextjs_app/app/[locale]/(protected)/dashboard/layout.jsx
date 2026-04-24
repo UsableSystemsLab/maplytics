@@ -6,7 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { useSelector } from "react-redux"
 import { selectActiveProject } from "@/lib/store/features/projectSlice"
 import { usePathname } from "next/navigation"
-import ProjectRequired from "@/components/Projectrequired"
+import ProjectRequired from "@/components/ProjectRequired"
 
 export default function DashboardLayout({ children }) {
     const activeProject = useSelector(selectActiveProject);
