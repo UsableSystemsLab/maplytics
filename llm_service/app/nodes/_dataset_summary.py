@@ -6,7 +6,7 @@ from app.config import MAX_FEATURES_IN_CONTEXT
 MAX_GROUPS_PER_FIELD = 50
 
 
-def summarize_for_prompt(geojson: dict, fields: list) -> str:
+def summarize_for_prompt(geojson: dict, fields: list, geographic_counts: dict | None = None) -> str:
     """Build a compact textual representation of the dataset for the LLM prompt.
 
     Qwen 9B has a bounded context AND is unreliable at counting items in a list.
@@ -37,6 +37,8 @@ def summarize_for_prompt(geojson: dict, fields: list) -> str:
         "authoritative_counts": group_counts,
         "features": compact_features,
     }
+    if geographic_counts:
+        payload["geographic_counts"] = geographic_counts
     return json.dumps(payload, ensure_ascii=False)
 
 

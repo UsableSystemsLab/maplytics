@@ -430,12 +430,21 @@ export const choroplethCount = async (req, res, next) => {
         let sql;
         const bind = [pointsJson];
 
+        // `pts` uses WITH ORDINALITY so every point carries a 0-based index,
+        // which we surface back as `point_indices` per boundary. Callers that
+        // only care about counts (the choropleth UI) can ignore that field;
+        // callers that need to cross-tab points by other properties (the LLM
+        // service) use it to map each point back to its source feature.
+        const ptsCte = `
+            pts AS (
+                SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom,
+                       (ord - 1)::int AS idx
+                FROM json_array_elements($1::json) WITH ORDINALITY AS t(p, ord)
+            )`;
+
         if (level === 'regions') {
             sql = `
-                WITH pts AS (
-                    SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
-                    FROM json_array_elements($1::json) AS p
-                ),
+                WITH ${ptsCte},
                 valid_regions AS MATERIALIZED (
                     SELECT region_id, name_ar, name_en, code, population,
                            ST_MakeValid(boundaries) AS valid_geom
@@ -444,7 +453,9 @@ export const choroplethCount = async (req, res, next) => {
                 )
                 SELECT vr.region_id, vr.name_ar, vr.name_en, vr.code, vr.population,
                        ST_AsGeoJSON(vr.valid_geom)::json AS geometry,
-                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(vr.valid_geom, pts.geom)) AS count
+                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(vr.valid_geom, pts.geom)) AS count,
+                       (SELECT COALESCE(array_agg(pts.idx ORDER BY pts.idx), ARRAY[]::int[])
+                        FROM pts WHERE ST_Contains(vr.valid_geom, pts.geom)) AS point_indices
                 FROM valid_regions vr`;
         } else if (level === 'cities') {
             let whereClause = 'd.boundaries IS NOT NULL';
@@ -453,10 +464,7 @@ export const choroplethCount = async (req, res, next) => {
                 whereClause += ` AND d.region_id = $${bind.length}`;
             }
             sql = `
-                WITH pts AS (
-                    SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
-                    FROM json_array_elements($1::json) AS p
-                ),
+                WITH ${ptsCte},
                 city_bounds AS (
                     SELECT d.city_id, c.name_ar, c.name_en, c.region_id,
                            r.name_en AS region_name,
@@ -469,7 +477,9 @@ export const choroplethCount = async (req, res, next) => {
                 )
                 SELECT cb.city_id, cb.name_ar, cb.name_en, cb.region_id, cb.region_name,
                        ST_AsGeoJSON(cb.boundaries)::json AS geometry,
-                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(cb.boundaries, pts.geom)) AS count
+                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(cb.boundaries, pts.geom)) AS count,
+                       (SELECT COALESCE(array_agg(pts.idx ORDER BY pts.idx), ARRAY[]::int[])
+                        FROM pts WHERE ST_Contains(cb.boundaries, pts.geom)) AS point_indices
                 FROM city_bounds cb`;
         } else if (level === 'districts') {
             let whereClause = 'd.boundaries IS NOT NULL';
@@ -481,14 +491,13 @@ export const choroplethCount = async (req, res, next) => {
                 whereClause += ` AND d.region_id = $${bind.length}`;
             }
             sql = `
-                WITH pts AS (
-                    SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
-                    FROM json_array_elements($1::json) AS p
-                )
+                WITH ${ptsCte}
                 SELECT d.district_id, d.name_ar, d.name_en, d.city_id, d.region_id,
                        c.name_en AS city_name, r.name_en AS region_name,
                        ST_AsGeoJSON(d.boundaries)::json AS geometry,
-                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(d.boundaries, pts.geom)) AS count
+                       (SELECT COUNT(*) FROM pts WHERE ST_Contains(d.boundaries, pts.geom)) AS count,
+                       (SELECT COALESCE(array_agg(pts.idx ORDER BY pts.idx), ARRAY[]::int[])
+                        FROM pts WHERE ST_Contains(d.boundaries, pts.geom)) AS point_indices
                 FROM districts d
                 JOIN cities c ON c.city_id = d.city_id
                 JOIN regions r ON r.region_id = d.region_id
@@ -507,6 +516,9 @@ export const choroplethCount = async (req, res, next) => {
                     Object.entries(row).filter(([k]) => k !== 'geometry')
                 ),
                 count: Number(row.count),
+                point_indices: Array.isArray(row.point_indices)
+                    ? row.point_indices.map(Number)
+                    : [],
             },
         }));
 

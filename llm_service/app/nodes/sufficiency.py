@@ -29,7 +29,9 @@ Respond with ONLY a JSON object, no prose:
 
 
 async def sufficiency_node(state: GraphState) -> GraphState:
-    dataset_blob = summarize_for_prompt(state["geojson"], state.get("fields", []))
+    dataset_blob = summarize_for_prompt(
+        state["geojson"], state.get("fields", []), state.get("geographic_counts"),
+    )
     llm = get_primary_llm()
 
     response = await llm.ainvoke([

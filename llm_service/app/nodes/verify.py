@@ -6,10 +6,27 @@ from app.nodes.state import GraphState
 
 
 SYSTEM_PROMPT = """You are a grounding verifier. You receive a user question, a dataset
-summary (GeoJSON fields + feature sample), and a candidate answer.
+summary, and a candidate answer.
 
-Decide whether the answer is grounded in the dataset and relevant to the question.
-- "grounded": every concrete claim (numbers, names, locations) is supported by the dataset.
+The dataset summary contains:
+- `total_features`: exact count of all features
+- `authoritative_counts`: exact per-value counts for every categorical property,
+  computed deterministically over the full dataset
+- `geographic_counts` (optional): exact point counts per Saudi region, city,
+  and district, computed by a PostGIS spatial join. Each item also includes
+  `property_counts` showing the exact cross-tab breakdown by feature category.
+  When present, these are authoritative for any city/region/district question
+  (including questions about categories within a district) — do NOT second-guess
+  them even if the dataset's own `district` property says something else.
+- `features`: a truncated sample (only for context; NOT authoritative for counts)
+
+To verify:
+- "grounded": every concrete claim (numbers, names, locations) must be supported
+  by `authoritative_counts`, `geographic_counts` (including its `property_counts`),
+  `total_features`, or clearly visible in the sample.
+  For counts, check against the exact counts provided — do NOT try to recount the
+  `features` list (it may be truncated). For sums (e.g. grouping totals),
+  verify the arithmetic matches the numbers.
 - "relevant": the answer actually addresses the question.
 - If the answer honestly says it cannot be answered, that counts as grounded.
 - Flag hallucinated fields, fabricated counts, or off-topic content.
@@ -19,7 +36,9 @@ Respond with ONLY a JSON object:
 
 
 async def verify_node(state: GraphState) -> GraphState:
-    dataset_blob = summarize_for_prompt(state["geojson"], state.get("fields", []))
+    dataset_blob = summarize_for_prompt(
+        state["geojson"], state.get("fields", []), state.get("geographic_counts"),
+    )
     llm = get_verifier_llm()
 
     response = await llm.ainvoke([

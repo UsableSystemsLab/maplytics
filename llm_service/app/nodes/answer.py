@@ -12,10 +12,22 @@ Authoritative counts (critical):
   `authoritative_counts` object with EXACT per-value counts for every categorical
   property (e.g. district, cuisine, price_range). These numbers were computed
   deterministically over the FULL dataset, not just the visible sample.
+- It may also contain a `geographic_counts` object with `regions`, `cities`,
+  and `districts` arrays. Each entry is a real Saudi boundary (from the
+  PostGIS database) that contains one or more of the dataset's points, with
+  a `count` field. Each entry also contains a `property_counts` object breaking
+  down those points by categorical properties (e.g. price_range, cuisine).
+  These are the AUTHORITATIVE source for any question about regions, cities,
+  or districts — they come from an exact spatial join, not from just basic
+  dataset properties.
 - When answering any question involving quantities ("how many", "which has the
-  most", "top N"), you MUST use `authoritative_counts` and `total_features` as
-  your source of numbers. Do NOT recount by scanning the `features` list — that
-  list may be truncated, and manual counting is unreliable.
+  most", "top N"), you MUST use `authoritative_counts`, `geographic_counts`,
+  and `total_features` as your source of numbers. Do NOT recount by scanning
+  the `features` list — that list may be truncated, and manual counting is
+  unreliable.
+- For city/region questions, prefer `geographic_counts.cities` /
+  `geographic_counts.regions` over inferring from district names. Only fall
+  back to property-based inference if `geographic_counts` is absent.
 - Never emit a count that isn't supported by those fields or by an explicit
   derivation from them.
 
@@ -43,7 +55,9 @@ Formatting:
 
 
 async def answer_node(state: GraphState) -> GraphState:
-    dataset_blob = summarize_for_prompt(state["geojson"], state.get("fields", []))
+    dataset_blob = summarize_for_prompt(
+        state["geojson"], state.get("fields", []), state.get("geographic_counts"),
+    )
     llm = get_primary_llm()
 
     response = await llm.ainvoke([

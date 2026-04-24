@@ -9,6 +9,7 @@ class GraphState(TypedDict, total=False):
 
     geojson: Optional[dict]
     fields: list
+    geographic_counts: Optional[dict[str, list]]
 
     is_on_topic: bool
     geojson_valid: bool
