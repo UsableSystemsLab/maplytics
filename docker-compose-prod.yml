@@ -3,6 +3,8 @@ services:
     image: kartoza/postgis:15-3.4
     container_name: postgres_container
     hostname: ${POSTGRES_HOST}
+    env_file:
+      - .env.prod
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -46,7 +48,7 @@ services:
       - app_network
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:${API_SERVER_PORT}/health", "-H", "accept: application/json", "-H", "Authorization: Bearer ${API_SERVER_KEY}" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/api/health || exit 1"]
       interval: 120s
       timeout: 5s
       retries: 3
@@ -56,7 +58,7 @@ services:
       - .env.prod
     build:
       context: nextjs_app
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
       args:
         PORT: ${NEXT_PUBLIC_PORT}
         NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}

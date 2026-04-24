@@ -5,7 +5,7 @@ cd /var/www/maplytics.org
 
 git pull origin main
 
-docker compose -f docker-compose-prod.yml down
+docker compose --env-file .env.prod -f docker-compose-prod.yml down
 
 docker compose \
   --env-file .env.prod \
