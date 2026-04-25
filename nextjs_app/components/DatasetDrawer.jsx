@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/drawer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, Database, Globe, MapPin, FileJson, Check } from "lucide-react";
+import { Search, Loader2, Database, Globe, MapPin, FileJson, Check, SlidersHorizontal } from "lucide-react";
 import { getDatasets, searchDatasets } from "@/lib/datasetApi";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import LayerFilterPrefsModal from "./LayerFilterPrefsModal";
 import {
   selectSelectedLayer,
   setSelectedLayer,
@@ -32,6 +33,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterPrefsDataset, setFilterPrefsDataset] = useState(null);
 
   const fetchDatasets = async (tab = activeTab, query = searchQuery) => {
     if (!user && tab === "my") {
@@ -89,6 +91,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
   };
 
   return (
+    <>
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="max-h-[85vh] flex flex-col">
         <DrawerHeader className="border-b">
@@ -156,8 +159,26 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
                           )}>
                             <FileJson className="w-5 h-5" />
                           </div>
-                          <div className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                            {dataset.geometry_type || "GEO"}
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFilterPrefsDataset({
+                                  id: dataset.id,
+                                  name: dataset.name,
+                                  ownerId: dataset.user_id ?? dataset.ownerId ?? null,
+                                });
+                                onClose?.();
+                              }}
+                              className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                              title="Filter settings"
+                            >
+                              <SlidersHorizontal className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                              {dataset.geometry_type || "GEO"}
+                            </div>
                           </div>
                         </div>
                         
@@ -192,5 +213,13 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
+
+    <LayerFilterPrefsModal
+      isOpen={!!filterPrefsDataset}
+      onClose={() => setFilterPrefsDataset(null)}
+      dataset={filterPrefsDataset}
+      availableFields={[]}
+    />
+    </>
   );
 }

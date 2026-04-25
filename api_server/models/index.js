@@ -8,6 +8,7 @@ import City from './City.js';
 import District from './District.js';
 import Project from './Project.js';
 import Dataset_Project from './Dataset_Project.js';
+import User_Dataset_Filter_Prefs from './User_Dataset_Filter_Prefs.js';
 
 // Define associations between models
 
@@ -45,6 +46,18 @@ Dataset.hasOne(Dataset_Metadata, {
 });
 
 Dataset_Metadata.belongsTo(Dataset, {
+    foreignKey: 'dataset_id',
+    as: 'dataset'
+});
+
+// Dataset has many User_Dataset_Filter_Prefs (one row per user who has overridden the default)
+Dataset.hasMany(User_Dataset_Filter_Prefs, {
+    foreignKey: 'dataset_id',
+    as: 'userFilterPrefs',
+    onDelete: 'CASCADE'
+});
+
+User_Dataset_Filter_Prefs.belongsTo(Dataset, {
     foreignKey: 'dataset_id',
     as: 'dataset'
 });
@@ -126,4 +139,4 @@ District.belongsTo(City, {
     as: 'city',
 });
 
-export { User, Dataset, Feature, Feature_Property, Dataset_Metadata, Region, City, District, Project, Dataset_Project };
+export { User, Dataset, Feature, Feature_Property, Dataset_Metadata, Region, City, District, Project, Dataset_Project, User_Dataset_Filter_Prefs };

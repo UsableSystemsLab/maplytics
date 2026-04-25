@@ -10,7 +10,7 @@ import {
 } from '../controllers/DatasetController.js';
 import { uploadPublicFile, uploadPrivateFile } from '../controllers/upload.controller.js';
 import { uploadPublic, uploadPrivate } from '../middlewares/upload.middleware.js';
-import { authenticate } from '../middlewares/firebaseAuth.js';
+import { authenticate, optionalAuthenticate } from '../middlewares/firebaseAuth.js';
 
 const router = express.Router();
 
@@ -30,7 +30,7 @@ router.get('/public', getAllPublicDatasets);
 router.get('/search/public', searchPublicDatasets);
 
 // GET /datasets/:id/geojson - Get dataset as GeoJSON (Public datasets should be accessible)
-router.get('/:id/geojson', getDatasetAsGeoJSON);
+router.get('/:id/geojson', optionalAuthenticate, getDatasetAsGeoJSON);
 
 // GET /datasets/:id - Get dataset details
 router.get('/:id', getDatasetById);

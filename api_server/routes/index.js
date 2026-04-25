@@ -4,6 +4,7 @@ import projectRoutes from './project.routes.js';
 import GeoRoutes from './geo.routes.js';
 import filesRoutes from './files.routes.js';
 import comparisonRoutes from './comparisonRoutes.js';
+import filterPrefsRoutes from './filterPrefs.routes.js';
 import { authenticate } from '../middlewares/firebaseAuth.js';
 
 const apiRoutes = (router) => {
@@ -44,6 +45,7 @@ const apiRoutes = (router) => {
  
   router.use('/users', authenticate, UserRoutes);
   router.use('/datasets', DatasetRoutes);
+  router.use('/datasets', filterPrefsRoutes);
   router.use('/projects', authenticate, projectRoutes);
   router.use('/geo', GeoRoutes);
   router.use('/files', authenticate, filesRoutes);

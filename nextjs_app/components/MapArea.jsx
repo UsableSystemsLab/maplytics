@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import StatCard from "@/components/StatCard";
 import MapComponent from "@/components/MapComponent";
 import ChartSidePanel from "@/components/ChartSidePanel";
+import FilterDrawer from "@/components/FilterDrawer";
 
 export default function MapArea() {
     const { user } = useAuth();
@@ -31,7 +32,8 @@ export default function MapArea() {
     const [featureCount, setFeatureCount] = useState(0);
 
     const [filters, setFilters] = useState({});
-    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
+    const [filterableFieldNames, setFilterableFieldNames] = useState(null);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     const [categories, setCategories] = useState([]);
     const [categoryField, setCategoryField] = useState(null);
@@ -96,6 +98,7 @@ export default function MapArea() {
             setGeojsonData(geojson);
             setDisplayGeojson(geojson);
             setFieldsMetadata(fields || []);
+            setFilterableFieldNames(result?.filterableFields ?? null);
             setFeatureCount(geojson.features?.length || 0);
             
             const firstCategorical = (fields || []).find(
@@ -124,7 +127,7 @@ export default function MapArea() {
             const detail = e.detail;
             if (!detail) {
                 setSelectedLayer(null); setGeojsonData(null); setDisplayGeojson(null);
-                setFieldsMetadata([]); setFeatureCount(0); setFilters({}); setCategories([]);
+                setFieldsMetadata([]); setFeatureCount(0); setFilters({}); setFilterableFieldNames(null); setCategories([]);
                 setCategoryField(null); setViewMode("map"); setIsChartPanelOpen(false);
                 resetDistrictColors();
                 return;
@@ -145,6 +148,17 @@ export default function MapArea() {
         return () => window.removeEventListener("layerSelected", handleLayerSelected);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        const onPrefsChanged = (e) => {
+            const { datasetId, filterableFields } = e.detail || {};
+            if (selectedLayer && selectedLayer.datasetId === datasetId) {
+                setFilterableFieldNames(filterableFields ?? null);
+            }
+        };
+        window.addEventListener('filterPrefsChanged', onPrefsChanged);
+        return () => window.removeEventListener('filterPrefsChanged', onPrefsChanged);
+    }, [selectedLayer]);
 
     const applyFilters = useCallback(() => {
         if (!geojsonData?.features) return;
@@ -186,13 +200,6 @@ export default function MapArea() {
         });
     };
 
-    const handleNumberFilterChange = (fieldName, bound, value) => {
-        setFilters((prev) => {
-            const current = prev[fieldName] || { type: "number" };
-            return { ...prev, [fieldName]: { ...current, type: "number", [bound]: value === "" ? undefined : Number(value) } };
-        });
-    };
-
     const clearFilters = () => {
         setFilters({});
         if (geojsonData) { setDisplayGeojson(geojsonData); setFeatureCount(geojsonData.features?.length || 0); }
@@ -207,6 +214,13 @@ export default function MapArea() {
     const hasPointFeatures = displayGeojson?.features?.some((f) => f.geometry?.type === "Point");
     const isChartAvailable = !!selectedLayer && hasPointFeatures && fieldsMetadata.some((f) => f.type === "string");
     const showChartHint = isChartAvailable && !isChartPanelOpen;
+
+    // Compute which fields to show in the drawer. null = back-compat (show all).
+    const drawerFields = (() => {
+        if (filterableFieldNames === null) return fieldsMetadata;
+        const byName = new Map(fieldsMetadata.map(f => [f.name, f]));
+        return filterableFieldNames.map(name => byName.get(name)).filter(Boolean);
+    })();
 
     return (
         <div className="relative w-full h-full bg-gray-100">
@@ -240,7 +254,7 @@ export default function MapArea() {
                 via Portal inside ChoroplethRender so it sits here visually without
                 being buried in MapComponent's stacking context. */}
             {selectedLayer && (
-                <div className="absolute left-6 top-24 z-30 flex flex-col gap-3 max-w-[260px]">
+                <div className={`absolute top-24 z-30 flex flex-col gap-3 max-w-[260px] transition-all duration-300 ease-in-out ${isFilterDrawerOpen ? "left-[336px]" : "left-6"}`}>
                     {/* Renderer panels portal into this slot */}
                     <div ref={(el) => { panelSlotRef.current = el; if (el && !panelSlotReady) setPanelSlotReady(true); }} />
                     {viewMode === "map" && categories.length > 0 && categoryField && (
@@ -259,58 +273,6 @@ export default function MapArea() {
                         </div>
                     )}
 
-                    {fieldsMetadata.length > 0 && (
-                        <div className="bg-white rounded-lg shadow-lg border border-gray-200">
-                            <button
-                                onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
-                                className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Filter className="w-4 h-4" />
-                                    <span>Filters</span>
-                                    {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-primary" />}
-                                </div>
-                                {isFilterPanelOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                            </button>
-                            {isFilterPanelOpen && (
-                                <div className="border-t border-gray-200 px-3 py-2 max-h-[400px] overflow-y-auto">
-                                    {hasActiveFilters && (
-                                        <button onClick={clearFilters} className="w-full mb-2 flex items-center justify-center gap-1 text-xs text-red-500 hover:text-red-700 py-1">
-                                            <X className="w-3 h-3" /> Clear Filters
-                                        </button>
-                                    )}
-                                    {fieldsMetadata.map((field) => (
-                                        <div key={field.name} className="mb-3">
-                                            <label className="text-xs font-medium text-gray-600 block mb-1">
-                                                {field.name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                                            </label>
-                                            {field.type === "string" && field.values && (
-                                                <div className="max-h-32 overflow-y-auto space-y-0.5 bg-gray-50 rounded p-1.5">
-                                                    {field.values.map((val) => (
-                                                        <label key={val} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:bg-white rounded px-1 py-0.5">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={filters[field.name]?.selected?.includes(val) || false}
-                                                                onChange={(e) => handleStringFilterChange(field.name, val, e.target.checked)}
-                                                                className="rounded border-gray-300 text-primary focus:ring-primary w-3 h-3"
-                                                            />
-                                                            <span className="truncate">{val}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {field.type === "number" && (
-                                                <div className="flex gap-2">
-                                                    <input type="number" placeholder={`Min${field.min !== undefined ? ` (${field.min})` : ""}`} value={filters[field.name]?.min ?? ""} onChange={(e) => handleNumberFilterChange(field.name, "min", e.target.value)} className="w-1/2 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-primary focus:border-primary" />
-                                                    <input type="number" placeholder={`Max${field.max !== undefined ? ` (${field.max})` : ""}`} value={filters[field.name]?.max ?? ""} onChange={(e) => handleNumberFilterChange(field.name, "max", e.target.value)} className="w-1/2 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-primary focus:border-primary" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
             )}
 
@@ -336,6 +298,21 @@ export default function MapArea() {
             </div>
 
             <div className={`absolute top-24 z-30 flex flex-col items-end gap-2 transition-all duration-300 ${isChartPanelOpen ? "right-106" : "right-6"}`}>
+                {selectedLayer && fieldsMetadata.length > 0 && (
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsFilterDrawerOpen(o => !o)}
+                            className={`p-3 rounded-lg shadow-lg border transition-colors ${isFilterDrawerOpen ? "bg-primary text-white border-primary" : "bg-white hover:bg-gray-50 text-gray-700 border-gray-200"}`}
+                            title="Filters"
+                        >
+                            <Filter className="w-5 h-5" />
+                        </button>
+                        {hasActiveFilters && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white" />
+                        )}
+                    </div>
+                )}
+
                 {selectedLayer && (
                     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                         <button onClick={() => setViewMode("map")} className={`p-3 transition-colors ${viewMode === "map" ? "bg-primary text-white" : "hover:bg-gray-50 text-gray-700"}`} title="Map View">
@@ -406,6 +383,27 @@ export default function MapArea() {
                     </div>
                 </div>
             </div>
+
+            <FilterDrawer
+                isOpen={isFilterDrawerOpen}
+                onClose={() => setIsFilterDrawerOpen(false)}
+                fields={drawerFields}
+                filters={filters}
+                onStringChange={handleStringFilterChange}
+                onNumberChange={(fieldName, next) => {
+                    setFilters(prev => ({
+                        ...prev,
+                        [fieldName]: { type: "number", min: next.min, max: next.max },
+                    }));
+                }}
+                onClearAll={clearFilters}
+                onRemoveFilter={(fieldName) => {
+                    setFilters(prev => {
+                        const { [fieldName]: _, ...rest } = prev;
+                        return rest;
+                    });
+                }}
+            />
 
             <ChartSidePanel features={displayGeojson?.features} fieldsMetadata={fieldsMetadata} isOpen={isChartPanelOpen} onClose={() => setIsChartPanelOpen(false)} />
         </div>

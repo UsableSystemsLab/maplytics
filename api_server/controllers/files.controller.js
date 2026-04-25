@@ -1,9 +1,10 @@
-import { Project, Dataset, Dataset_Project } from '../models/index.js';
+import { Project, Dataset, Dataset_Project, Dataset_Metadata, User_Dataset_Filter_Prefs } from '../models/index.js';
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { inferFieldTypes } from '../utils/fieldUtils.js';
 import { parseFileToGeoJSON } from '../utils/fileParser.js';
 import { parseCSV, buildGeoJSONFromObjects, inferFields } from '../lib/geo/index.js';
+import { resolveFilterableFields } from '../lib/filter-prefs/resolve.js';
 
 export const getPublicFile = async (req, res) => {
     res.status(501).json({ message: "getPublicFile not implemented yet" });
@@ -106,7 +107,16 @@ export const getDatasetData = async (req, res) => {
         const geojson = parseFileToGeoJSON(bodyStr, dataset.file_format.toLowerCase());
         const fields = inferFields(geojson);
 
-        res.status(200).json({ geojson, fields });
+        const [userRow, meta] = await Promise.all([
+            User_Dataset_Filter_Prefs.findOne({ where: { user_id: userId, dataset_id: datasetId } }),
+            Dataset_Metadata.findOne({ where: { dataset_id: datasetId } }),
+        ]);
+        const { filterableFields, source } = resolveFilterableFields({
+            userPref: userRow ? userRow.filterable_fields : null,
+            datasetDefault: meta?.metadata?.defaultFilterableFields ?? null,
+        });
+
+        res.status(200).json({ geojson, fields, filterableFields, source });
     } catch (error) {
         console.error('Error fetching dataset data:', error);
         res.status(500).json({ error: 'Failed to fetch dataset data', message: error.message });

@@ -1,8 +1,9 @@
-import { Dataset, Feature, Feature_Property, Dataset_Metadata } from '../models/index.js';
+import { Dataset, Feature, Feature_Property, Dataset_Metadata, User_Dataset_Filter_Prefs } from '../models/index.js';
 import { sequelize } from '../configs/postgresDB.js';
 import logger from '../configs/logger.js';
 import { Op } from 'sequelize';
-import { extractLatitude, extractLongitude, removeCoordinateFields } from '../lib/geo/index.js';
+import { extractLatitude, extractLongitude, removeCoordinateFields, inferFields } from '../lib/geo/index.js';
+import { resolveFilterableFields } from '../lib/filter-prefs/resolve.js';
 
 /**
  * DatasetController - Responsible for managing geospatial datasets.
@@ -412,7 +413,20 @@ export const getDatasetAsGeoJSON = async (req, res, next) => {
             }))
         };
 
-        res.status(200).json(geojson);
+        const fields = inferFields(geojson);
+        const userId = req.userId ?? null;
+        const [userRow, meta] = await Promise.all([
+            userId
+                ? User_Dataset_Filter_Prefs.findOne({ where: { user_id: userId, dataset_id: dataset.id } })
+                : Promise.resolve(null),
+            Dataset_Metadata.findOne({ where: { dataset_id: dataset.id } }),
+        ]);
+        const { filterableFields, source } = resolveFilterableFields({
+            userPref: userRow ? userRow.filterable_fields : null,
+            datasetDefault: meta?.metadata?.defaultFilterableFields ?? null,
+        });
+
+        res.status(200).json({ ...geojson, fields, filterableFields, source });
     } catch (error) {
         logger.error('Error generating GeoJSON:', error);
         next(error);
