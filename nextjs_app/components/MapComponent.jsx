@@ -4,7 +4,7 @@ import BoundaryMap from "@/components/BoundaryMap";
 import ChoroplethRender from "@/components/ChoroplethRender";
 
 const MapComponent = forwardRef(function MapComponent(
-    { type, view, displayGeojson, categoryField = null, onZoomChange, onMoveEnd, panelSlotRef, className = "" },
+    { type, view, displayGeojson, allLayers = [], categoryField = null, onZoomChange, onMoveEnd, panelSlotRef, className = "" },
     ref
 ) {
     const boundaryMapRef = useRef(null);
@@ -41,8 +41,9 @@ const MapComponent = forwardRef(function MapComponent(
         <div className={`relative w-full h-full ${className}`}>
             <BoundaryMap
                 ref={boundaryMapRef}
-                geojson={mapGeojson}
-                fitBounds={!isRendererActive}
+                layers={allLayers}
+                primaryGeojson={mapGeojson}
+                fitBounds={!isRendererActive && allLayers.length <= 1}
                 colorBy={mapColorFn ? null : categoryField}
                 getFeatureColor={mapColorFn}
                 fillOpacity={isRendererActive ? 0.65 : 0.3}

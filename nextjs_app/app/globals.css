@@ -55,12 +55,6 @@ body {
   min-height: 100vh;
 }
 
-header {
-  padding-top: 25px;
-  margin: 0px;
-  width: 100vw;
-}
-
 .btn-header {
   background-color: #0E3147;
 }

@@ -11,24 +11,31 @@ import { useAuth } from "@/hooks/useAuth";
 import StatCard from "@/components/StatCard";
 import MapComponent from "@/components/MapComponent";
 import ChartSidePanel from "@/components/ChartSidePanel";
+import { useSelector, useDispatch } from "react-redux";
+import { selectSelectedLayers, setLayerGeojson, setLayerLoading } from "@/lib/store/features/layersSlice";
 
 export default function MapArea() {
     const { user } = useAuth();
+    const dispatch = useDispatch();
+    const selectedLayers = useSelector(selectSelectedLayers);
+    const [layersData, setLayersData] = useState({}); // { layerId: { geojson, fields } }
+    
+    // Derived primary layer for analysis (last one in the array)
+    const primaryLayer = selectedLayers[selectedLayers.length - 1] || null;
+    const geojsonData = primaryLayer ? layersData[primaryLayer.id]?.geojson : null;
+    const fieldsMetadata = primaryLayer ? layersData[primaryLayer.id]?.fields || [] : [];
+
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(5);
-    const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
+    const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(false); // Default to collapsed on mobile
     const [searchQuery, setSearchQuery] = useState("");
-
-    const [selectedLayer, setSelectedLayer] = useState(null);
-    const [geojsonData, setGeojsonData] = useState(null);
     const [displayGeojson, setDisplayGeojson] = useState(null);
-    const [fieldsMetadata, setFieldsMetadata] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [featureCount, setFeatureCount] = useState(0);
 
     const [filters, setFilters] = useState({});
-    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
+    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false); // Default to collapsed
 
     const [categories, setCategories] = useState([]);
     const [categoryField, setCategoryField] = useState(null);
@@ -45,33 +52,30 @@ export default function MapArea() {
     const handleZoomIn = () => mapRef.current?.zoomIn();
     const handleZoomOut = () => mapRef.current?.zoomOut();
 
-    const loadLayerData = async (projectId, datasetId) => {
-        setIsLoading(true);
-        setError(null);
+    const loadLayerData = async (layer) => {
+        if (layersData[layer.id]) return; // Already loaded
+
+        dispatch(setLayerLoading({ layerId: layer.id, isLoading: true }));
         try {
             let result;
-            if (projectId) {
-                result = await getProjectDatasetData(projectId, datasetId);
+            if (layer.projectId) {
+                result = await getProjectDatasetData(layer.projectId, layer.id);
             } else {
-                result = await getDatasetGeoJSON(datasetId);
+                result = await getDatasetGeoJSON(layer.id);
             }
 
-            // Robust data extraction
             let geojson = result?.geojson || (result?.type === "FeatureCollection" ? result : null);
             let fields = result?.fields || [];
 
-            if (!geojson) {
-                console.error("Received invalid data structure:", result);
-                throw new Error("Invalid dataset format received from server");
-            }
+            if (!geojson) throw new Error("Invalid dataset format");
 
-            // Fallback: Infer fields on frontend if they are missing
+            // Infer fields if missing
             if (fields.length === 0 && geojson.features?.length > 0) {
+                // ... (logic remains same but using variables)
                 const keySet = new Set();
                 geojson.features.forEach(f => {
                     if (f.properties) Object.keys(f.properties).forEach(k => keySet.add(k));
                 });
-
                 fields = Array.from(keySet).map(key => {
                     const values = geojson.features.map(f => f.properties?.[key]).filter(v => v != null && v !== '');
                     const allNumbers = values.length > 0 && values.every(v => typeof v === 'number' || (!isNaN(Number(v)) && typeof v !== 'boolean'));
@@ -89,27 +93,28 @@ export default function MapArea() {
                 });
             }
 
-            resetDistrictColors();
-            setGeojsonData(geojson);
-            setDisplayGeojson(geojson);
-            setFieldsMetadata(fields || []);
-            setFeatureCount(geojson.features?.length || 0);
+            setLayersData(prev => ({ ...prev, [layer.id]: { geojson, fields } }));
+            dispatch(setLayerGeojson({ layerId: layer.id, geojson, fields }));
             
-            const firstCategorical = (fields || []).find(
-                (f) => f.type === "string" && f.values?.length > 1 && f.values.length <= 20
-            );
-            if (firstCategorical) { 
-                setCategoryField(firstCategorical.name); 
-                setCategories(firstCategorical.values); 
-            } else { 
-                setCategoryField(null); 
-                setCategories([]); 
+            // If this is the primary layer, update local state for analysis
+            if (layer.id === primaryLayer?.id) {
+                resetDistrictColors();
+                setDisplayGeojson(geojson);
+                setFeatureCount(geojson.features?.length || 0);
+                
+                const firstCategorical = (fields || []).find(
+                    (f) => f.type === "string" && f.values?.length > 1 && f.values.length <= 20
+                );
+                if (firstCategorical) { 
+                    setCategoryField(firstCategorical.name); 
+                    setCategories(firstCategorical.values); 
+                }
             }
         } catch (err) {
             console.error("Failed to load layer data:", err);
-            setError(err.message);
+            setError(`Failed to load ${layer.name}`);
         } finally {
-            setIsLoading(false);
+            dispatch(setLayerLoading({ layerId: layer.id, isLoading: false }));
         }
     };
 
@@ -117,23 +122,47 @@ export default function MapArea() {
     loadLayerDataRef.current = loadLayerData;
 
     useEffect(() => {
-        const handleLayerSelected = async (e) => {
-            const detail = e.detail;
-            if (!detail) {
-                setSelectedLayer(null); setGeojsonData(null); setDisplayGeojson(null);
-                setFieldsMetadata([]); setFeatureCount(0); setFilters({}); setCategories([]);
-                setCategoryField(null); setViewMode("map"); setIsChartPanelOpen(false);
-                resetDistrictColors();
-                return;
-            }
-            const { projectId, datasetId, datasetName } = detail;
-            setSelectedLayer({ projectId, datasetId, datasetName });
+        selectedLayers.forEach(layer => {
+            loadLayerData(layer);
+        });
+
+        // Cleanup layersData that are no longer in selectedLayers
+        setLayersData(prev => {
+            const next = { ...prev };
+            const selectedIds = selectedLayers.map(l => l.id);
+            Object.keys(next).forEach(id => {
+                if (!selectedIds.includes(id)) delete next[id];
+            });
+            return next;
+        });
+    }, [selectedLayers]);
+
+    // Handle primary layer change (for filters and analysis)
+    useEffect(() => {
+        if (!primaryLayer) {
+            setDisplayGeojson(null); setFeatureCount(0); setFilters({}); 
+            setCategories([]); setCategoryField(null); setViewMode("map");
+            setIsChartPanelOpen(false); resetDistrictColors();
+            return;
+        }
+        
+        const data = layersData[primaryLayer.id];
+        if (data) {
+            setDisplayGeojson(data.geojson);
+            setFeatureCount(data.geojson.features?.length || 0);
             setFilters({});
-            await loadLayerDataRef.current(projectId, datasetId);
-        };
-        window.addEventListener("layerSelected", handleLayerSelected);
-        return () => window.removeEventListener("layerSelected", handleLayerSelected);
-    }, []);
+            const firstCategorical = (data.fields || []).find(
+                (f) => f.type === "string" && f.values?.length > 1 && f.values.length <= 20
+            );
+            if (firstCategorical) { 
+                setCategoryField(firstCategorical.name); 
+                setCategories(firstCategorical.values); 
+            } else {
+                setCategoryField(null);
+                setCategories([]);
+            }
+        }
+    }, [primaryLayer?.id, layersData[primaryLayer?.id]]);
 
     const applyFilters = useCallback(() => {
         if (!geojsonData?.features) return;
@@ -194,7 +223,7 @@ export default function MapArea() {
     );
 
     const hasPointFeatures = displayGeojson?.features?.some((f) => f.geometry?.type === "Point");
-    const isChartAvailable = !!selectedLayer && hasPointFeatures && fieldsMetadata.some((f) => f.type === "string");
+    const isChartAvailable = !!primaryLayer && hasPointFeatures && fieldsMetadata.some((f) => f.type === "string");
     const showChartHint = isChartAvailable && !isChartPanelOpen;
 
     return (
@@ -204,6 +233,7 @@ export default function MapArea() {
                     ref={mapRef}
                     type={viewMode !== "map" ? viewMode : undefined}
                     displayGeojson={displayGeojson}
+                    allLayers={selectedLayers.map(l => ({ ...l, geojson: layersData[l.id]?.geojson }))}
                     categoryField={categoryField}
                     onZoomChange={setZoomLevel}
                     panelSlotRef={panelSlotRef}
@@ -228,8 +258,8 @@ export default function MapArea() {
             {/* Left panel — category legend + filters. Choropleth panel is rendered
                 via Portal inside ChoroplethRender so it sits here visually without
                 being buried in MapComponent's stacking context. */}
-            {selectedLayer && (
-                <div className="absolute left-6 top-24 z-30 flex flex-col gap-3 max-w-[260px]">
+            {primaryLayer && (
+                <div className="absolute left-4 md:left-6 top-20 md:top-24 z-30 flex flex-col gap-3 max-w-[calc(100vw-32px)] md:max-w-[260px]">
                     {/* Renderer panels portal into this slot */}
                     <div ref={(el) => { panelSlotRef.current = el; if (el && !panelSlotReady) setPanelSlotReady(true); }} />
                     {viewMode === "map" && categories.length > 0 && categoryField && (
@@ -303,7 +333,7 @@ export default function MapArea() {
                 </div>
             )}
 
-            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
+            <div className="absolute top-4 md:top-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
                 <div className="relative">
                     <div className="flex items-center bg-white rounded-full shadow-lg border border-gray-200 overflow-hidden">
                         <div className="pl-5 pr-3"><Search className="w-5 h-5 text-gray-400" /></div>
@@ -324,8 +354,8 @@ export default function MapArea() {
                 </div>
             </div>
 
-            <div className={`absolute top-24 z-30 flex flex-col items-end gap-2 transition-all duration-300 ${isChartPanelOpen ? "right-106" : "right-6"}`}>
-                {selectedLayer && (
+            <div className={`absolute top-20 md:top-24 z-30 flex flex-col items-end gap-2 transition-all duration-300 ${isChartPanelOpen ? "right-106" : "right-4 md:right-6"}`}>
+                {primaryLayer && (
                     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                         <button onClick={() => setViewMode("map")} className={`p-3 transition-colors ${viewMode === "map" ? "bg-primary text-white" : "hover:bg-gray-50 text-gray-700"}`} title="Map View">
                             <MapIcon className="w-5 h-5" />
@@ -358,10 +388,10 @@ export default function MapArea() {
 
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 w-[95%] max-w-4xl">
                 <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
-                    <div className="flex items-center justify-between px-6 py-4 bg-cyan cursor-pointer" onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}>
+                    <div className="flex items-center justify-between px-6 py-3 md:py-4 bg-cyan cursor-pointer" onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}>
                         <div className="flex items-center gap-3">
                             <Activity className="w-5 h-5 text-white" />
-                            <h3 className="text-lg font-semibold text-white">{selectedLayer ? selectedLayer.datasetName : "Analysis Results"}</h3>
+                            <h3 className="text-base md:text-lg font-semibold text-white truncate max-w-[200px] md:max-w-none">{primaryLayer ? primaryLayer.name : "Analysis Results"}</h3>
                         </div>
                         <button className={`text-white hover:bg-white/20 p-1 rounded transition-transform duration-500 ${isAnalysisExpanded ? "rotate-180" : "rotate-0"}`}>
                             <ChevronUp className="w-5 h-5" />
@@ -369,10 +399,10 @@ export default function MapArea() {
                     </div>
                     <div className={`overflow-hidden transition-all duration-700 ease-in-out ${isAnalysisExpanded ? "max-h-[1000px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4"}`}>
                         <div className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                <StatCard icon={Database} label="Dataset" value={selectedLayer?.datasetName || "N/A"} subtitle="Selected layer" />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
+                                <StatCard icon={Database} label="Dataset" value={primaryLayer?.name || "N/A"} subtitle="Primary layer" />
                                 <StatCard icon={MapPin} label="Features" value={featureCount.toLocaleString()} subtitle={hasActiveFilters ? "Filtered results" : "Points on map"} />
-                                <StatCard icon={Activity} iconColor="text-earthy-green" label="Status" value={isLoading ? "Loading..." : selectedLayer ? "Active" : "Ready"} subtitle={selectedLayer ? "Dataset loaded" : "Select a layer"} />
+                                <StatCard icon={Activity} iconColor="text-earthy-green" label="Status" value={isLoading ? "Loading..." : primaryLayer ? "Active" : "Ready"} subtitle={primaryLayer ? "Dataset loaded" : "Select a layer"} />
                             </div>
 
                             {showChartHint && (
