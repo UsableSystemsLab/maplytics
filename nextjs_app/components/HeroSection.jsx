@@ -85,7 +85,7 @@ export default function HeroSection({ onScrollDown }) {
             attributionControl: false,
             dragging: false,
             scrollWheelZoom: false,
-        }).setView(center, window.innerWidth < 768 ? 7 : 12);
+        }).setView(center, window.innerWidth < 768 ? 10 : 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 20
