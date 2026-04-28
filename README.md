@@ -1,4 +1,5 @@
-# Full Stack Dockerized Web Application Template (NextJS, Node.js, PostgreSQL, and pgAdmin)
+# Maplytics (NextJS, Node.js, PostgreSQL, and pgAdmin)
+![Next.js CI](https://github.com/vAbdullh/deploymentTest/actions/workflows/nextjs-coverage-test.yml/badge.svg)
 
 This project provides a starter template for a full stack web application using Docker Compose. It uses NextJS, Node.js, PostgreSQL, and pgAdmin, offering a complete development environment.
 
