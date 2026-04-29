@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react'
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { useSelector } from "react-redux"
 import { selectActiveProject } from "@/lib/store/features/projectSlice"
@@ -28,7 +28,13 @@ export default function DashboardLayout({ children }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+                <header className="flex h-14 items-center gap-4 border-b bg-background px-6 lg:h-[60px] md:hidden">
+                    <SidebarTrigger />
+                    <div className="font-semibold truncate">
+                        {activeProject?.name || "Maplytics"}
+                    </div>
+                </header>
+                <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden relative">
                     {needsProject && !activeProject ? (
                         <ProjectRequired />
                     ) : (

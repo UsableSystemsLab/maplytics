@@ -11,16 +11,18 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import projectReducer from './features/projectSlice';
+import layersReducer from './features/layersSlice';
 
 const persistConfig = {
   key: 'root',
   version: 1,
   storage,
-  whitelist: ['project'], // Only persist the project state
+  whitelist: ['project', 'layers'], // Persist both project and layers state
 };
 
 const rootReducer = combineReducers({
   project: projectReducer,
+  layers: layersReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

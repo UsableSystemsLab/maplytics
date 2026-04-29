@@ -16,6 +16,9 @@ import { Search, Loader2, Database, Globe, MapPin, FileJson } from "lucide-react
 import { getDatasets, searchDatasets } from "@/lib/datasetApi";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleLayer, selectSelectedLayers } from "@/lib/store/features/layersSlice";
+
 
 export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
   const { user } = useAuth();
@@ -23,7 +26,9 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDatasetId, setSelectedDatasetId] = useState(null);
+  const dispatch = useDispatch();
+  const selectedLayers = useSelector(selectSelectedLayers);
+  const isLayerSelected = (id) => selectedLayers.some(l => l.id === id);
 
   const fetchDatasets = async (tab = activeTab, query = searchQuery) => {
     if (!user && tab === "my") {
@@ -63,18 +68,13 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
   }, [searchQuery]);
 
   const handlePlotDataset = (dataset) => {
-    setSelectedDatasetId(dataset.id);
-    
-    window.dispatchEvent(new CustomEvent('layerSelected', {
-      detail: {
-        projectId: null, // Plot directly without adding to project
-        datasetId: dataset.id,
-        datasetName: dataset.name,
-      }
+    dispatch(toggleLayer({
+      id: dataset.id,
+      name: dataset.name,
+      type: dataset.geometry_type || "GEO",
+      pgDatasetId: null, // This is a raw dataset, not a project dataset
+      projectId: null,
     }));
-    
-    // Optional: Close drawer on plot
-    // onClose();
   };
 
   return (
@@ -127,7 +127,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
                   {datasets.map((dataset) => {
-                    const isSelected = selectedDatasetId === dataset.id;
+                    const isSelected = isLayerSelected(dataset.id);
                     
                     return (
                       <div 
@@ -162,7 +162,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
                           
                           <div className="flex items-center gap-1.5 text-primary text-xs font-bold">
                             <MapPin className="w-3.5 h-3.5" />
-                            {isSelected ? "Plotting..." : "Plot on Map"}
+                            {isSelected ? "Active on Map" : "Plot on Map"}
                           </div>
                         </div>
                       </div>

@@ -7,9 +7,6 @@ import {
   BarChart3,
   User,
   Settings,
-  Plus,
-  Loader2,
-  Trash2,
   Globe,
   Bot,
   MapPin,
@@ -19,6 +16,7 @@ import {
   Database,
   Wrench,
   Layers,
+  X,
 } from "lucide-react";
 
 import {
@@ -50,12 +48,17 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import AddLayerModal from "./AddLayerModal";
 import DatasetDrawer from "./DatasetDrawer";
 import { Button } from "./ui/button";
 import * as projectApi from "@/lib/projectApi";
-import * as datasetApi from "@/lib/datasetApi";
 import { setActiveProject, clearActiveProject, selectActiveProject } from "@/lib/store/features/projectSlice";
+import {
+  toggleLayer,
+  removeLayer,
+  selectSelectedLayers,
+  clearLayers
+} from "@/lib/store/features/layersSlice";
+
 
 const mainNavItems = [
   { id: "projects", label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },
@@ -85,13 +88,9 @@ export function AppSidebar() {
   const dispatch = useDispatch();
   const activeProject = useSelector(selectActiveProject);
 
-  const [layers, setLayers] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState(null);
-
   const [projects, setProjects] = useState([]);
-  const [selectedLayerId, setSelectedLayerId] = useState(null);
+  const selectedLayers = useSelector(selectSelectedLayers);
+  const isLayerSelected = (id) => selectedLayers.some(l => l.id === id);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [hasFetchedProjects, setHasFetchedProjects] = useState(false);
 
@@ -107,6 +106,7 @@ export function AppSidebar() {
         const matched = data.find(p => p.id === activeProject.id);
         if (!matched) {
           dispatch(clearActiveProject());
+          dispatch(clearLayers());
         }
       }
     } catch (error) {
@@ -118,6 +118,7 @@ export function AppSidebar() {
 
   const handleProjectSelect = (project) => {
     dispatch(setActiveProject(project));
+    dispatch(clearLayers());
     router.push('/dashboard');
   };
 
@@ -128,6 +129,7 @@ export function AppSidebar() {
         await projectApi.deleteProject(projectId);
         if (activeProject?.id === projectId) {
           dispatch(clearActiveProject());
+          dispatch(clearLayers());
         }
         await fetchProjects();
         router.push('/dashboard/projects');
@@ -138,39 +140,11 @@ export function AppSidebar() {
   };
 
   const fetchProjectDatasets = async (projectId) => {
-    if (!projectId || !user) return;
-    try {
-      const data = await projectApi.getProjectDatasets(projectId);
-      setLayers(data);
-    } catch (error) {
-      console.error("Error fetching datasets:", error);
-      setLayers([]);
-    }
-  };
-
-  const handleSaveLayer = (layerData) => {
-    const newLayer = {
-      id: `temp-${Date.now()}`,
-      name: layerData.name,
-      type: layerData.layerType,
-    };
-    setLayers(prev => [...prev, newLayer]);
-
-    if (activeProject?.id) {
-      setTimeout(() => fetchProjectDatasets(activeProject.id), 1000);
-    }
+    // This function is no longer needed in the sidebar
   };
 
   const handleDeleteLayer = async (layerId) => {
-    if (!confirm("Are you sure you want to delete this dataset?")) return;
-    if (!activeProject?.id || !user) return;
-
-    try {
-      await projectApi.deleteProjectDataset(activeProject.id, layerId);
-      setLayers(prev => prev.filter(l => l.id !== layerId));
-    } catch (error) {
-      console.error("Error deleting dataset:", error);
-    }
+    // Handled elsewhere
   };
 
   useEffect(() => {
@@ -178,31 +152,23 @@ export function AppSidebar() {
   }, [user]);
 
   useEffect(() => {
-    if (activeProject?.id) {
-      fetchProjectDatasets(activeProject.id);
-    } else {
-      setLayers([]);
-    }
+    // No longer fetching project datasets here
   }, [activeProject?.id]);
 
 
   const handleLayerClick = (layer) => {
-    const isDeselecting = selectedLayerId === layer.id;
-    setSelectedLayerId(isDeselecting ? null : layer.id);
-
-    window.dispatchEvent(new CustomEvent('layerSelected', {
-      detail: isDeselecting ? null : {
-        projectId: activeProject?.id,
-        datasetId: layer.id,
-        datasetName: layer.name,
-        pgDatasetId: layer.pgDatasetId || null,
-      }
+    dispatch(toggleLayer({
+      id: layer.id,
+      name: layer.name,
+      type: layer.type,
+      pgDatasetId: layer.pgDatasetId || null,
+      projectId: activeProject?.id
     }));
   };
 
   return (
     <>
-      <Sidebar collapsible="icon">
+      <Sidebar collapsible="icon  ">
         <SidebarHeader className="border-b h-[60px] flex items-center px-2">
           <SidebarMenu>
             <SidebarMenuItem className="flex items-center">
@@ -285,42 +251,45 @@ export function AppSidebar() {
 
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center justify-between">
-              <span>Layers</span>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="hover:text-primary transition-colors group-data-[collapsible=icon]:hidden"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
+              <span>Active Layers</span>
+              {selectedLayers.length > 0 && (
+                <button
+                  onClick={() => dispatch(clearLayers())}
+                  className="text-[10px] text-muted-foreground hover:text-destructive transition-colors group-data-[collapsible=icon]:hidden"
+                >
+                  Clear All
+                </button>
+              )}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {layers.map((layer) => (
+                {selectedLayers.map((layer) => (
                   <SidebarMenuItem key={layer.id}>
                     <SidebarMenuButton
-                      onClick={() => handleLayerClick(layer)}
-                      isActive={selectedLayerId === layer.id}
                       tooltip={layer.name}
+                      className="flex items-center gap-3"
                     >
-                      <MapPin className={selectedLayerId === layer.id ? "text-primary" : ""} />
-                      <span className="truncate">{layer.name}</span>
+                      <div className="w-2 h-2 rounded-full shrink-0 bg-primary" />
+                      <span className="truncate flex-1 font-medium">{layer.name}</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
                     </SidebarMenuButton>
                     <SidebarMenuAction
-                      onClick={() => handleDeleteLayer(layer.id)}
+                      onClick={() => dispatch(toggleLayer(layer))}
                       showOnHover
                     >
-                      <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                      <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
                     </SidebarMenuAction>
                   </SidebarMenuItem>
                 ))}
-                {layers.length === 0 && (
-                  <div className="px-2 py-4 text-center text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-                    {activeProject ? "No layers" : "Select a project"}
+                {selectedLayers.length === 0 && (
+                  <div className="px-2 py-3 text-[11px] text-muted-foreground group-data-[collapsible=icon]:hidden">
+                    No layers active on map
                   </div>
                 )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
 
           <SidebarGroup className="mt-auto">
             <SidebarGroupLabel>General</SidebarGroupLabel>
@@ -369,12 +338,6 @@ export function AppSidebar() {
         </SidebarFooter>
       </Sidebar>
 
-      <AddLayerModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveLayer}
-        projectId={activeProject?.id}
-      />
 
       <DatasetDrawer
         isOpen={isDrawerOpen}
