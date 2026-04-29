@@ -145,6 +145,13 @@ export default function ComparisonMap({
             }).addTo(mapInstanceRef.current);
 
             pointsLayerRef.current = layer;
+
+            if (!boundaryGeoJSON) {
+                const bounds = layer.getBounds();
+                if (bounds.isValid()) {
+                    mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30] });
+                }
+            }
         } catch (err) {
             console.error(`[ComparisonMap:${mapId}] Error rendering points:`, err);
         }
@@ -155,7 +162,7 @@ export default function ComparisonMap({
                 pointsLayerRef.current = null;
             }
         };
-    }, [featurePoints, mapId]);
+    }, [featurePoints, mapId, boundaryGeoJSON]);
 
     return <div ref={mapRef} id={mapId} className="w-full h-full rounded-lg" />;
 }
