@@ -16,16 +16,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # -------------------------
-      # ENV SETUP
-      # -------------------------
+      
       - name: Create env file
         run: cp example.env .env
 
-      # -------------------------
-      # NODE SETUP (IMPORTANT BEST PRACTICE)
-      # -------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,23 +27,20 @@ jobs:
           cache: npm
           cache-dependency-path: nextjs_app/package-lock.json
 
-      # -------------------------
-      # INSTALL
-      # -------------------------
       - name: Install dependencies
         working-directory: nextjs_app
         run: npm install
 
-      # -------------------------
-      # TESTS (WITH COVERAGE)
-      # -------------------------
       - name: Run tests
         working-directory: nextjs_app
         run: npm run test -- --coverage
 
-      # -------------------------
-      # BUILD CHECK
-      # -------------------------
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: nextjs-app
+
       - name: Build app
         working-directory: nextjs_app
         run: npm run build
