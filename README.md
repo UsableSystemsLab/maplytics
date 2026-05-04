@@ -1,5 +1,6 @@
 # Maplytics (NextJS, Node.js, PostgreSQL, and pgAdmin)
-![Next.js CI](https://github.com/UsableSystemsLab/maplytics/actions/workflows/nextjs-coverage-test.yml/badge.svg)
+[![Codecov API Server](https://codecov.io/gh/UsableSystemsLab/maplytics/graph/badge.svg?flag=api-server)](https://codecov.io/gh/UsableSystemsLab/maplytics)
+[![Codecov Next.js](https://codecov.io/gh/UsableSystemsLab/maplytics/graph/badge.svg?flag=nextjs-app)](https://codecov.io/gh/UsableSystemsLab/maplytics)
 
 This project provides a starter template for a full stack web application using Docker Compose. It uses NextJS, Node.js, PostgreSQL, and pgAdmin, offering a complete development environment.
 

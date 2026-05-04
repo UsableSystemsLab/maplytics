@@ -1,4 +1,4 @@
-name: Next.js Coverage CI
+name: API Server Coverage CI
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Create env file
         run: cp example.env .env
 
@@ -25,22 +25,18 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: nextjs_app/package-lock.json
+          cache-dependency-path: api_server/package-lock.json
 
       - name: Install dependencies
-        working-directory: nextjs_app
+        working-directory: api_server
         run: npm install
 
-      - name: Run tests
-        working-directory: nextjs_app
-        run: npm run test -- --coverage
+      - name: Run tests with coverage
+        working-directory: api_server
+        run: npm run test:coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          flags: nextjs-app
-
-      - name: Build app
-        working-directory: nextjs_app
-        run: npm run build
+          flags: api-server
