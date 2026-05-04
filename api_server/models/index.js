@@ -8,6 +8,7 @@ import City from './City.js';
 import District from './District.js';
 import Project from './Project.js';
 import Dataset_Project from './Dataset_Project.js';
+import NLQJob from './NLQJob.js';
 
 // Define associations between models
 
@@ -90,6 +91,18 @@ Project.belongsTo(User, {
     as: 'owner'
 });
 
+// Project has one NLQJob
+Project.hasOne(NLQJob, {
+    foreignKey: 'project_id',
+    as: 'nlq_job',
+    onDelete: 'CASCADE'
+});
+
+NLQJob.belongsTo(Project, {
+    foreignKey: 'project_id',
+    as: 'project'
+});
+
 // Region has many Cities
 Region.hasMany(City, {
     foreignKey: 'region_id',
@@ -126,4 +139,4 @@ District.belongsTo(City, {
     as: 'city',
 });
 
-export { User, Dataset, Feature, Feature_Property, Dataset_Metadata, Region, City, District, Project, Dataset_Project };
+export { User, Dataset, Feature, Feature_Property, Dataset_Metadata, Region, City, District, Project, Dataset_Project, NLQJob };

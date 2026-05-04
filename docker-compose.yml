@@ -124,6 +124,29 @@ services:
       - RUSTFS_VOLUMES=/data
     networks:
       - app_network
+  redis:
+    image: redis:alpine
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  geopandas_worker:
+    build:
+      context: geopandas_cli
+      dockerfile: Dockerfile
+    image: geopandas_worker_image
+    container_name: geopandas_worker_container
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./geopandas_cli:/app
+    depends_on:
+      - redis
+    networks:
+      - app_network
 
 
 networks:
