@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import { NLQJob, Project } from '../models/index.js';
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
 // Connect to Redis
 const redis = new Redis({
@@ -44,8 +44,6 @@ export const createNLQJob = async (req, res) => {
         }
 
         // Save to Database
-        // If "each project will have one nlq raw", maybe we should check if one exists and delete/update?
-        // Let's just create a new one for now as it's a job history. 
         const nlqJob = await NLQJob.create({
             project_id: projectId,
             type: type,
@@ -65,8 +63,7 @@ export const createNLQJob = async (req, res) => {
         };
 
         await redis.lpush('nlq_jobs_queue', JSON.stringify(jobPayload));
-        
-        // Also set initial status in Redis for worker
+
         await redis.hset(`job_status:${jobId}`, 'status', 'processing');
 
         return res.status(201).json({
@@ -87,7 +84,7 @@ export const getNLQJobStatus = async (req, res) => {
 
         // Check Redis first for quick access
         const redisStatus = await redis.hgetall(`job_status:${id}`);
-        
+
         if (redisStatus && redisStatus.status) {
             if (redisStatus.status === 'processing') {
                 return res.status(200).json({ status: 'processing' });
@@ -123,6 +120,33 @@ export const getNLQJobStatus = async (req, res) => {
     } catch (error) {
         console.error('Error fetching NLQ job status:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const getNLQJobResult = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const job = await NLQJob.findByPk(id);
+        if (!job) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+
+        if (job.status !== 'done' || !job.result_path) {
+            return res.status(400).json({ error: 'Job result not available yet' });
+        }
+
+        const response = await s3Client.send(new GetObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: job.result_path
+        }));
+
+        const contentType = job.result_path.endsWith('.png') ? 'image/png' : 'application/octet-stream';
+        res.setHeader('Content-Type', contentType);
+        response.Body.pipe(res);
+    } catch (error) {
+        console.error('Error fetching NLQ result:', error);
+        res.status(500).json({ error: 'Failed to fetch result' });
     }
 };
 
