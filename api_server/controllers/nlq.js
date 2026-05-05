@@ -86,21 +86,10 @@ export const getNLQJobStatus = async (req, res) => {
         const redisStatus = await redis.hgetall(`job_status:${id}`);
 
         if (redisStatus && redisStatus.status) {
-            if (redisStatus.status === 'processing') {
-                return res.status(200).json({ status: 'processing' });
-            } else if (redisStatus.status === 'done') {
-                // Update DB since it's done
-                await NLQJob.update(
-                    { status: 'done', result_path: redisStatus.resultPath },
-                    { where: { id: id } }
-                );
-                return res.status(200).json({
-                    status: 'done',
-                    resultPath: redisStatus.resultPath
-                });
-            } else {
-                return res.status(200).json({ status: redisStatus.status });
-            }
+            return res.status(200).json({
+                status: redisStatus.status,
+                resultPath: redisStatus.resultPath || null
+            });
         }
 
         // Fallback to database
@@ -119,6 +108,42 @@ export const getNLQJobStatus = async (req, res) => {
         }
     } catch (error) {
         console.error('Error fetching NLQ job status:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const updateNLQJobStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, resultPath } = req.body;
+        const workerKey = req.headers['x-worker-key'];
+
+        if (workerKey !== process.env.WORKER_API_KEY) {
+            return res.status(403).json({ error: 'Forbidden: Invalid worker key' });
+        }
+
+        if (!['done', 'failed'].includes(status)) {
+            return res.status(400).json({ error: 'Invalid status. Must be done or failed.' });
+        }
+
+        // Update Redis for quick access
+        const status_key = `job_status:${id}`;
+        await redis.hset(status_key, 'status', status);
+        if (resultPath) {
+            await redis.hset(status_key, 'resultPath', resultPath);
+        }
+
+        // Update Database
+        await NLQJob.update(
+            { status, result_path: resultPath },
+            { where: { id: id } }
+        );
+
+        console.log(`Job ${id} updated to ${status} by worker.`);
+
+        return res.status(200).json({ message: 'Job status updated successfully' });
+    } catch (error) {
+        console.error('Error updating NLQ job status:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
