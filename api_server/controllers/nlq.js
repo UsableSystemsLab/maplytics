@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { NLQJob, Project } from '../models/index.js';
+import { NLQJob, Project, Dataset } from '../models/index.js';
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
@@ -58,12 +58,27 @@ export const createNLQJob = async (req, res) => {
 
         const jobId = nlqJob.id;
 
+        // Resolve datasets to S3 keys from the database
+        const datasetDetails = await Dataset.findAll({
+            where: { id: datasets }
+        });
+
+        if (datasetDetails.length === 0) {
+            return res.status(400).json({ error: 'Selected datasets not found or invalid.' });
+        }
+
+        const resolvedDatasets = datasetDetails.map(ds => ({
+            s3Key: ds.s3_key,
+            fileFormat: ds.file_format?.toLowerCase(),
+            name: ds.name
+        }));
+
         // Push to Redis Queue
         const jobPayload = {
             jobId: jobId,
             type: type,
             query: query,
-            datasets: datasets,
+            datasets: resolvedDatasets,
             projectId: projectId
         };
 
