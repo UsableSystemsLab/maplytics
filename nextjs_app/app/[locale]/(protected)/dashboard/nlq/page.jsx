@@ -63,6 +63,9 @@ export default function NLQPage() {
     const [error, setError] = useState(null);
     const [jobs, setJobs] = useState([]);
     const [loadingJobs, setLoadingJobs] = useState(false);
+    const [projectDatasets, setProjectDatasets] = useState([]);
+    const [selectedDatasetIds, setSelectedDatasetIds] = useState([]);
+    const [loadingDatasets, setLoadingDatasets] = useState(false);
 
     const detectedDescriptiveKeyword = useMemo(() => detectDescriptiveKeyword(query), [query]);
 
@@ -80,9 +83,24 @@ export default function NLQPage() {
         }
     }, [projectId]);
 
+    // Fetch all available datasets for the project
+    const fetchDatasets = useCallback(async () => {
+        if (!projectId) return;
+        setLoadingDatasets(true);
+        try {
+            const data = await api.get(`/projects/${projectId}/datasets`);
+            setProjectDatasets(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error("Failed to fetch project datasets", err);
+        } finally {
+            setLoadingDatasets(false);
+        }
+    }, [projectId]);
+
     useEffect(() => {
         fetchJobs();
-    }, [fetchJobs]);
+        fetchDatasets();
+    }, [fetchJobs, fetchDatasets]);
 
     const handleTest = async (type) => {
         if (!projectId) {
@@ -101,7 +119,7 @@ export default function NLQPage() {
                 type,
                 query,
                 projectId,
-                datasets: []
+                datasets: selectedDatasetIds
             });
 
             if (res && res.jobId) {
@@ -200,6 +218,101 @@ export default function NLQPage() {
                         className="w-full border p-2 rounded"
                         placeholder="Enter your natural language query..."
                     />
+                </div>
+
+                {/* Dataset Selection */}
+                <div className="mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                            </svg>
+                            Selected Datasets
+                        </label>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
+                            {selectedDatasetIds.length} Selected
+                        </span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4 min-h-[40px]">
+                        {selectedDatasetIds.map(id => {
+                            const ds = projectDatasets.find(d => (d.id || d.dataset_id) === id);
+                            return (
+                                <div key={id} className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-blue-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <span className="truncate max-w-[150px]">{ds?.name || "Loading..."}</span>
+                                    <button 
+                                        onClick={() => setSelectedDatasetIds(prev => prev.filter(i => i !== id))}
+                                        className="hover:bg-blue-200 p-0.5 rounded-md transition-colors"
+                                        title="Remove dataset"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            );
+                        })}
+                        {selectedDatasetIds.length === 0 && (
+                            <div className="flex items-center gap-2 text-gray-400 text-xs italic py-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Please select at least one dataset from the list below to begin analysis.
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-1 custom-scrollbar">
+                        {loadingDatasets ? (
+                            <div className="col-span-full py-8 text-center">
+                                <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent mb-2"></div>
+                                <div className="text-gray-400 text-xs">Fetching datasets...</div>
+                            </div>
+                        ) : projectDatasets.length === 0 ? (
+                            <div className="col-span-full py-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                <div className="text-gray-400 text-sm">No datasets found in this project.</div>
+                                <div className="text-gray-300 text-[10px] mt-1">Upload files in the project settings first.</div>
+                            </div>
+                        ) : (
+                            projectDatasets.map(ds => {
+                                const id = ds.id || ds.dataset_id;
+                                const isSelected = selectedDatasetIds.includes(id);
+                                return (
+                                    <button
+                                        key={id}
+                                        onClick={() => {
+                                            if (isSelected) {
+                                                setSelectedDatasetIds(prev => prev.filter(i => i !== id));
+                                            } else {
+                                                setSelectedDatasetIds(prev => [...prev, id]);
+                                            }
+                                        }}
+                                        className={`group relative text-left p-3 rounded-xl border transition-all duration-200 ${
+                                            isSelected 
+                                                ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-2 ring-blue-100 ring-offset-1' 
+                                                : 'bg-white border-gray-100 text-gray-700 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="font-semibold text-sm truncate">{ds.name}</span>
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? 'text-blue-100' : 'text-gray-400 group-hover:text-blue-400'}`}>
+                                                    {ds.file_format || ds.geometry_type || 'DATASET'}
+                                                </span>
+                                            </div>
+                                            <div className={`shrink-0 h-5 w-5 rounded-full flex items-center justify-center border transition-colors ${
+                                                isSelected ? 'bg-white text-blue-600 border-white' : 'bg-gray-50 text-transparent border-gray-100 group-hover:border-blue-200'
+                                            }`}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })
+                        )}
+                    </div>
                 </div>
 
                 {/* Descriptive keyword highlight */}
