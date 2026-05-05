@@ -27,7 +27,8 @@ async function insertFeaturesFromS3(s3Key, datasetName, description, userId, aut
             fileFormat: ext,
             geojson,
             isPublic,
-            isVerified
+            isVerified,
+            s3Key
         });
 
         return datasetId;

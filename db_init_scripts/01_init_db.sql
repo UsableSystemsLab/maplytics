@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS public."Dataset" (
     "author" VARCHAR(255),                          -- Name of the user who uploaded the dataset
     "user_id" VARCHAR(128) NOT NULL,                           -- Reference to dataset owner
     "is_public" BOOLEAN DEFAULT TRUE,                 -- Whether the dataset is publicly available
-    "is_verified" BOOLEAN DEFAULT FALSE               -- Whether the dataset is verified by Maplytics team
+    "is_verified" BOOLEAN DEFAULT FALSE,              -- Whether the dataset is verified by Maplytics team
+    "s3_key" VARCHAR(512)                             -- Exact path to the file in S3/RustFS
 );
 
 
