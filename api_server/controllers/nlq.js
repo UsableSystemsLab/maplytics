@@ -13,8 +13,13 @@ export const createNLQJob = async (req, res) => {
     try {
         let type = req.body.type || req.query.type;
         const query = req.body.query;
-        const projectId = req.body.projectId;
         const datasets = req.body.datasets || [];
+        const projectId = req.body.projectId;
+
+        // Validate datasets selection
+        if (!datasets || datasets.length === 0) {
+            return res.status(400).json({ error: 'At least one dataset must be selected.' });
+        }
 
         // Validate type
         if (!['aggregation', 'comparison', 'descriptive'].includes(type)) {

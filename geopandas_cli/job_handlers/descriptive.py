@@ -393,20 +393,15 @@ def process(job):
     output_dir = "temp_job_output"
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, f"{job_id}_descriptive.png")
-
-    # Resolve dataset: use provided datasets or discover from S3
+    
     dataset_info = None
+
     if datasets and len(datasets) > 0:
         ds = datasets[0]
         if isinstance(ds, dict) and ds.get("s3Key"):
             dataset_info = ds
         elif isinstance(ds, str):
             dataset_info = {"s3Key": ds, "fileFormat": ds.rsplit(".", 1)[-1] if "." in ds else "geojson"}
-
-    if not dataset_info:
-        discovered = list_s3_datasets()
-        if discovered:
-            dataset_info = discovered[0]
 
     if not dataset_info:
         fig, ax = plt.subplots(figsize=(8, 4))
