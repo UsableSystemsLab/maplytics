@@ -64,6 +64,7 @@ const mainNavItems = [
   { id: "projects", label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },
   { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
   { id: "map-view", label: "Map view", icon: Map, href: "/dashboard/map" },
+  { id: "map-explorer", label: "Map Explorer", icon: Map, href: "/dashboard/map-explorer" },
   { id: "comparison", label: "Comparison", icon: BarChart3, href: "/dashboard/comparison" },
 ];
 
