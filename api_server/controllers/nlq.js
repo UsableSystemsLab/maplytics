@@ -233,6 +233,67 @@ export const getNLQJobStatus = async (req, res) => {
   }
 };
 
+export const updateNLQJobStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, resultPath } = req.body;
+    const workerKey = req.headers['x-worker-key'];
+
+    if (workerKey !== process.env.WORKER_API_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid worker key' });
+    }
+
+    if (!['done', 'failed'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be done or failed.' });
+    }
+
+    const status_key = `job_status:${id}`;
+    await redis.hset(status_key, 'status', status);
+    if (resultPath) {
+      await redis.hset(status_key, 'resultPath', resultPath);
+    }
+
+    await NLQJob.update(
+      { status, result_path: resultPath },
+      { where: { id } },
+    );
+
+    console.log(`Job ${id} updated to ${status} by worker.`);
+
+    return res.status(200).json({ message: 'Job status updated successfully' });
+  } catch (error) {
+    console.error('Error updating NLQ job status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getNLQJobResult = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const job = await NLQJob.findByPk(id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    if (job.status !== 'done' || !job.result_path) {
+      return res.status(400).json({ error: 'Job result not available yet' });
+    }
+
+    const response = await s3Client.send(new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: job.result_path,
+    }));
+
+    const contentType = job.result_path.endsWith('.png') ? 'image/png' : 'application/octet-stream';
+    res.setHeader('Content-Type', contentType);
+    response.Body.pipe(res);
+  } catch (error) {
+    console.error('Error fetching NLQ result:', error);
+    res.status(500).json({ error: 'Failed to fetch result' });
+  }
+};
+
 export const listNLQJobs = async (req, res) => {
   try {
     const { projectId } = req.params;

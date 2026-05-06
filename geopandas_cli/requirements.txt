@@ -6,3 +6,9 @@ geopandas
 boto3
 shapely
 pytest
+matplotlib
+numpy
+pandas
+requests
+seaborn
+contextily

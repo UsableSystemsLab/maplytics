@@ -127,6 +127,11 @@ const Dataset = sequelize.define(
             defaultValue: false,
             allowNull: false,
         },
+        s3_key: {
+            type: DataTypes.STRING(512),
+            field: "s3_key",
+            allowNull: true,
+        },
     },
     {
         tableName: "Dataset",
