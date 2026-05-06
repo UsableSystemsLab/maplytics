@@ -15,7 +15,9 @@ const BAGS = {
     },
     descriptive: {
         keywords: ["min", "minimum", "max", "maximum", "avg", "average", "mean",
-            "median", "std", "deviation", "summarize", "summary", "statistics", "stats", "range", "variance"],
+            "median", "std", "deviation", "sum", "count", "summarize",
+            "summary", "statistics", "stats", "range", "variance"
+        ],
         color: "text-purple-600",
         bg: "bg-purple-100",
     }
@@ -42,7 +44,7 @@ export default function MapCommandInput({ isMobile }) {
         setIsSubmitting(true);
         try {
             const type = query.toLowerCase().includes("aggregate") ? "aggregation" : "descriptive";
-            
+
             const datasetIds = selectedLayers.map(l => l.id);
 
             await submitNlqJob({
@@ -91,7 +93,7 @@ export default function MapCommandInput({ isMobile }) {
                     <div className="absolute inset-0 flex items-center px-1 text-[15px] font-medium pointer-events-none whitespace-pre overflow-hidden font-sans tracking-normal leading-none">
                         {renderHighlights()}
                     </div>
-                    
+
                     {/* Actual Input */}
                     <input
                         type="text"
@@ -119,7 +121,7 @@ export default function MapCommandInput({ isMobile }) {
                     )}
                 </button>
             </div>
-            
+
             {/* Subtle Hint */}
             {!query && (
                 <div className="mt-3 flex justify-center gap-4 text-[10px] font-bold text-gray-400/80 uppercase tracking-widest animate-in fade-in slide-in-from-bottom-2 duration-700">

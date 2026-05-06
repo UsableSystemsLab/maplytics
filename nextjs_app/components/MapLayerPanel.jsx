@@ -26,10 +26,10 @@ export default function MapLayerPanel({
                 {/* Header */}
                 <div
                     className={cn(
-                        "p-4 bg-primary/5 border-b border-gray-100 flex items-center justify-between cursor-pointer md:cursor-default",
-                        isMobile && !isPanelExpanded && "p-3 border-b-0"
+                        "p-4 bg-primary/5 border-b border-gray-100 flex items-center justify-between cursor-pointer",
+                        !isPanelExpanded && "p-3 border-b-0"
                     )}
-                    onClick={() => isMobile && setIsPanelExpanded(!isPanelExpanded)}
+                    onClick={() => setIsPanelExpanded(!isPanelExpanded)}
                 >
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
@@ -37,7 +37,7 @@ export default function MapLayerPanel({
                         </div>
                         <h3 className={cn(
                             "font-bold text-gray-900 truncate transition-all duration-300",
-                            isMobile && !isPanelExpanded ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+                            !isPanelExpanded ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                         )}>
                             Active layers
                         </h3>
@@ -45,7 +45,7 @@ export default function MapLayerPanel({
 
                     <div className={cn(
                         "flex items-center gap-1 transition-all duration-300",
-                        isMobile && !isPanelExpanded ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+                        !isPanelExpanded ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                     )}>
                         <Button
                             variant="ghost"
@@ -59,26 +59,24 @@ export default function MapLayerPanel({
                             <Plus className="w-4 h-4 text-primary" />
                         </Button>
 
-                        {isMobile && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 rounded-full hover:bg-primary/10 shrink-0"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsPanelExpanded(false);
-                                }}
-                            >
-                                <ChevronUp className="w-4 h-4 text-gray-500" />
-                            </Button>
-                        )}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-primary/10 shrink-0"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsPanelExpanded(false);
+                            }}
+                        >
+                            <ChevronUp className={cn("w-4 h-4 text-gray-500 transition-transform", !isPanelExpanded && "rotate-180")} />
+                        </Button>
                     </div>
                 </div>
 
                 {/* Content */}
                 <div className={cn(
                     "transition-all duration-300 overflow-hidden flex flex-col",
-                    isMobile && !isPanelExpanded ? "max-h-0" : "max-h-[500px] opacity-100"
+                    !isPanelExpanded ? "max-h-0" : "max-h-[500px] opacity-100"
                 )}>
                     <div className="flex-1 overflow-y-auto p-2 min-h-[100px] max-h-[400px] space-y-1">
                         {selectedLayers.length === 0 ? (
@@ -146,7 +144,7 @@ export default function MapLayerPanel({
                                                     onClick={() => setLayerVizModes(prev => ({ ...prev, [layer.id]: 'plotting' }))}
                                                     className={cn(
                                                         "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all",
-                                                        layerVizModes[layer.id] === 'plotting' ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100"
+                                                        (!layerVizModes[layer.id] || layerVizModes[layer.id] === 'plotting') ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100"
                                                     )}
                                                     title="Standard Plotting"
                                                 >
