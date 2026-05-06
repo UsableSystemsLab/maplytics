@@ -1,6 +1,5 @@
 import os
 import json
-import boto3
 import pandas as pd
 import geopandas as gpd
 import matplotlib
@@ -9,12 +8,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import requests
-
-S3_ENDPOINT = os.environ.get("S3_ENDPOINT", "http://rustfs:9000")
-S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY", "rustfsadmin")
-S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY", "rustfsadmin")
-S3_BUCKET = os.environ.get("S3_BUCKET_NAME", "datasets")
-API_URL = os.environ.get("API_URL", "http://api_server:4000/api")
+from .utils import (
+    get_s3_client,
+    fetch_dataset_from_s3,
+    parse_to_geodataframe,
+    S3_BUCKET
+)
 
 # Bag of words for descriptive statistics detection and operation extraction.
 # Each keyword maps to the statistical operation it represents.
@@ -38,79 +37,6 @@ DESCRIPTIVE_BAG_OF_WORDS = {
     "summarize": "summary",
     "summary": "summary",
 }
-
-
-def get_s3_client():
-    return boto3.client(
-        "s3",
-        endpoint_url=S3_ENDPOINT,
-        aws_access_key_id=S3_ACCESS_KEY,
-        aws_secret_access_key=S3_SECRET_KEY,
-    )
-
-
-def list_s3_datasets():
-    """List all dataset files in the S3 bucket (public/ and private/ prefixes)."""
-    client = get_s3_client()
-    files = []
-    for prefix in ["public/", "private/"]:
-        try:
-            response = client.list_objects_v2(Bucket=S3_BUCKET, Prefix=prefix)
-            for obj in response.get("Contents", []):
-                key = obj["Key"]
-                ext = key.rsplit(".", 1)[-1].lower() if "." in key else ""
-                if ext in ("csv", "json", "geojson"):
-                    files.append({"s3Key": key, "fileFormat": ext})
-        except Exception:
-            continue
-    return files
-
-
-def fetch_dataset_from_s3(s3_key):
-    client = get_s3_client()
-    response = client.get_object(Bucket=S3_BUCKET, Key=s3_key)
-    body = response["Body"].read().decode("utf-8")
-    return body
-
-
-def parse_to_geodataframe(content, file_format):
-    if file_format == "csv":
-        from io import StringIO
-        df = pd.read_csv(StringIO(content))
-        lat_cols = [c for c in df.columns if c.lower() in ("latitude", "lat")]
-        lng_cols = [c for c in df.columns if c.lower() in ("longitude", "lng", "lon")]
-        if lat_cols and lng_cols:
-            gdf = gpd.GeoDataFrame(
-                df,
-                geometry=gpd.points_from_xy(df[lng_cols[0]], df[lat_cols[0]]),
-                crs="EPSG:4326"
-            )
-        else:
-            gdf = gpd.GeoDataFrame(df)
-        return gdf
-
-    parsed = json.loads(content)
-    if parsed.get("type") == "FeatureCollection":
-        gdf = gpd.GeoDataFrame.from_features(parsed["features"], crs="EPSG:4326")
-        return gdf
-    if isinstance(parsed, list):
-        df = pd.DataFrame(parsed)
-    elif isinstance(parsed, dict) and "data" in parsed and isinstance(parsed["data"], list):
-        df = pd.DataFrame(parsed["data"])
-    else:
-        df = pd.DataFrame([parsed])
-
-    lat_cols = [c for c in df.columns if c.lower() in ("latitude", "lat")]
-    lng_cols = [c for c in df.columns if c.lower() in ("longitude", "lng", "lon")]
-    if lat_cols and lng_cols:
-        gdf = gpd.GeoDataFrame(
-            df,
-            geometry=gpd.points_from_xy(df[lng_cols[0]], df[lat_cols[0]]),
-            crs="EPSG:4326"
-        )
-    else:
-        gdf = gpd.GeoDataFrame(df)
-    return gdf
 
 
 def detect_grouping_column(query, columns):
