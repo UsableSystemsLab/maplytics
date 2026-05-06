@@ -1,22 +1,31 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import api from "@/lib/apiClient";
 import { useSelector } from "react-redux";
 import { selectActiveProject } from "@/lib/store/features/projectSlice";
+import { selectSelectedLayers } from "@/lib/store/features/layersSlice";
+import { classify } from "@/lib/nlqClassifier";
+import NLQComparisonGeoJSONResult from "@/components/NLQComparisonGeoJSONResult";
 
 export default function NLQPage() {
-    const { user, token } = useAuth();
     const activeProject = useSelector(selectActiveProject);
+    const selectedLayers = useSelector(selectSelectedLayers);
     const projectId = activeProject?.id;
+    const activeLayer = selectedLayers.length > 0 ? selectedLayers[selectedLayers.length - 1] : null;
+    const datasetId = activeLayer ? (activeLayer.pgDatasetId || activeLayer.id) : null;
+
     const [query, setQuery] = useState("compare dataset 1 and dataset 2");
     const [status, setStatus] = useState(null);
     const [resultPath, setResultPath] = useState(null);
+    const [comparisonGeojson, setComparisonGeojson] = useState(null);
     const [jobId, setJobId] = useState(null);
+    const [jobType, setJobType] = useState(null);
     const [error, setError] = useState(null);
     const [jobs, setJobs] = useState([]);
     const [loadingJobs, setLoadingJobs] = useState(false);
+
+    const cls = useMemo(() => classify(query), [query]);
 
     // Fetch all NLQ jobs for the active project
     const fetchJobs = useCallback(async () => {
@@ -45,15 +54,22 @@ export default function NLQPage() {
         setStatus("submitting");
         setError(null);
         setResultPath(null);
+        setComparisonGeojson(null);
         setJobId(null);
+        setJobType(type);
+
+        if (type === "comparison" && !datasetId) {
+            setError("Select a dataset from the sidebar first.");
+            setStatus(null);
+            return;
+        }
 
         try {
-            const res = await api.post("/nlq", {
-                type,
-                query,
-                projectId,
-                datasets: []
-            });
+            const body = { type, query, projectId, datasets: [] };
+            if (type === "comparison") {
+                body.datasetId = datasetId;
+            }
+            const res = await api.post("/nlq", body);
 
             if (res && res.jobId) {
                 setJobId(res.jobId);
@@ -77,10 +93,19 @@ export default function NLQPage() {
                         setStatus("done");
                         setResultPath(res.resultPath);
                         clearInterval(interval);
-                        fetchJobs(); // refresh table
+                        if (jobType === "comparison" || res.resultType === "comparison_geojson") {
+                            try {
+                                const geojson = await api.get(`/nlq/${jobId}/result`);
+                                setComparisonGeojson(geojson);
+                            } catch (resultErr) {
+                                console.error("Failed to fetch comparison GeoJSON", resultErr);
+                                setError(resultErr.data?.error || resultErr.message);
+                            }
+                        }
+                        fetchJobs();
                     } else if (res.status === "failed") {
                         setStatus("failed");
-                        setError("Job processing failed on the worker.");
+                        setError(res.error || "Job processing failed on the worker.");
                         clearInterval(interval);
                         fetchJobs();
                     }
@@ -93,7 +118,7 @@ export default function NLQPage() {
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [status, jobId, fetchJobs]);
+    }, [status, jobId, jobType, fetchJobs]);
 
     const statusBadge = (s) => {
         const colors = {
@@ -126,9 +151,9 @@ export default function NLQPage() {
             <h1 className="text-2xl font-bold mb-6">NLQ Queries</h1>
 
             {/* Submit Form */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border mb-8 max-w-2xl">
+            <div className="bg-white p-6 rounded-lg shadow-sm border mb-8 max-w-6xl">
                 <h2 className="text-lg font-semibold mb-4">Submit New Query</h2>
-                <div className="mb-4">
+                <div className="mb-2">
                     <label className="block text-sm font-medium mb-1">Query</label>
                     <input
                         type="text"
@@ -138,6 +163,32 @@ export default function NLQPage() {
                         placeholder="Enter your natural language query..."
                     />
                 </div>
+
+                {/* Classification preview (no in-line highlighting) */}
+                <div className="flex items-center gap-2 text-xs mb-4 flex-wrap min-h-[1.25rem]">
+                    {cls.ok && (
+                        <>
+                            {typeBadge(cls.type)}
+                            {cls.matchedTerms?.length > 0 && (
+                                <span className="text-gray-500">
+                                    Matched: {cls.matchedTerms.join(", ")}
+                                </span>
+                            )}
+                        </>
+                    )}
+                    {!cls.ok && cls.reason === "not_a_verb" && (
+                        <span className="text-red-600">
+                            Start with a verb (compare, contrast, rank, …).
+                        </span>
+                    )}
+                </div>
+
+                {activeLayer && (
+                    <div className="text-gray-500 text-xs mb-3">
+                        Active dataset for comparison:{" "}
+                        <span className="font-mono">{activeLayer.name}</span>
+                    </div>
+                )}
 
                 <div className="flex gap-2 mb-4">
                     <button
@@ -149,7 +200,8 @@ export default function NLQPage() {
                     </button>
                     <button
                         onClick={() => handleTest("comparison")}
-                        disabled={status === "processing" || status === "submitting"}
+                        disabled={status === "processing" || status === "submitting" || !datasetId}
+                        title={!datasetId ? "Select a dataset from the sidebar first." : ""}
                         className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-green-700 transition-colors"
                     >
                         Test Comparison
@@ -177,6 +229,10 @@ export default function NLQPage() {
                             <p className="text-green-600 mt-1">Result: {resultPath}</p>
                         )}
                     </div>
+                )}
+
+                {comparisonGeojson && (
+                    <NLQComparisonGeoJSONResult geojson={comparisonGeojson} />
                 )}
             </div>
 

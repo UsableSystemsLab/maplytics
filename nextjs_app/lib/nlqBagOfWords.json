@@ -1,0 +1,18 @@
+{
+  "verbs": ["compare", "contrast", "differentiate"],
+  "types": {
+    "comparison": {
+      "color": "green",
+      "label": "Comparison",
+      "terms": [
+        "compare", "comparison", "contrast", "differentiate",
+        "difference", "differences", "different",
+        "between", "versus", "vs", "against",
+        "rank", "ranking",
+        "analyze", "evaluate", "measure", "check", "show", "find",
+        "category", "categories", "review", "reviews", "rating",
+        "sentiment", "distribution", "share"
+      ]
+    }
+  }
+}
