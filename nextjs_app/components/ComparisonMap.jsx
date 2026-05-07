@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -11,6 +11,19 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+const MARKER_BASE_RADIUS = 9;
+const MARKER_HIGHLIGHT_RADIUS = 13;
+const MARKER_DIM_RADIUS = 6;
+
 export default function ComparisonMap({
     mapId,
     center,
@@ -19,6 +32,7 @@ export default function ComparisonMap({
     boundaryGeoJSON = null,
     featurePoints = null,
     color = '#2563eb',
+    highlightedComparisonValue = null,
 }) {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
@@ -46,7 +60,17 @@ export default function ComparisonMap({
 
         mapInstanceRef.current = map;
 
+        const invalidate = () => map.invalidateSize?.();
+        const raf = requestAnimationFrame(invalidate);
+        const t1 = setTimeout(invalidate, 120);
+        const t2 = setTimeout(invalidate, 400);
+        window.addEventListener("resize", invalidate);
+
         return () => {
+            cancelAnimationFrame(raf);
+            clearTimeout(t1);
+            clearTimeout(t2);
+            window.removeEventListener("resize", invalidate);
             if (mapInstanceRef.current) {
                 mapInstanceRef.current.remove();
                 mapInstanceRef.current = null;
@@ -62,7 +86,7 @@ export default function ComparisonMap({
 
         markers.forEach(marker => {
             L.marker(marker.position)
-                .bindPopup(marker.title)
+                .bindPopup(escapeHtml(marker.title))
                 .addTo(layerGroup);
         });
 
@@ -72,7 +96,27 @@ export default function ComparisonMap({
         }
     }, [markers]);
 
-    // Render district boundary polygon
+    const fitRenderedBounds = useCallback(() => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+
+        const boundsSources = [boundaryLayerRef.current, pointsLayerRef.current].filter(Boolean);
+        const validBounds = boundsSources
+            .map((layer) => layer.getBounds?.())
+            .filter((bounds) => bounds?.isValid?.());
+
+        if (validBounds.length === 0) return;
+
+        const combined = validBounds.slice(1).reduce(
+            (bounds, nextBounds) => bounds.extend(nextBounds),
+            validBounds[0],
+        );
+
+        map.fitBounds(combined, { padding: [30, 30] });
+        setTimeout(() => map.invalidateSize?.(), 0);
+    }, []);
+
+    // Render district boundary polygon (uses per-feature stroke/fill if present, else fallback color)
     useEffect(() => {
         if (!mapInstanceRef.current) return;
 
@@ -81,25 +125,22 @@ export default function ComparisonMap({
             boundaryLayerRef.current = null;
         }
 
-        if (!boundaryGeoJSON) return;
+        if (!boundaryGeoJSON?.features?.length) return;
 
         try {
-            const c = colorRef.current;
+            const fallback = colorRef.current;
             const layer = L.geoJSON(boundaryGeoJSON, {
-                style: {
-                    color: c,
+                style: (feature) => ({
+                    color: feature?.properties?.strokeColor || fallback,
                     weight: 3,
-                    fillColor: c,
+                    fillColor: feature?.properties?.fillColor || fallback,
                     fillOpacity: 0.12,
-                },
+                }),
             }).addTo(mapInstanceRef.current);
 
             boundaryLayerRef.current = layer;
 
-            const bounds = layer.getBounds();
-            if (bounds.isValid()) {
-                mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30] });
-            }
+            fitRenderedBounds();
         } catch (err) {
             console.error(`[ComparisonMap:${mapId}] Error rendering boundary:`, err);
         }
@@ -110,9 +151,9 @@ export default function ComparisonMap({
                 boundaryLayerRef.current = null;
             }
         };
-    }, [boundaryGeoJSON, mapId]);
+    }, [boundaryGeoJSON, mapId, fitRenderedBounds]);
 
-    // Render feature points as circle markers
+    // Render feature points as circle markers (uses per-feature markerColor if present)
     useEffect(() => {
         if (!mapInstanceRef.current) return;
 
@@ -124,34 +165,50 @@ export default function ComparisonMap({
         if (!featurePoints?.features?.length) return;
 
         try {
-            const pc = colorRef.current;
+            const fallback = colorRef.current;
             const layer = L.geoJSON(featurePoints, {
-                pointToLayer: (_feature, latlng) => {
+                pointToLayer: (feature, latlng) => {
+                    const fill = feature?.properties?.markerColor || fallback;
                     return L.circleMarker(latlng, {
-                        radius: 6,
-                        fillColor: pc,
+                        radius: MARKER_BASE_RADIUS,
+                        fillColor: fill,
                         color: '#fff',
                         weight: 2,
-                        fillOpacity: 0.8,
+                        fillOpacity: 0.9,
                     });
                 },
                 onEachFeature: (feature, layer) => {
                     if (feature.properties) {
-                        const entries = Object.entries(feature.properties).slice(0, 5);
-                        const content = entries.map(([k, v]) => `<b>${k}:</b> ${v}`).join('<br>');
-                        layer.bindPopup(content);
+                        const skip = new Set([
+                            "comparisonRole",
+                            "comparisonSide",
+                            "comparisonField",
+                            "comparisonValue",
+                            "markerColor",
+                            "strokeColor",
+                            "fillColor",
+                            "districtId",
+                        ]);
+                        const rows = [];
+                        if (feature.properties.districtName) {
+                            rows.push(["District", feature.properties.districtName]);
+                        }
+                        for (const [k, v] of Object.entries(feature.properties)) {
+                            if (rows.length >= 6) break;
+                            if (skip.has(k) || v === null || v === undefined || v === "" || typeof v === "object") continue;
+                            rows.push([k, v]);
+                        }
+                        const html = rows
+                            .map(([k, v]) => `<b>${escapeHtml(k)}:</b> ${escapeHtml(v)}`)
+                            .join("<br>");
+                        layer.bindPopup(html);
                     }
                 },
             }).addTo(mapInstanceRef.current);
 
             pointsLayerRef.current = layer;
 
-            if (!boundaryGeoJSON) {
-                const bounds = layer.getBounds();
-                if (bounds.isValid()) {
-                    mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30] });
-                }
-            }
+            fitRenderedBounds();
         } catch (err) {
             console.error(`[ComparisonMap:${mapId}] Error rendering points:`, err);
         }
@@ -162,7 +219,34 @@ export default function ComparisonMap({
                 pointsLayerRef.current = null;
             }
         };
-    }, [featurePoints, mapId, boundaryGeoJSON]);
+    }, [featurePoints, mapId, boundaryGeoJSON, fitRenderedBounds]);
 
-    return <div ref={mapRef} id={mapId} className="w-full h-full rounded-lg" />;
+    useEffect(() => {
+        const pointsLayer = pointsLayerRef.current;
+        if (!pointsLayer) return;
+
+        const target = highlightedComparisonValue;
+        const hasTarget = target !== null && target !== undefined;
+
+        pointsLayer.eachLayer((marker) => {
+            if (typeof marker.setStyle !== "function") return;
+            const value = marker.feature?.properties?.comparisonValue;
+            const isMatch = !hasTarget || value === target;
+
+            const radius = !hasTarget
+                ? MARKER_BASE_RADIUS
+                : isMatch
+                    ? MARKER_HIGHLIGHT_RADIUS
+                    : MARKER_DIM_RADIUS;
+            const fillOpacity = !hasTarget ? 0.9 : isMatch ? 1 : 0.25;
+            const weight = !hasTarget ? 2 : isMatch ? 2.5 : 1;
+
+            marker.setStyle({ fillOpacity, weight });
+            if (typeof marker.setRadius === "function") {
+                marker.setRadius(radius);
+            }
+        });
+    }, [highlightedComparisonValue, featurePoints]);
+
+    return <div ref={mapRef} id={mapId} className="h-full w-full" />;
 }

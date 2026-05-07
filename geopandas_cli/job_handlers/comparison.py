@@ -18,8 +18,8 @@ from utils.attribute_resolver import expand_properties, resolve_attribute
 
 logger = logging.getLogger(__name__)
 
-COLOR_A = "#dc2626"
-COLOR_B = "#2563eb"
+COLOR_A = "#134565"
+COLOR_B = "#13B38D"
 FALLBACK_MESSAGE = (
     "No categorical comparison field was found. The result uses feature count "
     "and spatial distribution."

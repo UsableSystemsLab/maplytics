@@ -57,7 +57,11 @@ def main():
                     if job_type == "aggregation":
                         result_path = aggregation.process(job)
                     elif job_type == "comparison":
-                        result_path = comparison.process(job)
+                        comparison_mode = job.get("comparisonMode", "districts")
+                        if comparison_mode == "districts":
+                            result_path = comparison.process(job)
+                        else:
+                            raise ValueError(f"Unsupported comparisonMode: {comparison_mode}")
                     elif job_type == "descriptive":
                         result_path = descriptive.process(job)
                     else:

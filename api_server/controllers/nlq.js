@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { QueryTypes } from 'sequelize';
-import { NLQJob, Project, Dataset } from '../models/index.js';
+import { NLQJob, Project, Dataset, Dataset_Project } from '../models/index.js';
 import { sequelize } from '../configs/postgresDB.js';
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
@@ -23,7 +23,7 @@ export const createNLQJob = async (req, res) => {
   try {
     const query = (req.body.query || '').trim();
     const projectId = req.body.projectId;
-    const datasetId = req.body.datasetId;
+    const datasetId = req.body.datasetId || (Array.isArray(req.body.datasets) && req.body.datasets[0]) || null;
     const clientType = req.body.type;
 
     if (!query || !projectId) {
@@ -91,13 +91,22 @@ export const createNLQJob = async (req, res) => {
     }
 
     if (!datasetId) {
-      return res.status(400).json({ error: 'Select a dataset from the sidebar first.' });
+      return res.status(400).json({ error: 'Select a dataset for comparison.' });
     }
 
     const dataset = await Dataset.findByPk(datasetId);
     if (!dataset || (!dataset.is_public && dataset.user_id !== req.user.uid)) {
       return res.status(404).json({
         error: 'Selected dataset was not found or is not accessible.',
+      });
+    }
+
+    const projectLink = await Dataset_Project.findOne({
+      where: { dataset_id: datasetId, project_id: projectId },
+    });
+    if (!projectLink) {
+      return res.status(400).json({
+        error: 'Selected dataset is not linked to the active project.',
       });
     }
 
@@ -153,6 +162,7 @@ export const createNLQJob = async (req, res) => {
     const jobPayload = {
       jobId,
       type: 'comparison',
+      comparisonMode: 'districts',
       query,
       projectId,
       datasetId,
