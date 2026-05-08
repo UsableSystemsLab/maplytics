@@ -35,33 +35,52 @@ export default function MapExplorer({ className = "w-full h-full" }) {
     const isInitialSync = useRef(false);
     const prevSelectedLayersRef = useRef([]);
 
-    // Fetch NLQ Jobs and handle auto-preview
-    useEffect(() => {
+    const prevJobsRef = useRef([]);
+
+    const fetchJobs = async (isInitial = false) => {
         if (!activeProject?.id) return;
         
-        const fetchJobs = async () => {
-            const data = await getNlqProjectJobs(activeProject.id);
-            setJobs(prevJobs => {
-                const latestDone = [...data].reverse().find(j => j.status === "done" && j.result_path?.endsWith(".png"));
-                const prevLatestDone = [...prevJobs].reverse().find(j => j.status === "done" && j.result_path?.endsWith(".png"));
-                
-                // If there's a NEW latest job, auto-select it
-                if (latestDone && latestDone.id !== prevLatestDone?.id) {
-                    setSelectedJobId(latestDone.job_id || latestDone.id);
-                }
-                // Initial load: select latest
-                if (!selectedJobId && latestDone) {
-                    setSelectedJobId(latestDone.job_id || latestDone.id);
-                }
-                
-                return data;
-            });
-        };
+        const data = await getNlqProjectJobs(activeProject.id);
+        // Ensure stable sort (latest first)
+        const sortedData = [...data].sort((a, b) => {
+            const dateA = new Date(a.created_at || a.updated_at || 0);
+            const dateB = new Date(b.created_at || b.updated_at || 0);
+            return dateB - dateA;
+        });
 
-        fetchJobs();
-        const interval = setInterval(fetchJobs, 10000);
+        // Find latest done job in current and previous sets
+        const latestDone = sortedData.find(j => j.status === "done" && (j.result_path?.endsWith(".png") || j.result_path?.includes("/result")));
+        const prevLatestDone = prevJobsRef.current.find(j => j.status === "done" && (j.result_path?.endsWith(".png") || j.result_path?.includes("/result")));
+
+        // Auto-selection conditions:
+        // 1. A new job just finished (latestDone.id changed)
+        // 2. Initial load and nothing is selected yet
+        const aNewJobFinished = latestDone && latestDone.id !== prevLatestDone?.id;
+        const initialAutoSelect = isInitial && !selectedJobId && latestDone;
+
+        if (aNewJobFinished || initialAutoSelect) {
+            setSelectedJobId(latestDone.job_id || latestDone.id);
+        }
+
+        setJobs(sortedData);
+        prevJobsRef.current = sortedData;
+    };
+
+    // Initial load and project change
+    useEffect(() => {
+        if (activeProject?.id) {
+            fetchJobs(true);
+        }
+    }, [activeProject?.id]);
+
+    // Smart polling: only when processing
+    useEffect(() => {
+        const hasProcessing = jobs.some(j => j.status === "processing" || j.status === "queued");
+        if (!hasProcessing || !activeProject?.id) return;
+
+        const interval = setInterval(() => fetchJobs(false), 4000);
         return () => clearInterval(interval);
-    }, [activeProject?.id, selectedJobId]);
+    }, [jobs, activeProject?.id, selectedJobId]);
 
     // 1. Sync visibleLayerIds with selectedLayers on mount/rehydration
     useEffect(() => {
@@ -178,6 +197,7 @@ export default function MapExplorer({ className = "w-full h-full" }) {
 
             <MapCommandInput 
                 isMobile={isMobile}
+                onSuccess={() => fetchJobs(false)}
             />
 
             <MapSummaryPanel 

@@ -31,20 +31,39 @@ function getDetectedType(word) {
     return null;
 }
 
-export default function MapCommandInput({ isMobile }) {
+export default function MapCommandInput({ isMobile, onSuccess }) {
     const [query, setQuery] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
 
     const selectedLayers = useSelector(selectSelectedLayers);
     const activeProject = useSelector(selectActiveProject);
 
+    const detectJobType = (q) => {
+        const words = q.toLowerCase().split(/\s+/);
+        // Check aggregation first, then descriptive
+        if (words.some(word => BAGS.aggregation.keywords.includes(word))) return "aggregation";
+        if (words.some(word => BAGS.descriptive.keywords.includes(word))) return "descriptive";
+        return null;
+    };
+
     const handleSubmit = async () => {
         if (!query.trim() || !activeProject?.id || isSubmitting) return;
 
-        setIsSubmitting(true);
-        try {
-            const type = query.toLowerCase().includes("aggregate") ? "aggregation" : "descriptive";
+        const type = detectJobType(query);
+        if (!type) {
+            setError("Query not supported. Please start with a verb like: report, summarize, analyze, count, etc.");
+            return;
+        }
 
+        if (selectedLayers.length === 0) {
+            setError("Please select at least one dataset from the drawer first.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setError(null);
+        try {
             const datasetIds = selectedLayers.map(l => l.id);
 
             await submitNlqJob({
@@ -55,11 +74,18 @@ export default function MapCommandInput({ isMobile }) {
             });
 
             setQuery("");
+            if (onSuccess) onSuccess();
         } catch (error) {
             console.error("Failed to submit analysis job:", error);
+            setError("Failed to submit job. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleInputChange = (e) => {
+        setQuery(e.target.value);
+        if (error) setError(null);
     };
 
     const renderHighlights = () => {
@@ -83,6 +109,12 @@ export default function MapCommandInput({ isMobile }) {
             "absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4 pointer-events-none transition-all duration-300",
             isMobile && "bottom-24"
         )}>
+            {error && (
+                <div className="mb-3 px-4 py-2 bg-red-50 border border-red-100 text-red-600 text-xs font-semibold rounded-2xl shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300 pointer-events-auto">
+                    {error}
+                </div>
+            )}
+            
             <div className="bg-white/80 backdrop-blur-2xl rounded-[28px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/40 p-1.5 flex items-center gap-2 pointer-events-auto group focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.15)] focus-within:border-primary/20 transition-all">
                 <div className="pl-4 text-primary/40">
                     <Sparkles className="w-5 h-5 animate-pulse" />
@@ -98,7 +130,7 @@ export default function MapCommandInput({ isMobile }) {
                     <input
                         type="text"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={handleInputChange}
                         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                         placeholder="Ask Maplytics to analyze data..."
                         disabled={isSubmitting}
@@ -121,20 +153,6 @@ export default function MapCommandInput({ isMobile }) {
                     )}
                 </button>
             </div>
-
-            {/* Subtle Hint */}
-            {!query && (
-                <div className="mt-3 flex justify-center gap-4 text-[10px] font-bold text-gray-400/80 uppercase tracking-widest animate-in fade-in slide-in-from-bottom-2 duration-700">
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-1 h-1 rounded-full bg-gray-300" />
-                        <span>Aggregation Analysis</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-1 h-1 rounded-full bg-gray-300" />
-                        <span>Spatial Reports</span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
