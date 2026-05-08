@@ -169,9 +169,29 @@ button.btn-shine:active::before {
   }
 }
 
-/* Leaflet z-index containment for auth pages */
-.auth-map-bg .leaflet-pane {
+/* Leaflet z-index containment for map explorer and auth pages */
+.auth-map-bg .leaflet-pane,
+.map-explorer-container .leaflet-pane {
   z-index: 0 !important;
+}
+
+.map-explorer-container .leaflet-top,
+.map-explorer-container .leaflet-bottom {
+  z-index: 1 !important;
+}
+
+.custom-map-tooltip {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  padding: 0;
+  overflow: hidden;
+}
+
+.custom-map-tooltip .leaflet-tooltip-tip {
+  display: none;
 }
 
 .auth-map-bg .leaflet-control-container {

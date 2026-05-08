@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-14 items-center gap-4 border-b bg-background px-6 lg:h-[60px] md:hidden">
+                <header className="flex h-14 items-center gap-4 border-b bg-background px-6 lg:h-[60px] md:hidden relative z-20">
                     <SidebarTrigger />
                     <div className="font-semibold truncate">
                         {activeProject?.name || "Maplytics"}

@@ -67,7 +67,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handlePlotDataset = (dataset) => {
+  const handleActivateDataset = (dataset) => {
     dispatch(toggleLayer({
       id: dataset.id,
       name: dataset.name,
@@ -83,10 +83,10 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
         <DrawerHeader className="border-b">
           <DrawerTitle className="text-2xl font-bold flex items-center gap-2">
             <Database className="w-6 h-6 text-primary" />
-            Plot Datasets
+            Active Datasets
           </DrawerTitle>
           <DrawerDescription>
-            Select a dataset to visualize it directly on the map.
+            Select a dataset to activate it for analysis.
           </DrawerDescription>
         </DrawerHeader>
 
@@ -136,7 +136,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
                           "p-4 border rounded-xl hover:border-primary/50 transition-all bg-card group relative flex flex-col cursor-pointer",
                           isSelected && "border-primary ring-1 ring-primary bg-primary/5"
                         )}
-                        onClick={() => handlePlotDataset(dataset)}
+                        onClick={() => handleActivateDataset(dataset)}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className={cn(
@@ -162,7 +162,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
                           
                           <div className="flex items-center gap-1.5 text-primary text-xs font-bold">
                             <MapPin className="w-3.5 h-3.5" />
-                            {isSelected ? "Active on Map" : "Plot on Map"}
+                            {isSelected ? "Active" : "Activate"}
                           </div>
                         </div>
                       </div>
