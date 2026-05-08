@@ -7,16 +7,10 @@ import {
   BarChart3,
   User,
   Settings,
-  Globe,
   Bot,
-  MapPin,
-  ChevronsUpDown,
   FolderKanban,
   Home,
   Database,
-  Wrench,
-  Layers,
-  X,
 } from "lucide-react";
 
 import {
@@ -48,7 +42,6 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import DatasetDrawer from "./DatasetDrawer";
 import { Button } from "./ui/button";
 import * as projectApi from "@/lib/projectApi";
 import { setActiveProject, clearActiveProject, selectActiveProject } from "@/lib/store/features/projectSlice";
@@ -63,14 +56,12 @@ import {
 const mainNavItems = [
   { id: "projects", label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },
   { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-  { id: "map-view", label: "Map view", icon: Map, href: "/dashboard/map" },
-  { id: "map-explorer", label: "Map Explorer", icon: Map, href: "/dashboard/map-explorer" },
+  { id: "map", label: "Map View", icon: Map, href: "/dashboard/map" },
   { id: "comparison", label: "Comparison", icon: BarChart3, href: "/dashboard/comparison" },
 ];
 
 const secondaryNavItems = [
   { id: "datasets", label: "Datasets", icon: Database, href: "/dashboard/datasets" },
-  { id: "nlq", label: "NLQ Queries", icon: Globe, href: "/dashboard/nlq" },
   { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
 ];
 
@@ -92,8 +83,6 @@ export function AppSidebar() {
 
   const [projects, setProjects] = useState([]);
   const selectedLayers = useSelector(selectSelectedLayers);
-  const isLayerSelected = (id) => selectedLayers.some(l => l.id === id);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [hasFetchedProjects, setHasFetchedProjects] = useState(false);
 
 
@@ -141,32 +130,10 @@ export function AppSidebar() {
     }
   };
 
-  const fetchProjectDatasets = async (projectId) => {
-    // This function is no longer needed in the sidebar
-  };
-
-  const handleDeleteLayer = async (layerId) => {
-    // Handled elsewhere
-  };
-
   useEffect(() => {
     fetchProjects();
   }, [user]);
 
-  useEffect(() => {
-    // No longer fetching project datasets here
-  }, [activeProject?.id]);
-
-
-  const handleLayerClick = (layer) => {
-    dispatch(toggleLayer({
-      id: layer.id,
-      name: layer.name,
-      type: layer.type,
-      pgDatasetId: layer.pgDatasetId || null,
-      projectId: activeProject?.id
-    }));
-  };
 
   return (
     <>
@@ -233,64 +200,6 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          <SidebarGroup>
-            <SidebarGroupLabel>Tools</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setIsDrawerOpen(true)}
-                    tooltip="Layers Browser"
-                    disabled={!activeProject}
-                  >
-                    <Layers className="w-4 h-4" />
-                    <span>Layers Browser</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center justify-between">
-              <span>Active Layers</span>
-              {selectedLayers.length > 0 && (
-                <button
-                  onClick={() => dispatch(clearLayers())}
-                  className="text-[10px] text-muted-foreground hover:text-destructive transition-colors group-data-[collapsible=icon]:hidden"
-                >
-                  Clear All
-                </button>
-              )}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {selectedLayers.map((layer) => (
-                  <SidebarMenuItem key={layer.id}>
-                    <SidebarMenuButton
-                      tooltip={layer.name}
-                      className="flex items-center gap-3"
-                    >
-                      <div className="w-2 h-2 rounded-full shrink-0 bg-primary" />
-                      <span className="truncate flex-1 font-medium">{layer.name}</span>
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
-                    </SidebarMenuButton>
-                    <SidebarMenuAction
-                      onClick={() => dispatch(toggleLayer(layer))}
-                      showOnHover
-                    >
-                      <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
-                    </SidebarMenuAction>
-                  </SidebarMenuItem>
-                ))}
-                {selectedLayers.length === 0 && (
-                  <div className="px-2 py-3 text-[11px] text-muted-foreground group-data-[collapsible=icon]:hidden">
-                    No layers active on map
-                  </div>
-                )}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
 
 
           <SidebarGroup className="mt-auto">
@@ -340,13 +249,6 @@ export function AppSidebar() {
         </SidebarFooter>
       </Sidebar>
 
-
-      <DatasetDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        activeProject={activeProject}
-        onDatasetAdded={() => activeProject?.id && fetchProjectDatasets(activeProject.id)}
-      />
     </>
   );
 }
