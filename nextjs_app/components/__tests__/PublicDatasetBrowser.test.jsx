@@ -162,4 +162,80 @@ describe('PublicDatasetBrowser', () => {
         // Preview modal should open with title
         expect(screen.getAllByText('Preview Dataset').length).toBeGreaterThan(0)
     })
-})
+
+    it('handles file selection and validation', async () => {
+        render(<PublicDatasetBrowser />)
+        await waitFor(() => screen.getByText('addDataset'))
+        fireEvent.click(screen.getByText('addDataset'))
+
+        const file = new File(['{}'], 'public.json', { type: 'application/json' })
+        const input = document.getElementById('file-upload')
+        
+        fireEvent.change(input, { target: { files: [file] } })
+        expect(screen.getByText('public.json')).toBeInTheDocument()
+    })
+
+    it('rejects invalid file formats in add modal', async () => {
+        render(<PublicDatasetBrowser />)
+        await waitFor(() => screen.getByText('addDataset'))
+        fireEvent.click(screen.getByText('addDataset'))
+
+        const file = new File(['foo'], 'test.txt', { type: 'text/plain' })
+        const input = document.getElementById('file-upload')
+        
+        fireEvent.change(input, { target: { files: [file] } })
+        expect(screen.getByText('validation.invalidFormat')).toBeInTheDocument()
+    })
+
+    it('handles drag and drop for public upload', async () => {
+        render(<PublicDatasetBrowser />)
+        await waitFor(() => screen.getByText('addDataset'))
+        fireEvent.click(screen.getByText('addDataset'))
+
+        const dropzone = screen.getByText('dragDrop').closest('div')
+        
+        fireEvent.dragOver(dropzone)
+        fireEvent.dragLeave(dropzone)
+        
+        const file = new File(['{}'], 'dragged_pub.geojson', { type: 'application/json' })
+        fireEvent.drop(dropzone, {
+            dataTransfer: { files: [file] }
+        })
+        
+        expect(screen.getByText('dragged_pub.geojson')).toBeInTheDocument()
+    })
+
+    it('handles successful public file upload', async () => {
+        const { uploadFile } = require('@/lib/uploadApi')
+        uploadFile.mockResolvedValueOnce({})
+
+        render(<PublicDatasetBrowser />)
+        await waitFor(() => screen.getByText('addDataset'))
+        fireEvent.click(screen.getByText('addDataset'))
+
+        fireEvent.change(screen.getByPlaceholderText('namePlaceholder'), { target: { value: 'Public Dataset' } })
+        fireEvent.change(document.getElementById('file-upload'), { target: { files: [new File(['{}'], 'pub_upload.json')] } })
+
+        fireEvent.submit(screen.getByText('uploadAction').closest('form'))
+        
+        await waitFor(() => {
+            expect(screen.getByText('uploadSuccess')).toBeInTheDocument()
+        })
+    })
+
+    it('handles preview modal error state', async () => {
+        const { getDatasets, getDatasetGeoJSON } = require('@/lib/datasetApi')
+        getDatasets.mockResolvedValueOnce({
+            datasets: [{ id: 'pub_err', name: 'Error Preview Pub', is_public: true }],
+        })
+        getDatasetGeoJSON.mockRejectedValueOnce(new Error('Preview fail'))
+
+        render(<PublicDatasetBrowser />)
+        await waitFor(() => screen.getAllByText('Error Preview Pub'))
+        fireEvent.click(screen.getByText('preview'))
+
+        await waitFor(() => {
+            expect(screen.getByText('Error loading preview data.')).toBeInTheDocument()
+        })
+    })
+});
