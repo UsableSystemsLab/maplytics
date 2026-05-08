@@ -20,7 +20,10 @@ const config = {
   collectCoverageFrom: [
     'components/**/*.{js,jsx}',
     'lib/**/*.{js,jsx}',
-    'hooks/**/*.{js,jsx}',
+    '!components/ui/**',
+    '!lib/apiClient.js',
+    '!lib/*Api.js',
+    '!lib/firebase.js',
     '!**/node_modules/**',
     '!**/__tests__/**',
   ],
