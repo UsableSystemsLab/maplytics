@@ -184,5 +184,55 @@
     "publicTab": "البيانات العامة",
     "privateTab": "بياناتي",
     "verified": "بواسطة مابليتيكس"
+  },
+  "comparison": {
+    "title": "المقارنة",
+    "subtitle": "قارن الميزات بين موقعين باستخدام اللغة الطبيعية.",
+    "datasetPicker": {
+      "label": "مجموعات البيانات",
+      "placeholder": "اختر مجموعة بيانات واحدة أو أكثر",
+      "empty": "لا توجد مجموعات بيانات في هذا المشروع.",
+      "selectedCount": "{count} مختارة"
+    },
+    "queryBar": {
+      "placeholder": "compare restaurants between Olaya and Malaz",
+      "hint": "ابدأ بإحدى الكلمات: compare, contrast, differentiate",
+      "submit": "تشغيل"
+    },
+    "status": {
+      "submitting": "جارٍ الإرسال…",
+      "processing": "جارٍ التحليل…",
+      "done": "تم",
+      "failed": "فشل"
+    },
+    "result": {
+      "sideALabel": "الجانب أ",
+      "sideBLabel": "الجانب ب",
+      "count": "{count} عنصر",
+      "noFeatures": "لا توجد عناصر في هذه المنطقة",
+      "legendTitle": "المفتاح",
+      "hint": "اختر مجموعات البيانات وأدخل استعلامًا للبدء.",
+      "resolvedVia": {
+        "admin_table": "تم المطابقة مع الحدود الإدارية.",
+        "feature_property_fallback": "تم المطابقة باستخدام خصائص الميزات."
+      }
+    },
+    "errors": {
+      "selectDataset": "اختر مجموعة بيانات واحدة على الأقل.",
+      "queryRequired": "أدخل استعلامًا يبدأ بفعل مقارنة.",
+      "locationUnresolved": "تعذّر مطابقة اسمَي الموقعين.",
+      "queryUnparseable": "تعذّر العثور على موقعين في الاستعلام.",
+      "noFeatures": "لم يتم العثور على ميزات.",
+      "submitFailed": "تعذّر إرسال المهمة. حاول مرة أخرى.",
+      "resultUnavailable": "ملف النتيجة غير متاح."
+    },
+    "history": {
+      "title": "أحدث المقارنات",
+      "empty": "لا توجد مقارنات سابقة في هذا المشروع."
+    },
+    "actions": {
+      "retry": "إعادة المحاولة",
+      "clear": "مسح"
+    }
   }
 }

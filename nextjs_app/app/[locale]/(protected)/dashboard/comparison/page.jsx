@@ -1,297 +1,337 @@
 "use client";
 
-import React from 'react';
-import dynamic from 'next/dynamic';
-
-import BarChartComparison from '@/components/BarChartComparison';
-import SearchableSelect from '@/components/SearchableSelect';
-import { useDatasetComparison } from '@/hooks/useDatasetComparison';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useSelector } from "react-redux";
+import { selectActiveProject } from "@/lib/store/features/projectSlice";
 import {
-    ChevronDown,
-    Filter,
-    Database,
+    createComparisonJob,
+    getComparisonJobStatus,
+    getComparisonJobResult,
+    getComparisonHistory,
+} from "@/lib/comparisonApi";
+
+import DatasetMultiPicker from "@/components/DatasetMultiPicker";
+import ComparisonMapCard from "@/components/ComparisonMapCard";
+import ComparisonHistoryStrip from "@/components/ComparisonHistoryStrip";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+import {
+    ArrowRightLeft,
     Loader2,
-    AlertCircle,
-} from 'lucide-react';
+    XCircle,
+    Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const ComparisonMap = dynamic(
-    () => import('@/components/ComparisonMap'),
-    {
-        loading: () => <div className="w-full h-full min-h-[400px] bg-gray-100 animate-pulse flex items-center justify-center text-gray-400">Loading Map...</div>,
-        ssr: false
-    }
-);
+const COLOR_A = "#0E3147"; // primary
+const COLOR_B = "#13B38D"; // cyan
 
-// - Color constants for A / B datasets
-const COLOR_A = '#134565';
-const COLOR_B = '#13B38D';
+const COMPARISON_KEYWORDS = [
+    "compare", "contrast", "difference", "differentiate",
+    "vs", "versus", "between", "comparison",
+];
 
-export default function ComparisonPage() {
-    const {
-        allDatasets,
-        datasetIdA, datasetIdB,
-        setDatasetIdA, setDatasetIdB,
-        datasetAName, datasetBName,
-        statsA, statsB,
-        loadingA, loadingB, loadingDatasets, error,
-        numericFields, stringFields,
-        selectedField, setSelectedField,
-        featurePointsA, featurePointsB,
-        chartDataA, chartDataB,
-    } = useDatasetComparison();
+const VALIDATION_MESSAGES = {
+    dataset_outside_requested_locations:
+        "The locations were recognized, but the selected dataset does not contain features inside them.",
+    feature_type_not_found:
+        "The selected dataset does not appear to contain this feature type.",
+    missing_feature_fields:
+        "The dataset has valid points, but no category/type fields that can identify restaurants, clinics, or similar POIs.",
+    one_side_empty:
+        "One side has no matching features, so this comparison may be incomplete.",
+    both_sides_empty:
+        "Both locations were recognized, but no matching features were found in either area.",
+};
 
-    const isDatasetALoaded = !!statsA;
-    const isDatasetBLoaded = !!statsB;
+function isComparisonQuery(query) {
+    if (!query) return false;
+    const tokens = query.toLowerCase().split(/\s+/);
+    return tokens.some((t) => COMPARISON_KEYWORDS.includes(t));
+}
 
+function HighlightedQuery({ query }) {
+    if (!query) return null;
+    const words = query.split(/(\s+)/);
     return (
-        <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
-            <div className="w-full max-w-7xl space-y-6">
-                {/* Header */}
-                <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Dataset Comparison</h1>
-                        <p className="text-sm text-gray-500">
-                            Select two datasets below to compare their features and statistics side by side.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Guided onboarding */}
-                {!loadingDatasets && !datasetIdA && !datasetIdB && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-                        <div className="text-center mb-8">
-                            <h2 className="text-xl font-bold text-gray-800">Get Started with Comparison</h2>
-                            <p className="text-sm text-gray-500 mt-1">Follow these steps to compare datasets side by side</p>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="flex flex-col items-center text-center p-5 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                <div className="w-10 h-10 rounded-full bg-[#134565] text-white flex items-center justify-center text-lg font-bold mb-3">1</div>
-                                <h3 className="font-semibold text-gray-800 mb-1">Choose Dataset A</h3>
-                                <p className="text-xs text-gray-500">Pick a dataset from the left panel to see its data on the map.</p>
-                            </div>
-                            <div className="flex flex-col items-center text-center p-5 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                <div className="w-10 h-10 rounded-full bg-[#134565] text-white flex items-center justify-center text-lg font-bold mb-3">2</div>
-                                <h3 className="font-semibold text-gray-800 mb-1">Choose Dataset B</h3>
-                                <p className="text-xs text-gray-500">Pick a second dataset from the right panel to compare statistics and charts side by side.</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Error state */}
-                {error && (
-                    <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
-                        <AlertCircle className="w-5 h-5" />
-                        <span>{error}</span>
-                    </div>
-                )}
-
-                {/* Maps */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px]">
-                    {/* Left Panel — Dataset A */}
-                    <div className="flex flex-col bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-4 border-b border-gray-100 bg-gray-50/50 space-y-2">
-                            <label className="block text-xs font-semibold text-gray-500 uppercase">Select Dataset A</label>
-                            <SearchableSelect
-                                options={allDatasets}
-                                value={datasetIdA}
-                                onChange={setDatasetIdA}
-                                labelKey="name"
-                                valueKey="uniqueId"
-                                placeholder="Search datasets..."
-                                icon={<Database className="w-4 h-4" />}
-                                disabled={loadingDatasets}
-                            />
-                        </div>
-                        <div className="flex-1 relative z-0 flex items-center justify-center bg-gray-50">
-                            {loadingA ? (
-                                <div className="flex flex-col items-center gap-2 text-gray-400">
-                                    <Loader2 className="w-8 h-8 animate-spin" />
-                                    <span className="text-sm">Loading dataset...</span>
-                                </div>
-                            ) : (
-                                <ComparisonMap
-                                    mapId="map-a"
-                                    center={[24.7136, 46.6753]}
-                                    zoom={12}
-                                    featurePoints={featurePointsA}
-                                    color={COLOR_A}
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right Panel — Dataset B */}
-                    <div className="flex flex-col bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-4 border-b border-gray-100 bg-gray-50/50 space-y-2">
-                            <label className="block text-xs font-semibold text-gray-500 uppercase">Select Dataset B</label>
-                            <SearchableSelect
-                                options={allDatasets}
-                                value={datasetIdB}
-                                onChange={setDatasetIdB}
-                                labelKey="name"
-                                valueKey="uniqueId"
-                                placeholder="Search datasets..."
-                                icon={<Database className="w-4 h-4" />}
-                                disabled={loadingDatasets}
-                            />
-                        </div>
-                        <div className="flex-1 relative z-0 flex items-center justify-center bg-gray-50">
-                            {loadingB ? (
-                                <div className="flex flex-col items-center gap-2 text-gray-400">
-                                    <Loader2 className="w-8 h-8 animate-spin" />
-                                    <span className="text-sm">Loading dataset...</span>
-                                </div>
-                            ) : (
-                                <ComparisonMap
-                                    mapId="map-b"
-                                    center={[24.7136, 46.6753]}
-                                    zoom={12}
-                                    featurePoints={featurePointsB}
-                                    color={COLOR_B}
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Statistics Cards */}
-                {(isDatasetALoaded || isDatasetBLoaded) && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <DatasetStatsCard
-                            name={datasetIdA ? datasetAName : "No dataset selected"}
-                            stats={statsA}
-                            numericFields={numericFields}
-                            isLoaded={isDatasetALoaded}
-                            color={COLOR_A}
-                        />
-                        <DatasetStatsCard
-                            name={datasetIdB ? datasetBName : "No dataset selected"}
-                            stats={statsB}
-                            numericFields={numericFields}
-                            isLoaded={isDatasetBLoaded}
-                            color={COLOR_B}
-                        />
-                    </div>
-                )}
-
-                {/* Bar Charts */}
-                {isDatasetALoaded && isDatasetBLoaded && stringFields.length > 0 && (
-                    <div className="space-y-4 pb-8">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-gray-800">Category Breakdown</h2>
-                            <div className="w-48">
-                                <div className="relative">
-                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <select
-                                        value={selectedField}
-                                        onChange={(e) => setSelectedField(e.target.value)}
-                                        className="w-full pl-10 pr-8 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none cursor-pointer"
-                                    >
-                                        {stringFields.map(f => (
-                                            <option key={f.name} value={f.name}>{f.name}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                </div>
-                            </div>
-                        </div>
-                        {selectedField && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100" style={{ borderTopColor: COLOR_A, borderTopWidth: 3 }}>
-                                    <h3 className="text-lg font-bold text-gray-800 mb-4">
-                                        {datasetAName}
-                                    </h3>
-                                    <BarChartComparison data={chartDataA} color={COLOR_A} />
-                                </div>
-                                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100" style={{ borderTopColor: COLOR_B, borderTopWidth: 3 }}>
-                                    <h3 className="text-lg font-bold text-gray-800 mb-4">
-                                        {datasetBName}
-                                    </h3>
-                                    <BarChartComparison data={chartDataB} color={COLOR_B} />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-        </main>
+        <span className="text-xs text-muted-foreground">
+            Preview:{" "}
+            {words.map((word, i) => {
+                const isKw = COMPARISON_KEYWORDS.includes(word.toLowerCase().trim());
+                return (
+                    <span
+                        key={i}
+                        className={isKw ? "font-bold px-1 rounded bg-emerald-100 text-emerald-700" : ""}
+                    >
+                        {word}
+                    </span>
+                );
+            })}
+        </span>
     );
 }
 
-/** Check if a field name looks like an identifier (not meaningful for statistics). */
-const isIdField = (name) => /^(id|fid|gid|osm_id|object_id|objectid|feature_id|_id)$/i.test(name)
-    || /(_id|Id)$/.test(name);
+function SummaryCard({ label, value, color }) {
+    return (
+        <div
+            className="bg-white rounded-xl border p-4 shadow-xs"
+            style={{ borderTopColor: color, borderTopWidth: 3 }}
+        >
+            <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">
+                {label}
+            </p>
+            <p className="text-lg font-bold text-gray-900 truncate">
+                {typeof value === "number" ? value.toLocaleString() : value || "—"}
+            </p>
+        </div>
+    );
+}
 
-function DatasetStatsCard({ name, stats, numericFields, isLoaded, color = '#4F46E5' }) {
-    const isEmpty = isLoaded && stats?.total_count === 0;
+export default function ComparisonPage() {
+    const activeProject = useSelector(selectActiveProject);
+    const projectId = activeProject?.id;
 
-    // Filter out identifier fields — they're not meaningful for analysis
-    const meaningfulFields = numericFields.filter(f => !isIdField(f.name));
+    const [query, setQuery] = useState("");
+    const [selectedDatasetIds, setSelectedDatasetIds] = useState([]);
+    const [status, setStatus] = useState(null);
+    const [jobId, setJobId] = useState(null);
+    const [error, setError] = useState(null);
+    const [resultData, setResultData] = useState(null);
+
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    const isDetected = useMemo(() => isComparisonQuery(query), [query]);
+
+    const handleToggleDataset = useCallback((id) => {
+        setSelectedDatasetIds((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        );
+    }, []);
+
+    // History
+    const fetchHistory = useCallback(async () => {
+        if (!projectId) return;
+        setLoadingHistory(true);
+        try {
+            const data = await getComparisonHistory(projectId);
+            setHistory(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error("History fetch error:", err);
+        } finally {
+            setLoadingHistory(false);
+        }
+    }, [projectId]);
+
+    useEffect(() => { fetchHistory(); }, [fetchHistory]);
+
+    const handleSubmit = async () => {
+        if (!projectId) return setError("Select a project first.");
+        if (selectedDatasetIds.length === 0) return setError("Select at least one dataset using the + button.");
+        if (!query.trim()) return setError("Enter a comparison query.");
+
+        setStatus("submitting");
+        setError(null);
+        setResultData(null);
+
+        try {
+            const res = await createComparisonJob({
+                query: query.trim(),
+                projectId,
+                datasets: selectedDatasetIds,
+            });
+            if (res?.jobId) {
+                setJobId(res.jobId);
+                setStatus("processing");
+            }
+        } catch (err) {
+            setError(err.data?.error || err.message || "Failed to submit job.");
+            setStatus(null);
+        }
+    };
+
+    // Polling
+    useEffect(() => {
+        if (status !== "processing" || !jobId) return;
+        const interval = setInterval(async () => {
+            try {
+                const res = await getComparisonJobStatus(jobId);
+                if (res.status === "done") {
+                    clearInterval(interval);
+                    setStatus("done");
+                    try {
+                        const result = await getComparisonJobResult(jobId);
+                        setResultData(result);
+                    } catch (e) {
+                        console.error("Result fetch failed:", e);
+                    }
+                    fetchHistory();
+                } else if (res.status === "failed") {
+                    clearInterval(interval);
+                    setStatus("failed");
+                    setError(res.error || "Processing failed.");
+                    fetchHistory();
+                }
+            } catch (err) {
+                console.error("Poll error:", err);
+            }
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [status, jobId, fetchHistory]);
+
+    // Load past result
+    const handleViewHistory = async (job) => {
+        const id = job.job_id || job.id;
+        if (job.status !== "done") return;
+        setJobId(id);
+        setQuery(job.query || "");
+        setStatus("done");
+        setError(null);
+        try {
+            const result = await getComparisonJobResult(id);
+            setResultData(result);
+        } catch (err) {
+            setError("Could not load this result.");
+        }
+    };
+
+    const sideA = resultData?.sideA || null;
+    const sideB = resultData?.sideB || null;
+    const isProcessing = status === "processing" || status === "submitting";
+    const validation = resultData?.metadata?.validation;
+    const validationMessage = validation?.reasonCode && validation.reasonCode !== "ok"
+        ? VALIDATION_MESSAGES[validation.reasonCode]
+        : null;
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100" style={{ borderTopColor: color, borderTopWidth: 3 }}>
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-800">{name}</h3>
-                <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">Analysis</span>
+        <div className="p-6 md:p-8 space-y-6 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-3">
+                        <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <ArrowRightLeft className="w-5 h-5" />
+                        </div>
+                        Spatial Comparison
+                    </h1>
+                    <p className="text-muted-foreground mt-1.5 ml-[52px]">
+                        Compare features across locations side by side.
+                    </p>
+                </div>
+                {status === "done" && resultData && (
+                    <Badge variant="secondary" className="self-start md:self-center text-xs gap-1.5 px-3 py-1.5">
+                        <Sparkles className="h-3 w-3" />
+                        Comparison complete
+                    </Badge>
+                )}
             </div>
 
-            {!isLoaded ? (
-                <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg text-gray-400 text-sm">
-                    <Database className="w-4 h-4" />
-                    <span>Select a dataset above to see statistics.</span>
-                </div>
-            ) : isEmpty ? (
-                <div className="flex items-center gap-2 p-4 bg-amber-50 rounded-lg text-amber-700 text-sm border border-amber-200">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>This dataset has no features to analyze.</span>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {/* Total features count */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-gray-500 text-xs uppercase font-semibold">Total Features</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">
-                            {stats?.total_count ?? '—'}
-                        </p>
+            <div className="bg-white rounded-xl border shadow-xs overflow-hidden">
+                <div className="flex items-center gap-3 p-4">
+                    <DatasetMultiPicker
+                        selectedIds={selectedDatasetIds}
+                        onToggle={handleToggleDataset}
+                        disabled={isProcessing}
+                    />
+                    <div className="flex-1">
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                            disabled={isProcessing}
+                            placeholder="Compare restaurants between Olaya and Malaz..."
+                            className={cn(
+                                "w-full px-4 py-2.5 bg-gray-50 border-none rounded-lg text-sm",
+                                "focus:ring-2 focus:ring-primary/20 transition-all",
+                                "placeholder:text-gray-400 disabled:opacity-50 outline-none"
+                            )}
+                        />
                     </div>
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={isProcessing}
+                        className="h-10 px-5 gap-2 font-semibold shadow-md hover:shadow-lg transition-all"
+                    >
+                        {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRightLeft className="h-4 w-4" />}
+                        {isProcessing ? "Comparing…" : "Compare"}
+                    </Button>
+                </div>
 
-                    {/* Numeric field stats — avg, min, max */}
-                    {meaningfulFields.length > 0 && (
-                        <div className="grid grid-cols-1 gap-3">
-                            {meaningfulFields.map(field => {
-                                const fs = stats?.field_stats?.[field.name];
-                                if (!fs || fs.count === 0) return null;
-                                const label = field.name.replace(/_/g, ' ');
-                                return (
-                                    <div key={field.name} className="bg-gray-50 p-4 rounded-lg">
-                                        <p className="text-gray-500 text-xs uppercase font-semibold mb-2">{label}</p>
-                                        <div className="grid grid-cols-3 gap-2 text-center">
-                                            <div>
-                                                <p className="text-xs text-gray-400">Min</p>
-                                                <p className="text-lg font-bold text-gray-900">{fs.min ?? '—'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-gray-400">Avg</p>
-                                                <p className="text-lg font-bold text-gray-900">{fs.avg ?? '—'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-gray-400">Max</p>
-                                                <p className="text-lg font-bold text-gray-900">{fs.max ?? '—'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                {/* Metadata */}
+                <div className="px-4 pb-3 flex items-center gap-4">
+                    {isDetected && (
+                        <Badge variant="outline" className="text-[10px] text-emerald-700 border-emerald-200 bg-emerald-50">
+                            Comparison Analysis
+                        </Badge>
+                    )}
+                    {selectedDatasetIds.length > 0 && (
+                        <span className="text-[10px] font-bold text-primary/50 uppercase tracking-tight">
+                            {selectedDatasetIds.length} file{selectedDatasetIds.length !== 1 ? "s" : ""} selected
+                        </span>
+                    )}
+                    {query && (
+                        <div className="ml-auto hidden md:block">
+                            <HighlightedQuery query={query} />
                         </div>
                     )}
+                </div>
+            </div>
 
-                    {/* If no meaningful numeric fields, show a hint */}
-                    {meaningfulFields.length === 0 && (
-                        <p className="text-xs text-gray-400 italic">No numeric attributes to analyze. Use the bar charts below for category comparison.</p>
-                    )}
+            {/* Error */}
+            {error && (
+                <Alert variant="destructive" className="rounded-xl border-red-100 bg-red-50/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <XCircle className="h-4 w-4" />
+                    <AlertTitle>Something went wrong</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
+            {status === "done" && validationMessage && (
+                <Alert className="rounded-xl border-amber-200 bg-amber-50/70 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Sparkles className="h-4 w-4 text-amber-700" />
+                    <AlertTitle className="text-amber-900">Comparison note</AlertTitle>
+                    <AlertDescription className="text-amber-800">
+                        {validationMessage}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {/* Processing Banner */}
+            {status === "processing" && (
+                <div className="flex items-center gap-3 bg-primary/5 border border-primary/10 rounded-xl px-5 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="h-5 w-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    <span className="text-sm font-medium text-primary/80">Comparing spatial data…</span>
+                    <span className="text-xs text-muted-foreground ml-auto">Job #{jobId?.slice(0, 8)}</span>
                 </div>
             )}
+
+            {/* Maps */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ComparisonMapCard side="a" color={COLOR_A} data={sideA} processing={isProcessing} />
+                <ComparisonMapCard side="b" color={COLOR_B} data={sideB} processing={isProcessing} />
+            </div>
+
+            {/* Summary Stats */}
+            {status === "done" && sideA && sideB && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <SummaryCard label="Location A" value={sideA.name} color={COLOR_A} />
+                    <SummaryCard label="Features A" value={sideA.featureCount || sideA.geojson?.features?.length || 0} color={COLOR_A} />
+                    <SummaryCard label="Location B" value={sideB.name} color={COLOR_B} />
+                    <SummaryCard label="Features B" value={sideB.featureCount || sideB.geojson?.features?.length || 0} color={COLOR_B} />
+                </div>
+            )}
+
+            {/* History */}
+            <ComparisonHistoryStrip
+                history={history}
+                loading={loadingHistory}
+                onRefresh={fetchHistory}
+                onSelectJob={handleViewHistory}
+                activeJobId={jobId}
+            />
         </div>
     );
 }

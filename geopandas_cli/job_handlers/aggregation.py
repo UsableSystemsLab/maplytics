@@ -9,8 +9,7 @@ import seaborn as sns
 import numpy as np
 from .utils import (
     get_s3_client,
-    fetch_dataset_from_s3,
-    parse_to_geodataframe,
+    load_and_merge_datasets,
     S3_BUCKET
 )
 
@@ -27,35 +26,12 @@ def process(job):
     if not datasets:
         return None
 
-    gdfs = []
-    for ds in datasets:
-        dataset_info = None
-        if isinstance(ds, dict) and ds.get("s3Key"):
-            dataset_info = ds
-        elif isinstance(ds, str):
-            dataset_info = {"s3Key": ds, "fileFormat": ds.rsplit(".", 1)[-1] if "." in ds else "geojson"}
-        
-        if dataset_info:
-            try:
-                s3_key = dataset_info["s3Key"]
-                file_format = dataset_info.get("fileFormat", "geojson").lower()
-                content = fetch_dataset_from_s3(s3_key)
-                gdf = parse_to_geodataframe(content, file_format)
-                if not gdf.empty:
-                    gdfs.append(gdf)
-            except Exception as e:
-                print(f"Error loading dataset {ds}: {e}")
+    # Use shared utility to load and merge all datasets
+    combined_gdf = load_and_merge_datasets(datasets)
 
-    if not gdfs:
+    if combined_gdf.empty:
         print("No valid datasets found to aggregate.")
         return None
-
-    # Combine all datasets
-    combined_gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True))
-    
-    # Ensure CRS is set (assume 4326 if missing)
-    if combined_gdf.crs is None:
-        combined_gdf = combined_gdf.set_crs(epsg=4326)
 
     # --- Stats (before reprojection) ---
     gdf_latlon = combined_gdf.copy()

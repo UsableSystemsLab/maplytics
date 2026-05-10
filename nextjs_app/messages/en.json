@@ -179,10 +179,64 @@
     "items": "{count} items",
     "validation": {
       "nameFileRequired": "Please provide a name and select a file.",
-      "failedUpload": "Failed to upload dataset."
+      "failedUpload": "Failed to upload dataset.",
+      "invalidFormat": "Invalid file format. Allowed: .json, .geojson, .xlsx, .xls, .sql",
+      "fileTooLarge": "File is too large. Maximum size is 50MB."
     },
     "publicTab": "Public Datasets",
     "privateTab": "My Datasets",
-    "verified": "By Maplytics"
+    "verified": "By Maplytics",
+    "remove": "Remove file",
+    "pleaseLogin": "Please log in to view your datasets."
+  },
+  "comparison": {
+    "title": "Comparison",
+    "subtitle": "Compare features between two locations using natural language.",
+    "datasetPicker": {
+      "label": "Datasets",
+      "placeholder": "Select one or more datasets",
+      "empty": "No datasets in this project.",
+      "selectedCount": "{count} selected"
+    },
+    "queryBar": {
+      "placeholder": "compare restaurants between Olaya and Malaz",
+      "hint": "Start with: compare, contrast, differentiate",
+      "submit": "Run"
+    },
+    "status": {
+      "submitting": "Submitting…",
+      "processing": "Analyzing…",
+      "done": "Done",
+      "failed": "Failed"
+    },
+    "result": {
+      "sideALabel": "Side A",
+      "sideBLabel": "Side B",
+      "count": "{count} features",
+      "noFeatures": "No features in this area",
+      "legendTitle": "Legend",
+      "hint": "Pick datasets and enter a query to start.",
+      "resolvedVia": {
+        "admin_table": "Resolved against admin boundaries.",
+        "feature_property_fallback": "Resolved against dataset feature properties."
+      }
+    },
+    "errors": {
+      "selectDataset": "Select at least one dataset.",
+      "queryRequired": "Enter a query starting with a comparison verb.",
+      "locationUnresolved": "Could not match the two location names.",
+      "queryUnparseable": "Could not find two locations in the query.",
+      "noFeatures": "No features were found.",
+      "submitFailed": "Could not submit the job. Please try again.",
+      "resultUnavailable": "Result file is unavailable."
+    },
+    "history": {
+      "title": "Recent comparisons",
+      "empty": "No previous comparisons in this project."
+    },
+    "actions": {
+      "retry": "Retry",
+      "clear": "Clear"
+    }
   }
 }
