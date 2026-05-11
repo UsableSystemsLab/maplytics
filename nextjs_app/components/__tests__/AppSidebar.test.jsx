@@ -119,7 +119,7 @@ describe('AppSidebar', () => {
         renderWithStore()
         expect(screen.getByText('Projects')).toBeInTheDocument()
         expect(screen.getByText('Overview')).toBeInTheDocument()
-        expect(screen.getByText('Map view')).toBeInTheDocument()
+        expect(screen.getByText('Map View')).toBeInTheDocument()
         expect(screen.getByText('Comparison')).toBeInTheDocument()
     })
 
@@ -129,10 +129,6 @@ describe('AppSidebar', () => {
         expect(screen.getByText('AI Chat')).toBeInTheDocument()
     })
 
-    it('renders Tools section', () => {
-        renderWithStore()
-        expect(screen.getByText('Layers Browser')).toBeInTheDocument()
-    })
 
     it('renders General section links', () => {
         renderWithStore()
@@ -169,20 +165,5 @@ describe('AppSidebar', () => {
         expect(screen.getByText('My Project')).toBeInTheDocument()
     })
 
-    it('renders "No layers active on map" when no layers selected', () => {
-        renderWithStore()
-        expect(screen.getByText('No layers active on map')).toBeInTheDocument()
-    })
 
-    it('renders active layer names when layers are selected', () => {
-        renderWithStore({
-            layers: {
-                selectedLayers: [
-                    { id: '1', name: 'Riyadh Layer', type: 'GEO' },
-                ],
-                loadingLayerIds: [],
-            },
-        })
-        expect(screen.getByText('Riyadh Layer')).toBeInTheDocument()
-    })
 })

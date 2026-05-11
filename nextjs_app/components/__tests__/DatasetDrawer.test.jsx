@@ -76,9 +76,9 @@ describe('DatasetDrawer', () => {
         expect(screen.queryByTestId('drawer')).not.toBeInTheDocument()
     })
 
-    it('renders "Plot Datasets" title', () => {
+    it('renders "Active Datasets" title', () => {
         renderWithStore()
-        expect(screen.getByText('Plot Datasets')).toBeInTheDocument()
+        expect(screen.getByText('Active Datasets')).toBeInTheDocument()
     })
 
     it('renders the search input', () => {
