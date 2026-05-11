@@ -31,7 +31,7 @@ const stub = () => ({
 jest.unstable_mockModule('../../models/index.js', () => ({
     User: stub(), Dataset: stub(), Feature: stub(), Feature_Property: stub(),
     Dataset_Metadata: stub(), Region: stub(), City: stub(), District: stub(),
-    Project: stub(), Dataset_Project: stub(),
+    Project: stub(), Dataset_Project: stub(), NLQJob: stub(),
 }));
 
 // Stub multer middleware so routes that use it don't fail at import
