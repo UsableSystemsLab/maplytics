@@ -28,7 +28,7 @@
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
     "lucide-react": "^0.546.0",
-    "next": "15.5.15",
+    "next": "15.5.18",
     "next-intl": "^4.9.1",
     "react": "19.1.0",
     "react-chartjs-2": "^5.3.1",
