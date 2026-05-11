@@ -66,6 +66,21 @@ def _side_payload(match, gdf, color, level):
     }
 
 
+def _assert_filtered_side_outputs(filtered, feature_filter, side_frames):
+    """Guard against returning unfiltered location slices as side GeoJSON."""
+    if not feature_filter.get("applied"):
+        return
+
+    filtered_index = set(filtered.index.tolist()) if filtered is not None else set()
+    for side_name, side_gdf in side_frames:
+        side_index = set(side_gdf.index.tolist()) if side_gdf is not None else set()
+        if not side_index.issubset(filtered_index):
+            raise ComparisonError(
+                "feature_filter_invariant_failed",
+                f"{side_name} contains features that were not produced by the requested POI filter.",
+            )
+
+
 def _likely_covered_locations(gdf):
     covered = {}
     if gdf is None or gdf.empty:
@@ -130,9 +145,14 @@ def _validation_report(
         "requestedFeature": parsed_query.feature_query,
         "featureValidation": {
             "requested": requested_feature,
+            "terms": feature_filter.get("terms", []),
             "searchableFields": searchable_fields,
+            "usedFields": feature_filter.get("usedFields", []),
+            "usedNameFallback": feature_filter.get("usedNameFallback", False),
             "matchedFields": feature_filter.get("matchedFields", []),
             "matchedValues": feature_filter.get("matchedValues", []),
+            "inputCount": feature_filter.get("inputCount", total_features),
+            "filteredCount": feature_filter.get("filteredCount", filtered_features),
         },
         "coverage": {
             "beforeFeatureFilter": {
@@ -189,6 +209,11 @@ def process(job):
     # 4. Slice both before and after feature filtering so empty results can be explained.
     side_a_all, side_b_all = slice_features(merged, resolved)
     side_a_gdf, side_b_gdf = slice_features(filtered, resolved)
+    _assert_filtered_side_outputs(
+        filtered,
+        feature_filter,
+        [("sideA", side_a_gdf), ("sideB", side_b_gdf)],
+    )
 
     validation = _validation_report(
         merged,

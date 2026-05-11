@@ -202,9 +202,13 @@ export default function ComparisonPage() {
     const sideB = resultData?.sideB || null;
     const isProcessing = status === "processing" || status === "submitting";
     const validation = resultData?.metadata?.validation;
+    const featureQuery = resultData?.metadata?.featureQuery;
+    const featureFilter = resultData?.metadata?.featureFilter;
     const validationMessage = validation?.reasonCode && validation.reasonCode !== "ok"
         ? VALIDATION_MESSAGES[validation.reasonCode]
         : null;
+    const showFilterSummary = status === "done" && featureQuery && featureFilter?.applied;
+    const showFilterMissingWarning = status === "done" && featureQuery && featureFilter?.applied === false;
 
     return (
         <div className="p-6 md:p-8 space-y-6 animate-in fade-in duration-500">
@@ -295,6 +299,32 @@ export default function ComparisonPage() {
                     <AlertTitle className="text-amber-900">Comparison note</AlertTitle>
                     <AlertDescription className="text-amber-800">
                         {validationMessage}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {showFilterSummary && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-900">
+                    Filtered by: <span className="font-semibold">{featureQuery}</span>
+                    {typeof featureFilter.filteredCount === "number" && typeof featureFilter.inputCount === "number" && (
+                        <span className="text-emerald-800">
+                            {" "}({featureFilter.filteredCount} of {featureFilter.inputCount} features matched)
+                        </span>
+                    )}
+                    {featureFilter.matchedFields?.length > 0 && (
+                        <span className="text-emerald-800">
+                            {" "}using {featureFilter.matchedFields.join(", ")}
+                        </span>
+                    )}
+                </div>
+            )}
+
+            {showFilterMissingWarning && (
+                <Alert className="rounded-xl border-amber-200 bg-amber-50/70 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Sparkles className="h-4 w-4 text-amber-700" />
+                    <AlertTitle className="text-amber-900">Filter warning</AlertTitle>
+                    <AlertDescription className="text-amber-800">
+                        This query includes a POI type, but the result says no feature filter was applied. Run a fresh job after restarting the worker.
                     </AlertDescription>
                 </Alert>
             )}

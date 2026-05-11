@@ -1,6 +1,8 @@
 import re
 
-FILTER_FIELDS = ["category", "type", "amenity", "class", "subtype", "name"]
+CATEGORICAL_FILTER_FIELDS = ["category", "type", "amenity", "class", "subtype"]
+NAME_FALLBACK_FIELDS = ["name"]
+FILTER_FIELDS = CATEGORICAL_FILTER_FIELDS + NAME_FALLBACK_FIELDS
 FEATURE_STOP_WORDS = {
     "all", "any", "feature", "features", "location", "locations",
     "place", "places", "poi", "pois", "the",
@@ -59,6 +61,48 @@ def searchable_feature_fields(gdf):
     return fields
 
 
+def _empty_metadata(gdf, feature_query, applied, terms=None):
+    input_count = int(len(gdf)) if gdf is not None else 0
+    filtered_count = input_count if not applied else 0
+    return {
+        "applied": applied,
+        "input": feature_query,
+        "terms": terms or [],
+        "matchedFields": [],
+        "matchedValues": [],
+        "searchableFields": searchable_feature_fields(gdf),
+        "usedFields": [],
+        "usedNameFallback": False,
+        "inputCount": input_count,
+        "filteredCount": filtered_count,
+    }
+
+
+def _field_match_mask(gdf, field, terms):
+    normalized_col = gdf[field].astype(str).map(_normalize)
+    return normalized_col.apply(
+        lambda value: any(term == value or term in value.split() or term in value for term in terms)
+    ), normalized_col
+
+
+def _filter_with_fields(gdf, fields, terms):
+    mask = None
+    matched_fields = []
+    matched_values = set()
+
+    for field in fields:
+        if field not in gdf.columns:
+            continue
+        field_mask, normalized_col = _field_match_mask(gdf, field, terms)
+        if field_mask.any():
+            matched_fields.append(field)
+            for value in normalized_col[field_mask].dropna().unique().tolist():
+                matched_values.add(value)
+        mask = field_mask if mask is None else (mask | field_mask)
+
+    return mask, matched_fields, matched_values
+
+
 def filter_by_feature_query(gdf, feature_query):
     """Filter features by a requested POI/entity type.
 
@@ -66,58 +110,42 @@ def filter_by_feature_query(gdf, feature_query):
     GeoDataFrame is returned and no filter is applied.
     """
     if not feature_query:
-        return gdf, {
-            "applied": False,
-            "matchedFields": [],
-            "matchedValues": [],
-            "searchableFields": searchable_feature_fields(gdf),
-            "input": None,
-        }
+        return gdf, _empty_metadata(gdf, None, applied=False)
 
     terms = _terms(feature_query)
     searchable_fields = searchable_feature_fields(gdf)
     if gdf is None:
-        return None, {
-            "applied": True,
-            "matchedFields": [],
-            "matchedValues": terms,
-            "searchableFields": [],
-            "input": feature_query,
-        }
+        return None, _empty_metadata(None, feature_query, applied=True, terms=terms)
     if gdf.empty or not terms:
-        return gdf.iloc[0:0].copy(), {
-            "applied": True,
-            "matchedFields": [],
-            "matchedValues": terms,
-            "searchableFields": searchable_fields,
-            "input": feature_query,
-        }
+        metadata = _empty_metadata(gdf, feature_query, applied=True, terms=terms)
+        metadata["searchableFields"] = searchable_fields
+        return gdf.iloc[0:0].copy(), metadata
 
-    mask = None
-    matched_fields = []
-    matched_values = set()
-    for field in FILTER_FIELDS:
-        if field not in gdf.columns:
-            continue
-        normalized_col = gdf[field].astype(str).map(_normalize)
-        field_mask = normalized_col.apply(
-            lambda value: any(term == value or term in value.split() or term in value for term in terms)
-        )
-        if field_mask.any():
-            matched_fields.append(field)
-            for value in normalized_col[field_mask].dropna().unique().tolist():
-                matched_values.add(value)
-        mask = field_mask if mask is None else (mask | field_mask)
+    category_fields = [field for field in CATEGORICAL_FILTER_FIELDS if field in searchable_fields]
+    used_name_fallback = False
 
-    if mask is None:
+    if category_fields:
+        fields_to_use = category_fields
+    else:
+        fields_to_use = [field for field in NAME_FALLBACK_FIELDS if field in searchable_fields]
+        used_name_fallback = bool(fields_to_use)
+
+    mask, matched_fields, matched_values = _filter_with_fields(gdf, fields_to_use, terms)
+
+    if mask is None or not mask.any():
         filtered = gdf.iloc[0:0].copy()
     else:
         filtered = gdf[mask].copy()
 
     return filtered, {
         "applied": True,
+        "input": feature_query,
+        "terms": terms,
         "matchedFields": matched_fields,
         "matchedValues": sorted(matched_values or set(terms)),
         "searchableFields": searchable_fields,
-        "input": feature_query,
+        "usedFields": fields_to_use,
+        "usedNameFallback": used_name_fallback,
+        "inputCount": int(len(gdf)),
+        "filteredCount": int(len(filtered)),
     }
