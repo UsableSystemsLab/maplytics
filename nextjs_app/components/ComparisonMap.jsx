@@ -112,7 +112,6 @@ export default function ComparisonMap({
         };
     }, [boundaryGeoJSON, mapId]);
 
-    // Render feature points as circle markers
     useEffect(() => {
         if (!mapInstanceRef.current) return;
 
@@ -125,14 +124,21 @@ export default function ComparisonMap({
 
         try {
             const pc = colorRef.current;
+            const pinSvg = (c) => `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+                <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.27 21.73 0 14 0z" fill="${c}" stroke="#fff" stroke-width="2"/>
+                <circle cx="14" cy="14" r="5" fill="#fff" opacity="0.9"/>
+            </svg>`;
+
             const layer = L.geoJSON(featurePoints, {
                 pointToLayer: (_feature, latlng) => {
-                    return L.circleMarker(latlng, {
-                        radius: 6,
-                        fillColor: pc,
-                        color: '#fff',
-                        weight: 2,
-                        fillOpacity: 0.8,
+                    return L.marker(latlng, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: pinSvg(pc),
+                            iconSize: [28, 36],
+                            iconAnchor: [14, 36],
+                            popupAnchor: [0, -36],
+                        }),
                     });
                 },
                 onEachFeature: (feature, layer) => {

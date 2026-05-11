@@ -198,6 +198,24 @@ button.btn-shine:active::before {
   display: none;
 }
 
+/* Leaflet z-index containment for comparison page side-by-side maps.
+   Creates a new stacking context so Leaflet panes (z-index 200+) stay
+   confined within the card and never overlap the sidebar Drawer (z-50). */
+.comparison-map-contain {
+  isolation: isolate;
+  position: relative;
+  z-index: 0;
+}
+
+.comparison-map-contain .leaflet-pane {
+  z-index: 0 !important;
+}
+
+.comparison-map-contain .leaflet-top,
+.comparison-map-contain .leaflet-bottom {
+  z-index: 1 !important;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

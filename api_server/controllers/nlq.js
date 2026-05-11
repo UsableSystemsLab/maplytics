@@ -68,6 +68,7 @@ export const createNLQJob = async (req, res) => {
         }
 
         const resolvedDatasets = datasetDetails.map(ds => ({
+            datasetId: ds.id,
             s3Key: ds.s3_key,
             fileFormat: ds.file_format?.toLowerCase(),
             name: ds.name
@@ -102,17 +103,16 @@ export const getNLQJobStatus = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Check Redis first for quick access
         const redisStatus = await redis.hgetall(`job_status:${id}`);
 
         if (redisStatus && redisStatus.status) {
             return res.status(200).json({
                 status: redisStatus.status,
-                resultPath: redisStatus.resultPath || null
+                resultPath: redisStatus.resultPath || null,
+                error: redisStatus.error || null
             });
         }
 
-        // Fallback to database
         const job = await NLQJob.findByPk(id);
         if (!job) {
             return res.status(404).json({ error: 'Job not found' });
@@ -123,7 +123,8 @@ export const getNLQJobStatus = async (req, res) => {
         } else {
             return res.status(200).json({
                 status: job.status,
-                resultPath: job.result_path
+                resultPath: job.result_path,
+                error: null
             });
         }
     } catch (error) {
@@ -135,7 +136,7 @@ export const getNLQJobStatus = async (req, res) => {
 export const updateNLQJobStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, resultPath } = req.body;
+        const { status, resultPath, errorMessage } = req.body;
         const workerKey = req.headers['x-worker-key'];
 
         if (workerKey !== process.env.WORKER_API_KEY) {
@@ -146,20 +147,21 @@ export const updateNLQJobStatus = async (req, res) => {
             return res.status(400).json({ error: 'Invalid status. Must be done or failed.' });
         }
 
-        // Update Redis for quick access
         const status_key = `job_status:${id}`;
         await redis.hset(status_key, 'status', status);
         if (resultPath) {
             await redis.hset(status_key, 'resultPath', resultPath);
         }
+        if (errorMessage) {
+            await redis.hset(status_key, 'error', errorMessage);
+        }
 
-        // Update Database
         await NLQJob.update(
             { status, result_path: resultPath },
             { where: { id: id } }
         );
 
-        console.log(`Job ${id} updated to ${status} by worker.`);
+        console.log(`Job ${id} updated to ${status} by worker.${errorMessage ? ` Error: ${errorMessage}` : ''}`);
 
         return res.status(200).json({ message: 'Job status updated successfully' });
     } catch (error) {
@@ -186,7 +188,11 @@ export const getNLQJobResult = async (req, res) => {
             Key: job.result_path
         }));
 
-        const contentType = job.result_path.endsWith('.png') ? 'image/png' : 'application/octet-stream';
+        let contentType = 'application/octet-stream';
+        if (job.result_path.endsWith('.png')) contentType = 'image/png';
+        else if (job.result_path.endsWith('.json')) contentType = 'application/json';
+        else if (job.result_path.endsWith('.geojson')) contentType = 'application/geo+json';
+
         res.setHeader('Content-Type', contentType);
         response.Body.pipe(res);
     } catch (error) {
@@ -198,9 +204,18 @@ export const getNLQJobResult = async (req, res) => {
 export const listNLQJobs = async (req, res) => {
     try {
         const { projectId } = req.params;
+        const { type } = req.query;
+
+        const where = { project_id: projectId };
+        if (type) {
+            if (!['aggregation', 'comparison', 'descriptive'].includes(type)) {
+                return res.status(400).json({ error: 'Invalid type filter.' });
+            }
+            where.type = type;
+        }
 
         const jobs = await NLQJob.findAll({
-            where: { project_id: projectId },
+            where,
             order: [['created_at', 'DESC']],
         });
 

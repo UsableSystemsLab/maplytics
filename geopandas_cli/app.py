@@ -12,7 +12,7 @@ WORKER_API_KEY = os.environ.get("WORKER_API_KEY", "")
 
 r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 
-def update_job_status(job_id, status, result_path=None):
+def update_job_status(job_id, status, result_path=None, error_message=None):
     """Call the API server to update the job status in both Redis and DB."""
     try:
         url = f"{API_URL}/nlq/{job_id}/status"
@@ -22,8 +22,10 @@ def update_job_status(job_id, status, result_path=None):
         }
         payload = {
             "status": status,
-            "resultPath": result_path
+            "resultPath": result_path,
         }
+        if error_message:
+            payload["errorMessage"] = error_message
         response = requests.patch(url, headers=headers, json=payload)
         if response.status_code == 200:
             print(f"Successfully updated Job {job_id} to {status} via API.")
@@ -70,7 +72,7 @@ def main():
                     print(f"Job {job_id} completed successfully. Result path: {result_path}")
                 except Exception as e:
                     print(f"Error processing job {job_id}: {e}")
-                    update_job_status(job_id, "failed")
+                    update_job_status(job_id, "failed", error_message=str(e))
         except Exception as e:
             print(f"Redis connection or processing error: {e}")
             time.sleep(5)
