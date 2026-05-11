@@ -1,0 +1,9 @@
+redis
+geopandas
+matplotlib
+boto3
+numpy
+pandas
+requests
+seaborn
+contextily

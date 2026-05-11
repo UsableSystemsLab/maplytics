@@ -69,6 +69,7 @@ const mainNavItems = [
 
 const secondaryNavItems = [
   { id: "datasets", label: "Datasets", icon: Database, href: "/dashboard/datasets" },
+  { id: "nlq", label: "NLQ Queries", icon: Globe, href: "/dashboard/nlq" },
   { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
 ];
 

@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS public."Dataset" (
     "author" VARCHAR(255),                          -- Name of the user who uploaded the dataset
     "user_id" VARCHAR(128) NOT NULL,                           -- Reference to dataset owner
     "is_public" BOOLEAN DEFAULT TRUE,                 -- Whether the dataset is publicly available
-    "is_verified" BOOLEAN DEFAULT FALSE               -- Whether the dataset is verified by Maplytics team
+    "is_verified" BOOLEAN DEFAULT FALSE,              -- Whether the dataset is verified by Maplytics team
+    "s3_key" VARCHAR(512)                             -- Exact path to the file in S3/RustFS
 );
 
 
@@ -130,4 +131,20 @@ CREATE TABLE IF NOT EXISTS public."Dataset_Metadata" (
     "updated_at" TIMESTAMP DEFAULT NOW(),             -- Timestamp for the last modification
     PRIMARY KEY ("dataset_id"),                        -- One-to-one relationship with Dataset
     FOREIGN KEY ("dataset_id") REFERENCES public."Dataset"("dataset_id") ON DELETE CASCADE
+);
+
+----------------------------------------------------------
+-- NLQ_JOB TABLE
+-- Stores Natural Language Queries and their processing status.
+----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public."NLQJob" (
+    "job_id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "type" VARCHAR(50) NOT NULL,                      -- e.g., 'aggregation', 'comparison', 'descriptive'
+    "query" TEXT NOT NULL,                            -- The natural language query string
+    "status" VARCHAR(50) DEFAULT 'processing' NOT NULL,
+    "result_path" VARCHAR(255),                       -- Path to the generated result (if any)
+    "created_at" TIMESTAMP DEFAULT NOW(),
+    "updated_at" TIMESTAMP DEFAULT NOW(),
+    "project_id" UUID NOT NULL,
+    FOREIGN KEY ("project_id") REFERENCES public."Project"("project_id") ON DELETE CASCADE
 );
