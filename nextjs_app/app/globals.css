@@ -253,3 +253,103 @@ button.btn-shine:active::before {
     border-color: #134565;
   }
 }
+
+/* ---------- Mapbox feature popup ---------- */
+.maplytics-popup .mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px -10px rgba(15, 23, 42, 0.18), 0 1px 4px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.maplytics-popup .mapboxgl-popup-close-button {
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+  padding: 0;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.maplytics-popup .mapboxgl-popup-close-button:hover {
+  background: #f8fafc;
+  color: #475569;
+  transform: scale(1.05);
+}
+
+.maplytics-popup .mapboxgl-popup-tip {
+  border-top-color: white;
+}
+
+.maplytics-popup__body {
+  padding: 12px 14px 12px 14px;
+}
+
+.maplytics-popup__title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0 28px 2px 0;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+
+.maplytics-popup__layer {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.maplytics-popup__list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.maplytics-popup__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.maplytics-popup__row dt {
+  color: #94a3b8;
+  font-weight: 400;
+  text-transform: capitalize;
+}
+
+.maplytics-popup__row dd {
+  color: #334155;
+  font-weight: 400;
+  margin: 0;
+  text-align: right;
+  word-break: break-word;
+}
+
+.maplytics-popup__empty {
+  font-size: 12px;
+  color: #cbd5e1;
+  font-style: italic;
+}

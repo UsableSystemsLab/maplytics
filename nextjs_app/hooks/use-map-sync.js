@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet.heat";
 import { setLayerGeojson, setLayerLoading } from "@/lib/store/features/layersSlice";
 import { getDatasetGeoJSON, getProjectDatasetData } from "@/lib/datasetApi";
+import { toLeafletHeatPoints } from "@/components/maps/shared/heatmapData";
 
 const LAYER_COLORS = ['#FFBB00', '#26BB00', '#00BBD9', '#FF003C', '#003BFF', '#FF3BA9'];
 
@@ -65,13 +66,14 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
 
                 let newLayer;
                 if (mode === 'heatmap') {
-                    const points = [];
+                    const raw = [];
                     L.geoJSON(layer.geojson).eachLayer(l => {
                         if (l.getLatLng) {
                             const latlng = l.getLatLng();
-                            points.push([latlng.lat, latlng.lng, 1.0]);
+                            raw.push({ lat: latlng.lat, lng: latlng.lng, intensity: 1.0 });
                         }
                     });
+                    const points = toLeafletHeatPoints(raw);
                     newLayer = L.heatLayer(points, {
                         radius: 25,
                         blur: 15,

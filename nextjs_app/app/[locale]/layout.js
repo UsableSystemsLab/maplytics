@@ -4,6 +4,7 @@ import { getMessages, getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import "../globals.css"
 import StoreProvider from "@/components/providers/StoreProvider"
+import { MapEngineProvider } from "@/components/maps/MapEngineContext"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -88,7 +89,9 @@ export default async function LocaleLayout({ children, params }) {
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} >
       <body className={`${geistMono.variable} ${geistSans.variable} antialiased`} >
         <StoreProvider>
-          <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+          <MapEngineProvider>
+            <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+          </MapEngineProvider>
         </StoreProvider>
       </body>
     </html>
