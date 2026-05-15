@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import 'leaflet/dist/leaflet.css';
 
 
@@ -101,6 +102,7 @@ const ASIR_POINTS = [
 ];
 
 export default function AuthMapBackground({ children }) {
+  const t = useTranslations('auth');
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -147,12 +149,12 @@ export default function AuthMapBackground({ children }) {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/40 z-10" />
 
-      {/* Branding - left side, large screens only */}
-      <div className="hidden lg:flex absolute inset-y-0 left-0 w-[40%] flex-col items-center justify-center z-20">
+      {/* Branding - start side, large screens only */}
+      <div className="hidden lg:flex absolute inset-y-0 start-0 w-[40%] flex-col items-center justify-center z-20">
         <div className="text-center">
           <div className="inline-block overflow-hidden">
             <h1
-              className="typing-animation text-5xl xl:text-7xl font-bold tracking-tight mb-2 overflow-hidden whitespace-nowrap border-r-4 border-white/70 pr-1"
+              className="typing-animation text-5xl xl:text-7xl font-bold tracking-tight mb-2 overflow-hidden whitespace-nowrap border-e-4 border-white/70 pe-1"
             >
               <span className="text-white">MAPLYTICS</span>
             </h1>
@@ -160,7 +162,7 @@ export default function AuthMapBackground({ children }) {
           <p
             className="opacity-0 animate-[fadeIn_1s_ease-out_2.5s_forwards] text-white/70 text-lg xl:text-xl font-medium pt-6"
           >
-            Spatial Analysis Simplified
+            {t('tagline')}
           </p>
         </div>
       </div>

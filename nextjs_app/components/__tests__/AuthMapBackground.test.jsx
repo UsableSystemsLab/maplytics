@@ -2,6 +2,10 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import AuthMapBackground from '../AuthMapBackground'
 
+jest.mock('next-intl', () => ({
+    useTranslations: () => (key) => key,
+}))
+
 // Inline leaflet mock (avoid circular require with moduleNameMapper)
 jest.mock('leaflet', () => ({
     map: jest.fn(() => ({
@@ -40,7 +44,7 @@ describe('AuthMapBackground', () => {
 
     it('renders the tagline', () => {
         render(<AuthMapBackground><div /></AuthMapBackground>)
-        expect(screen.getByText('Spatial Analysis Simplified')).toBeInTheDocument()
+        expect(screen.getByText('tagline')).toBeInTheDocument()
     })
 
     it('renders the map container div', () => {

@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { selectSelectedLayers } from "@/lib/store/features/layersSlice";
 import { selectActiveProject } from "@/lib/store/features/projectSlice";
 import { submitNlqJob } from "@/lib/nlqApi";
+import { useTranslations } from "next-intl";
 
 const BAGS = {
     aggregation: {
@@ -32,6 +33,7 @@ function getDetectedType(word) {
 }
 
 export default function MapCommandInput({ isMobile, onSuccess }) {
+    const t = useTranslations("mapCommand");
     const [query, setQuery] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
@@ -52,12 +54,12 @@ export default function MapCommandInput({ isMobile, onSuccess }) {
 
         const type = detectJobType(query);
         if (!type) {
-            setError("Query not supported. Please start with a verb like: report, summarize, analyze, count, etc.");
+            setError(t('queryNotSupported'));
             return;
         }
 
         if (selectedLayers.length === 0) {
-            setError("Please select at least one dataset from the drawer first.");
+            setError(t('selectDataset'));
             return;
         }
 
@@ -77,7 +79,7 @@ export default function MapCommandInput({ isMobile, onSuccess }) {
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error("Failed to submit analysis job:", error);
-            setError("Failed to submit job. Please try again.");
+            setError(t('failedToSubmit'));
         } finally {
             setIsSubmitting(false);
         }
@@ -116,7 +118,7 @@ export default function MapCommandInput({ isMobile, onSuccess }) {
             )}
             
             <div className="bg-white/80 backdrop-blur-2xl rounded-[28px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/40 p-1.5 flex items-center gap-2 pointer-events-auto group focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.15)] focus-within:border-primary/20 transition-all">
-                <div className="pl-4 text-primary/40">
+                <div className="ps-4 text-primary/40">
                     <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
 
@@ -132,7 +134,7 @@ export default function MapCommandInput({ isMobile, onSuccess }) {
                         value={query}
                         onChange={handleInputChange}
                         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                        placeholder="Ask Maplytics to analyze data..."
+                        placeholder={t('placeholder')}
                         disabled={isSubmitting}
                         className="w-full bg-transparent border-none p-1 text-[15px] focus:ring-0 outline-none placeholder:text-gray-400 disabled:opacity-50 font-medium z-10 text-transparent caret-gray-900 font-sans tracking-normal leading-none"
                     />
@@ -149,7 +151,7 @@ export default function MapCommandInput({ isMobile, onSuccess }) {
                     {isSubmitting ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
-                        <SendHorizontal className="w-5 h-5" />
+                        <SendHorizontal className="w-5 h-5 rtl:rotate-180" />
                     )}
                 </button>
             </div>

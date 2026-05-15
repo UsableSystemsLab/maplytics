@@ -105,6 +105,155 @@
     "startNow": "ابدأ الآن",
     "login": "تسجيل الدخول"
   },
+  "projects": {
+    "title": "المشاريع",
+    "subtitle": "أدر مساحات العمل ونظّم قواعد البيانات الخاصة بك.",
+    "searchPlaceholder": "البحث في المشاريع...",
+    "showing": "عرض {shown} من {total} مشاريع",
+    "createNew": "إنشاء مشروع جديد",
+    "createNewHint": "ابدأ مساحة عمل جديدة من الصفر",
+    "noDescription": "لا يوجد وصف لهذا المشروع.",
+    "notAvailable": "غير متاح",
+    "noResults": "لم يتم العثور على مشاريع",
+    "noResultsHint": "حاول تعديل استعلام البحث.",
+    "clearSearch": "مسح البحث",
+    "deleteConfirm": "هل أنت متأكد من حذف هذا المشروع؟ لا يمكن التراجع عن هذا الإجراء."
+  },
+  "mapPanel": {
+    "activeLayers": "الطبقات النشطة",
+    "noLayers": "لم تُضف أي طبقات إلى الخريطة",
+    "browseDatasets": "تصفّح قواعد البيانات",
+    "standardPlotting": "الرسم القياسي",
+    "heatmap": "الخريطة الحرارية",
+    "plot": "رسم",
+    "heat": "حرارية"
+  },
+  "mapCommand": {
+    "queryNotSupported": "الاستعلام غير مدعوم. ابدأ بفعل مثل: report, summarize, analyze, count, إلخ.",
+    "selectDataset": "يرجى اختيار قاعدة بيانات واحدة على الأقل من الدرج أولًا.",
+    "failedToSubmit": "تعذّر إرسال المهمة. حاول مرة أخرى.",
+    "placeholder": "اطلب من مابليتيكس تحليل البيانات..."
+  },
+  "mapResults": {
+    "analysisHistory": "سجلّ التحليلات",
+    "noHistory": "لا يوجد سجلّ",
+    "noHistoryHint": "ابدأ المعالجة لرؤية النتائج",
+    "noDescription": "لا يوجد وصف",
+    "active": "نشط",
+    "view": "عرض"
+  },
+  "barChart": {
+    "noData": "لا توجد بيانات متاحة للرسم البياني"
+  },
+  "mapResultPreview": {
+    "altResult": "النتيجة",
+    "altResultExpanded": "النتيجة موسّعة"
+  },
+  "mapSummary": {
+    "title": "ملخص الخريطة",
+    "layers": "الطبقات",
+    "features": "العناصر",
+    "liveAnalysis": "تحليل مباشر لقاعدة البيانات"
+  },
+  "mapStats": {
+    "dataset": "قاعدة البيانات",
+    "datasetSubtitle": "الطبقة الأساسية",
+    "features": "العناصر",
+    "filteredResults": "النتائج المُصفّاة",
+    "pointsOnMap": "النقاط على الخريطة",
+    "status": "الحالة",
+    "loading": "جاري التحميل...",
+    "statusActive": "نشط",
+    "statusReady": "جاهز",
+    "datasetLoaded": "تم تحميل قاعدة البيانات",
+    "selectALayer": "اختر طبقة",
+    "notAvailable": "غير متاح"
+  },
+  "analysis": {
+    "title": "ملخّص التحليل السريع",
+    "noDatasetTitle": "لم يتم تحميل قاعدة بيانات",
+    "noDatasetDescription": "اختر طبقة على الخريطة لعرض نتائج التحليل.",
+    "featuresLabel": "العناصر",
+    "featuresHint": "نقاط البيانات المحمّلة",
+    "categoriesLabel": "الفئات",
+    "categoriesHint": "الحقول الفئوية",
+    "topFieldLabel": "أعلى حقل",
+    "noCategoricalFields": "لا توجد حقول فئوية",
+    "loadDataCta": "حمّل بيانات للتحليل",
+    "showBarChart": "عرض الرسم البياني",
+    "barChartTitle": "مقارنة الرسم البياني",
+    "back": "رجوع",
+    "groupBy": "التجميع حسب",
+    "total": "الإجمالي",
+    "datasetFallback": "قاعدة بيانات",
+    "featuresLoaded": "تم تحميل {count} عنصر",
+    "occurrences": "{count} مرة"
+  },
+  "chat": {
+    "greeting": "مرحبًا! كيف يمكنني مساعدتك اليوم؟",
+    "inputPlaceholder": "اكتب رسالتك...",
+    "responses": [
+      "هذه نقطة مثيرة للاهتمام! أخبرني المزيد.",
+      "أنا مجرد روبوت تجريبي، لكنني أسمعك.",
+      "هل يمكنك توضيح ما تقصده؟",
+      "تم استلام رسالتك. جارٍ المعالجة...",
+      "إليك ردًا تجريبيًا على استفسارك!"
+    ]
+  },
+  "createProject": {
+    "backToProjects": "العودة إلى المشاريع",
+    "title": "إنشاء مشروع جديد",
+    "description": "حدّد تفاصيل مساحة العمل لبدء تنظيم قواعد البيانات الخاصة بك.",
+    "nameLabel": "اسم المشروع",
+    "namePlaceholder": "مثال: تحليل التنقل الحضري",
+    "descriptionLabel": "الوصف",
+    "optional": "(اختياري)",
+    "descriptionPlaceholder": "صِف بإيجاز الغرض من هذا المشروع...",
+    "creating": "جاري إنشاء المشروع...",
+    "submit": "إنشاء المشروع",
+    "terms": "بإنشاء مشروع، فإنك توافق على شروط الخدمة وسياسات مساحة العمل.",
+    "failed": "فشل إنشاء المشروع"
+  },
+  "dashboard": {
+    "loadingDataset": "جاري تحميل قاعدة البيانات...",
+    "totalProjects": "إجمالي المشاريع",
+    "totalProjectsHint": "+2 عن الشهر الماضي",
+    "activeLayers": "الطبقات النشطة",
+    "activeLayersHint": "في جميع المشاريع",
+    "teamMembers": "أعضاء الفريق",
+    "teamMembersHint": "4 نشطون الآن",
+    "recentActivity": "النشاط الأخير",
+    "recentActivityEmpty": "سيظهر نشاطك الأخير في لوحة التحكم هنا."
+  },
+  "profile": {
+    "welcome": "أهلًا بعودتك {name} 🎉",
+    "signOut": "تسجيل الخروج"
+  },
+  "projectRequired": {
+    "title": "يلزم وجود مشروع",
+    "description": "تتطلب هذه الصفحة وجود مساحة عمل لمشروع نشط. يرجى اختيار مشروع موجود أو إنشاء مشروع جديد للمتابعة.",
+    "goToProjects": "الذهاب إلى المشاريع"
+  },
+  "sidebar": {
+    "noProjectSelected": "لم يتم اختيار مشروع",
+    "workspaceActive": "مساحة العمل نشطة",
+    "mainNavigation": "التنقّل الرئيسي",
+    "workspace": "مساحة العمل",
+    "general": "عام",
+    "nav": {
+      "projects": "المشاريع",
+      "overview": "نظرة عامة",
+      "mapView": "عرض الخريطة",
+      "comparison": "المقارنة",
+      "datasets": "قواعد البيانات",
+      "aiChat": "المحادثة الذكية",
+      "home": "الرئيسية",
+      "account": "الحساب",
+      "settings": "الإعدادات"
+    },
+    "login": "تسجيل الدخول",
+    "deleteProjectConfirm": "هل أنت متأكد من حذف هذا المشروع؟ لا يمكن التراجع عن هذا الإجراء."
+  },
   "header": {
     "products": "المنتجات",
     "featuredProduct": "المنتج المميز",
@@ -141,7 +290,24 @@
     "noAccount": "ليس لديك حساب؟",
     "registerLink": "إنشاء حساب",
     "alreadyHaveAccount": "لديك حساب بالفعل؟",
-    "loginLink": "تسجيل الدخول"
+    "loginLink": "تسجيل الدخول",
+    "welcomeBack": "مرحبًا بعودتك",
+    "loginSubtitle": "سجّل الدخول لتحليل وتصوّر البيانات المكانية بسهولة",
+    "createAccountTitle": "إنشاء حساب",
+    "registerSubtitle": "انضم إلينا لتفتح إمكانات التحليل المكاني القوية",
+    "emailLabel": "البريد الإلكتروني",
+    "passwordLabel": "كلمة المرور",
+    "confirmPasswordLabel": "تأكيد كلمة المرور",
+    "emailInputPlaceholder": "email@example.com",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "signingIn": "جاري تسجيل الدخول...",
+    "createAccountButton": "إنشاء حساب",
+    "creatingAccount": "جاري إنشاء الحساب...",
+    "orContinueWith": "أو تابع باستخدام",
+    "signUpLink": "إنشاء حساب",
+    "signInLink": "تسجيل الدخول",
+    "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين",
+    "tagline": "التحليل المكاني بكل بساطة"
   },
   "datasets": {
     "title": "قواعد البيانات",
@@ -179,23 +345,69 @@
     "items": "{count} عناصر",
     "validation": {
       "nameFileRequired": "يرجى تقديم اسم واختيار ملف.",
-      "failedUpload": "فشل رفع قاعدة البيانات."
+      "failedUpload": "فشل رفع قاعدة البيانات.",
+      "invalidFormat": "صيغة الملف غير صالحة. المسموح: .json, .geojson, .xlsx, .xls, .sql",
+      "fileTooLarge": "حجم الملف كبير جدًا. الحد الأقصى 50 ميجابايت."
     },
     "publicTab": "البيانات العامة",
     "privateTab": "بياناتي",
-    "verified": "بواسطة مابليتيكس"
+    "verified": "بواسطة مابليتيكس",
+    "remove": "إزالة الملف",
+    "pleaseLogin": "يرجى تسجيل الدخول لعرض قواعد البيانات الخاصة بك.",
+    "drawer": {
+      "title": "قواعد البيانات النشطة",
+      "description": "اختر قاعدة بيانات لتفعيلها للتحليل.",
+      "myLibrary": "مكتبتي",
+      "publicCollections": "المجموعات العامة",
+      "loading": "جاري تحميل قواعد البيانات...",
+      "noResults": "لم يتم العثور على قواعد بيانات",
+      "noDescriptionShort": "لا يوجد وصف.",
+      "features": "عنصر",
+      "activate": "تفعيل",
+      "active": "نشط",
+      "close": "إغلاق"
+    }
   },
   "comparison": {
-    "title": "المقارنة",
-    "subtitle": "قارن الميزات بين موقعين باستخدام اللغة الطبيعية.",
+    "title": "المقارنة المكانية",
+    "subtitle": "قارن الميزات بين المواقع جنبًا إلى جنب.",
+    "preview": "معاينة:",
+    "complete": "اكتملت المقارنة",
+    "comparing": "جاري المقارنة…",
+    "compare": "قارن",
+    "detectedBadge": "تحليل مقارنة",
+    "filesSelected": "{count} {count, plural, one {ملف مختار} other {ملفات مختارة}}",
+    "somethingWentWrong": "حدث خطأ ما",
+    "note": "ملاحظة المقارنة",
+    "filteredBy": "مُصفّى حسب:",
+    "filterMatched": "({filtered} من {total} عنصر تطابقت)",
+    "filterUsing": "باستخدام {fields}",
+    "filterWarning": "تحذير التصفية",
+    "filterWarningDesc": "يتضمّن هذا الاستعلام نوع نقطة اهتمام، لكن النتيجة لا تُظهر تطبيق أي مرشّح. شغّل مهمة جديدة بعد إعادة تشغيل العامل.",
+    "processingBanner": "جارٍ مقارنة البيانات المكانية…",
+    "jobIdLabel": "المهمة #{id}",
+    "locationA": "الموقع أ",
+    "locationB": "الموقع ب",
+    "featuresA": "عناصر أ",
+    "featuresB": "عناصر ب",
+    "validation": {
+      "datasetOutsideLocations": "تم التعرّف على المواقع، لكن قاعدة البيانات المختارة لا تحتوي على عناصر داخلها.",
+      "featureTypeNotFound": "قاعدة البيانات المختارة لا تبدو أنها تحتوي على هذا النوع من العناصر.",
+      "missingFeatureFields": "تحتوي قاعدة البيانات على نقاط صالحة، لكن لا توجد حقول فئة/نوع تُحدّد المطاعم أو العيادات أو نقاط الاهتمام المماثلة.",
+      "oneSideEmpty": "أحد الجانبين لا يحتوي على عناصر مطابقة، لذا قد تكون المقارنة غير مكتملة.",
+      "bothSidesEmpty": "تم التعرّف على الموقعين، لكن لم يتم العثور على عناصر مطابقة في أي منهما."
+    },
     "datasetPicker": {
       "label": "مجموعات البيانات",
       "placeholder": "اختر مجموعة بيانات واحدة أو أكثر",
       "empty": "لا توجد مجموعات بيانات في هذا المشروع.",
-      "selectedCount": "{count} مختارة"
+      "selectedCount": "{count} مختارة",
+      "filterPlaceholder": "تصفية مجموعات البيانات...",
+      "loading": "جاري التحميل...",
+      "noMatches": "لا توجد نتائج"
     },
     "queryBar": {
-      "placeholder": "compare restaurants between Olaya and Malaz",
+      "placeholder": "قارن المطاعم بين العليا والملز...",
       "hint": "ابدأ بإحدى الكلمات: compare, contrast, differentiate",
       "submit": "تشغيل"
     },
@@ -217,18 +429,30 @@
         "feature_property_fallback": "تم المطابقة باستخدام خصائص الميزات."
       }
     },
+    "card": {
+      "locationA": "الموقع أ",
+      "locationB": "الموقع ب",
+      "featuresFound": "العناصر التي تم العثور عليها",
+      "awaiting": "بانتظار المقارنة…",
+      "analyzing": "جارٍ تحليل {side}…"
+    },
     "errors": {
-      "selectDataset": "اختر مجموعة بيانات واحدة على الأقل.",
-      "queryRequired": "أدخل استعلامًا يبدأ بفعل مقارنة.",
+      "selectProjectFirst": "اختر مشروعًا أولًا.",
+      "selectDataset": "اختر مجموعة بيانات واحدة على الأقل باستخدام زر +.",
+      "queryRequired": "أدخل استعلام مقارنة.",
+      "submitFailed": "تعذّر إرسال المهمة.",
+      "couldNotLoadResult": "تعذّر تحميل هذه النتيجة.",
+      "processingFailed": "فشلت المعالجة.",
       "locationUnresolved": "تعذّر مطابقة اسمَي الموقعين.",
       "queryUnparseable": "تعذّر العثور على موقعين في الاستعلام.",
       "noFeatures": "لم يتم العثور على ميزات.",
-      "submitFailed": "تعذّر إرسال المهمة. حاول مرة أخرى.",
       "resultUnavailable": "ملف النتيجة غير متاح."
     },
     "history": {
       "title": "أحدث المقارنات",
-      "empty": "لا توجد مقارنات سابقة في هذا المشروع."
+      "empty": "لا توجد مقارنات بعد",
+      "emptyHint": "أرسل استعلامًا أعلاه للبدء",
+      "refresh": "تحديث"
     },
     "actions": {
       "retry": "إعادة المحاولة",

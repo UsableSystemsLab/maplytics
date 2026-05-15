@@ -10,6 +10,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 // Lazy-load Leaflet (SSR-incompatible)
 const ComparisonMap = dynamic(() => import("@/components/ComparisonMap"), {
@@ -27,8 +28,9 @@ export default function ComparisonMapCard({
     data = null,
     processing = false,
 }) {
+    const t = useTranslations("comparison.card");
     const isA = side === "a";
-    const label = data?.name || (isA ? "Location A" : "Location B");
+    const label = data?.name || (isA ? t('locationA') : t('locationB'));
     const featureCount =
         data?.featureCount || data?.count || data?.geojson?.features?.length || 0;
     const hasData = !!data?.geojson;
@@ -61,8 +63,8 @@ export default function ComparisonMapCard({
                             <CardTitle className="text-lg">{label}</CardTitle>
                             <CardDescription>
                                 {hasData
-                                    ? `${featureCount} features found`
-                                    : "Awaiting comparison…"}
+                                    ? `${featureCount} ${t('featuresFound')}`
+                                    : t('awaiting')}
                             </CardDescription>
                         </div>
                     </div>
@@ -106,7 +108,7 @@ export default function ComparisonMapCard({
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-3 animate-pulse">
-                                Analyzing {isA ? "Side A" : "Side B"}…
+                                {t('analyzing', { side: isA ? 'A' : 'B' })}
                             </p>
                         </div>
                     )}

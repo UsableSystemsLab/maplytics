@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import BarChartComparison from "@/components/BarChartComparison";
 import { useChartData, isBlocker } from "@/hooks/useChartData";
+import { useTranslations } from "next-intl";
 
 export default function AnalysisFlipCard({
     features,
@@ -20,6 +21,7 @@ export default function AnalysisFlipCard({
     featureCount,
     onClose,
 }) {
+    const t = useTranslations("analysis");
     const [isFlipped, setIsFlipped] = useState(false);
 
     // Refs for measuring side heights
@@ -67,7 +69,7 @@ export default function AnalysisFlipCard({
                         <div className="flex items-center gap-3">
                             <Activity className="w-6 h-6 text-white" />
                             <h3 className="text-xl font-bold text-white">
-                                Quick Analysis Summary
+                                {t('title')}
                             </h3>
                         </div>
                         {onClose && (
@@ -82,15 +84,15 @@ export default function AnalysisFlipCard({
 
                     <div className="p-6">
                         {/* No data message */}
-                        <div className="mb-6 p-5 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+                        <div className="mb-6 p-5 bg-gray-50 rounded-lg border-s-4 border-gray-300">
                             <div className="flex items-start gap-3">
                                 <Database className="w-6 h-6 text-gray-400 mt-1 shrink-0" />
                                 <div>
                                     <h4 className="text-lg font-bold text-gray-700 mb-1">
-                                        No Dataset Loaded
+                                        {t('noDatasetTitle')}
                                     </h4>
                                     <p className="text-gray-500">
-                                        Select a layer on the map to see analysis results.
+                                        {t('noDatasetDescription')}
                                     </p>
                                 </div>
                             </div>
@@ -102,33 +104,33 @@ export default function AnalysisFlipCard({
                                 <div className="flex items-center gap-2 mb-2">
                                     <MapPin className="w-5 h-5 text-[#2C3580]" />
                                     <span className="text-sm font-semibold text-gray-700">
-                                        Features
+                                        {t('featuresLabel')}
                                     </span>
                                 </div>
                                 <p className="text-3xl font-bold text-[#2C3580]">&mdash;</p>
-                                <p className="text-xs text-gray-600 mt-1">Data points loaded</p>
+                                <p className="text-xs text-gray-600 mt-1">{t('featuresHint')}</p>
                             </div>
 
                             <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                                 <div className="flex items-center gap-2 mb-2">
                                     <Tag className="w-5 h-5 text-earthy-green" />
                                     <span className="text-sm font-semibold text-gray-700">
-                                        Categories
+                                        {t('categoriesLabel')}
                                     </span>
                                 </div>
                                 <p className="text-3xl font-bold text-earthy-green">&mdash;</p>
-                                <p className="text-xs text-gray-600 mt-1">Categorical fields</p>
+                                <p className="text-xs text-gray-600 mt-1">{t('categoriesHint')}</p>
                             </div>
 
                             <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
                                 <div className="flex items-center gap-2 mb-2">
                                     <TrendingUp className="w-5 h-5 text-purple-600" />
                                     <span className="text-sm font-semibold text-gray-700">
-                                        Top Field
+                                        {t('topFieldLabel')}
                                     </span>
                                 </div>
                                 <p className="text-3xl font-bold text-purple-600">&mdash;</p>
-                                <p className="text-xs text-gray-600 mt-1">No categorical fields</p>
+                                <p className="text-xs text-gray-600 mt-1">{t('noCategoricalFields')}</p>
                             </div>
                         </div>
 
@@ -137,7 +139,7 @@ export default function AnalysisFlipCard({
                             className="w-full bg-gray-300 text-white py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 cursor-not-allowed"
                         >
                             <BarChart3 className="w-5 h-5" />
-                            Load data to analyze
+                            {t('loadDataCta')}
                         </button>
                     </div>
                 </div>
@@ -170,7 +172,7 @@ export default function AnalysisFlipCard({
                             <div className="flex items-center gap-3">
                                 <Activity className="w-6 h-6 text-white" />
                                 <h3 className="text-xl font-bold text-white">
-                                    Quick Analysis Summary
+                                    {t('title')}
                                 </h3>
                             </div>
                             {onClose && (
@@ -185,16 +187,15 @@ export default function AnalysisFlipCard({
 
                         <div className="p-6 flex-1 flex flex-col">
                             {/* Dataset info */}
-                            <div className="mb-5 p-4 bg-linear-to-br from-cyan/5 to-cyan/10 rounded-lg border-l-4 border-cyan">
+                            <div className="mb-5 p-4 bg-linear-to-br from-cyan/5 to-cyan/10 rounded-lg border-s-4 border-cyan">
                                 <div className="flex items-start gap-3">
                                     <Database className="w-5 h-5 text-cyan mt-0.5 shrink-0" />
                                     <div>
                                         <h4 className="text-base font-bold text-gray-900">
-                                            {datasetName || "Dataset"}
+                                            {datasetName || t('datasetFallback')}
                                         </h4>
                                         <p className="text-sm text-gray-600">
-                                            {featureCount?.toLocaleString() ?? features.length.toLocaleString()}{" "}
-                                            features loaded
+                                            {t('featuresLoaded', { count: featureCount ?? features.length })}
                                         </p>
                                     </div>
                                 </div>
@@ -206,33 +207,33 @@ export default function AnalysisFlipCard({
                                     <div className="flex items-center gap-2 mb-2">
                                         <MapPin className="w-5 h-5 text-[#2C3580]" />
                                         <span className="text-sm font-semibold text-gray-700">
-                                            Features
+                                            {t('featuresLabel')}
                                         </span>
                                     </div>
                                     <p className="text-3xl font-bold text-[#2C3580]">
                                         {featureCount?.toLocaleString() ?? features.length.toLocaleString()}
                                     </p>
-                                    <p className="text-xs text-gray-600 mt-1">Data points loaded</p>
+                                    <p className="text-xs text-gray-600 mt-1">{t('featuresHint')}</p>
                                 </div>
 
                                 <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Tag className="w-5 h-5 text-earthy-green" />
                                         <span className="text-sm font-semibold text-gray-700">
-                                            Categories
+                                            {t('categoriesLabel')}
                                         </span>
                                     </div>
                                     <p className="text-3xl font-bold text-earthy-green">
                                         {categoricalFields.length}
                                     </p>
-                                    <p className="text-xs text-gray-600 mt-1">Categorical fields</p>
+                                    <p className="text-xs text-gray-600 mt-1">{t('categoriesHint')}</p>
                                 </div>
 
                                 <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
                                     <div className="flex items-center gap-2 mb-2">
                                         <TrendingUp className="w-5 h-5 text-purple-600" />
                                         <span className="text-sm font-semibold text-gray-700">
-                                            Top Field
+                                            {t('topFieldLabel')}
                                         </span>
                                     </div>
                                     <p className="text-xl font-bold text-purple-600 truncate">
@@ -240,8 +241,8 @@ export default function AnalysisFlipCard({
                                     </p>
                                     <p className="text-xs text-gray-600 mt-1">
                                         {topCategory
-                                            ? `${topCategory.count} occurrences`
-                                            : "No categorical fields"}
+                                            ? t('occurrences', { count: topCategory.count })
+                                            : t('noCategoricalFields')}
                                     </p>
                                 </div>
                             </div>
@@ -253,7 +254,7 @@ export default function AnalysisFlipCard({
                                 className="w-full bg-cyan text-white py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-auto"
                             >
                                 <BarChart3 className="w-5 h-5" />
-                                Show Bar Chart
+                                {t('showBarChart')}
                             </button>
                         </div>
                     </div>
@@ -274,15 +275,15 @@ export default function AnalysisFlipCard({
                             <div className="flex items-center gap-3">
                                 <BarChart3 className="w-6 h-6 text-white" />
                                 <h3 className="text-xl font-bold text-white">
-                                    Bar Chart Comparison
+                                    {t('barChartTitle')}
                                 </h3>
                             </div>
                             <button
                                 onClick={handleFlip}
                                 className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors font-medium"
                             >
-                                <ArrowLeft className="w-4 h-4" />
-                                Back
+                                <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+                                {t('back')}
                             </button>
                         </div>
 
@@ -291,7 +292,7 @@ export default function AnalysisFlipCard({
                             <div className="mb-4 flex items-end gap-4">
                                 <div className="flex-1">
                                     <label className="text-sm font-semibold text-gray-700 block mb-1.5">
-                                        Group by
+                                        {t('groupBy')}
                                     </label>
                                     <select
                                         value={selectedField}
@@ -308,7 +309,7 @@ export default function AnalysisFlipCard({
                                     </select>
                                 </div>
                                 <div className="text-right pb-0.5">
-                                    <span className="text-xs text-gray-500">Total</span>
+                                    <span className="text-xs text-gray-500">{t('total')}</span>
                                     <p className="text-lg font-bold text-gray-800">
                                         {chartData.reduce((s, d) => s + d.count, 0).toLocaleString()}
                                     </p>

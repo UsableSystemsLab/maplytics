@@ -27,7 +27,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       if (confPass !== password) {
-        setError("Passwords do not match");
+        setError(t('passwordsDoNotMatch'));
         return;
       }
       await createUserWithEmailAndPassword(auth, email, password);
@@ -59,24 +59,24 @@ export default function RegisterPage() {
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-[#134565]/20 rounded-full border border-[#134565]/30 mb-3">
             <UserPlus className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
-          <h1 className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] text-2xl md:text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards] text-white/70 text-sm md:text-base">Join us to unlock powerful spatial analysis</p>
+          <h1 className="opacity-0 animate-[fadeIn_1s_ease-out_forwards] text-2xl md:text-3xl font-bold text-white mb-2">{t('createAccountTitle')}</h1>
+          <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards] text-white/70 text-sm md:text-base">{t('registerSubtitle')}</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4 md:space-y-5">
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards] space-y-1.5">
             <label htmlFor="email" className="text-xs md:text-sm font-semibold text-white/90 block">
-              Email Address
+              {t('emailLabel')}
             </label>
             <div className="relative group">
-              <Mail className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
+              <Mail className="absolute start-3 md:start-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
               <input
                 id="email"
                 type="email"
-                placeholder="email@example.com"
+                placeholder={t('emailInputPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
+                className="w-full ps-10 md:ps-12 pe-3 md:pe-4 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
                 required
               />
             </div>
@@ -84,24 +84,24 @@ export default function RegisterPage() {
 
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.3s_forwards] space-y-1.5">
             <label htmlFor="password" className="text-xs md:text-sm font-semibold text-white/90 block">
-              Password
+              {t('passwordLabel')}
             </label>
             <div className="relative group">
-              <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
+              <Lock className="absolute start-3 md:start-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
+                className="w-full ps-10 md:ps-12 pe-10 md:pe-12 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
                 required
                 minLength={6}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors hover:scale-110 active:scale-95 transform"
+                className="absolute end-3 md:end-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors hover:scale-110 active:scale-95 transform"
               >
                 {showPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
@@ -110,24 +110,24 @@ export default function RegisterPage() {
 
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards] space-y-1.5">
             <label htmlFor="confirmPassword" className="text-xs md:text-sm font-semibold text-white/90 block">
-              Confirm Password
+              {t('confirmPasswordLabel')}
             </label>
             <div className="relative group">
-              <Lock className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
+              <Lock className="absolute start-3 md:start-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
               <input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={confPass}
                 onChange={(e) => setConfPass(e.target.value)}
-                className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
+                className="w-full ps-10 md:ps-12 pe-10 md:pe-12 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
                 required
                 minLength={6}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors hover:scale-110 active:scale-95 transform"
+                className="absolute end-3 md:end-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors hover:scale-110 active:scale-95 transform"
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
@@ -135,7 +135,7 @@ export default function RegisterPage() {
           </div>
 
           {error && (
-            <div className="bg-red-500/20 border-l-4 border-red-400 p-3 md:p-4 rounded backdrop-blur-sm">
+            <div className="bg-red-500/20 border-s-4 border-red-400 p-3 md:p-4 rounded backdrop-blur-sm">
               <p className="text-red-200 text-xs md:text-sm">{error}</p>
             </div>
           )}
@@ -148,17 +148,17 @@ export default function RegisterPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Creating Account...
+                {t('creatingAccount')}
               </span>
             ) : (
-              "Create Account"
+              t('createAccountButton')
             )}
           </button>
         </form>
 
         <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.6s_forwards] flex items-center gap-3 my-4 md:my-6">
           <div className="flex-1 h-px bg-[#134565]/40" />
-          <span className="text-white/50 text-xs md:text-sm">Or continue with</span>
+          <span className="text-white/50 text-xs md:text-sm">{t('orContinueWith')}</span>
           <div className="flex-1 h-px bg-[#134565]/40" />
         </div>
 
@@ -167,17 +167,17 @@ export default function RegisterPage() {
           disabled={loading}
           className="opacity-0 animate-[fadeIn_1s_ease-out_0.7s_forwards] w-full border border-[#134565]/30 bg-white/5 hover:bg-white/10 text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 text-sm md:text-base rounded-lg flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <img src="/google.svg" alt="Google" className="w-4 h-4 md:w-5 md:h-5" />
-          Sign up with Google
+          <img src="/google.svg" alt={t('googleAlt')} className="w-4 h-4 md:w-5 md:h-5" />
+          {t('signUpWithGoogle')}
         </button>
 
         <p className="opacity-0 animate-[fadeIn_1s_ease-out_0.8s_forwards] mt-4 md:mt-6 text-center text-xs md:text-sm text-white/60">
-          Already have an account?{" "}
+          {t('alreadyHaveAccount')}{" "}
           <Link
             href="/login"
             className="text-earthy-green hover:text-white font-semibold transition-colors hover:underline"
           >
-            Sign In
+            {t('signInLink')}
           </Link>
         </p>
       </div>

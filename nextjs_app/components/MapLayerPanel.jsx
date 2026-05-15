@@ -2,6 +2,7 @@
 import { Layers, Plus, X, Loader2, Eye, EyeOff, MousePointer2, Flame, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 const LAYER_COLORS = ['#FFBB00', '#26BB00', '#00BBD9', '#FF003C', '#003BFF', '#FF3BA9'];
 
@@ -17,9 +18,10 @@ export default function MapLayerPanel({
     handleRemoveLayer,
     setLayerVizModes
 }) {
+    const t = useTranslations("mapPanel");
     return (
         <div className={cn(
-            "absolute top-4 left-4 z-40 transition-all duration-300 flex flex-col pointer-events-none",
+            "absolute top-4 start-4 z-40 transition-all duration-300 flex flex-col pointer-events-none",
             isMobile && !isPanelExpanded ? "w-12" : "w-72 max-h-[calc(100%-2rem)]"
         )}>
             <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 overflow-hidden flex flex-col pointer-events-auto">
@@ -39,7 +41,7 @@ export default function MapLayerPanel({
                             "font-bold text-gray-900 truncate transition-all duration-300",
                             !isPanelExpanded ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                         )}>
-                            Active layers
+                            {t('activeLayers')}
                         </h3>
                     </div>
 
@@ -81,14 +83,14 @@ export default function MapLayerPanel({
                     <div className="flex-1 overflow-y-auto p-2 min-h-[100px] max-h-[400px] space-y-1">
                         {selectedLayers.length === 0 ? (
                             <div className="py-8 px-4 text-center">
-                                <p className="text-xs text-gray-500 mb-3">No layers added to map</p>
+                                <p className="text-xs text-gray-500 mb-3">{t('noLayers')}</p>
                                 <Button
                                     size="sm"
                                     variant="outline"
                                     className="w-full text-[11px] h-8"
                                     onClick={() => setIsDrawerOpen(true)}
                                 >
-                                    Browse Datasets
+                                    {t('browseDatasets')}
                                 </Button>
                             </div>
                         ) : (
@@ -126,7 +128,7 @@ export default function MapLayerPanel({
 
                                             <div className="flex items-center gap-1 shrink-0">
                                                 {layer.loading && (
-                                                    <Loader2 className="w-3 h-3 animate-spin text-primary mr-1" />
+                                                    <Loader2 className="w-3 h-3 animate-spin text-primary me-1" />
                                                 )}
                                                 <button
                                                     onClick={() => handleRemoveLayer(layer.id)}
@@ -139,17 +141,17 @@ export default function MapLayerPanel({
 
                                         {/* Mode Selector */}
                                         {visibleLayerIds.has(layer.id) && (
-                                            <div className="flex items-center gap-1 mt-2 border-t border-gray-50 pt-2 ml-7">
+                                            <div className="flex items-center gap-1 mt-2 border-t border-gray-50 pt-2 ms-7">
                                                 <button
                                                     onClick={() => setLayerVizModes(prev => ({ ...prev, [layer.id]: 'plotting' }))}
                                                     className={cn(
                                                         "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all",
                                                         (!layerVizModes[layer.id] || layerVizModes[layer.id] === 'plotting') ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100"
                                                     )}
-                                                    title="Standard Plotting"
+                                                    title={t('standardPlotting')}
                                                 >
                                                     <MousePointer2 className="w-2.5 h-2.5" />
-                                                    Plot
+                                                    {t('plot')}
                                                 </button>
                                                 <button
                                                     onClick={() => setLayerVizModes(prev => ({ ...prev, [layer.id]: 'heatmap' }))}
@@ -157,10 +159,10 @@ export default function MapLayerPanel({
                                                         "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all",
                                                         layerVizModes[layer.id] === 'heatmap' ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-gray-100"
                                                     )}
-                                                    title="Heatmap"
+                                                    title={t('heatmap')}
                                                 >
                                                     <Flame className="w-2.5 h-2.5" />
-                                                    Heat
+                                                    {t('heat')}
                                                 </button>
                                             </div>
                                         )}

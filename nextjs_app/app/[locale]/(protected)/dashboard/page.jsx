@@ -5,9 +5,11 @@ import AnalysisFlipCard from "@/components/AnalysisFlipCard";
 import { getProjectDatasetData } from "@/lib/datasetApi";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function DashboardPage() {
     const { user } = useAuth();
+    const t = useTranslations("dashboard");
     const searchParams = useSearchParams();
     const projectId = searchParams.get("projectId");
     const datasetId = searchParams.get("datasetId");
@@ -54,7 +56,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-center gap-2 py-12">
                         <Loader2 className="w-5 h-5 animate-spin text-cyan" />
                         <span className="text-gray-500">
-                            Loading dataset...
+                            {t('loadingDataset')}
                         </span>
                     </div>
                 ) : (
@@ -69,45 +71,45 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                            Total Projects
+                            {t('totalProjects')}
                         </h3>
                         <p className="text-3xl font-bold text-primary">
                             12
                         </p>
                         <p className="text-sm text-gray-500 mt-2">
-                            +2 from last month
+                            {t('totalProjectsHint')}
                         </p>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                            Active Layers
+                            {t('activeLayers')}
                         </h3>
                         <p className="text-3xl font-bold text-cyan">24</p>
                         <p className="text-sm text-gray-500 mt-2">
-                            Across all projects
+                            {t('activeLayersHint')}
                         </p>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                            Team Members
+                            {t('teamMembers')}
                         </h3>
                         <p className="text-3xl font-bold text-primary">
                             8
                         </p>
                         <p className="text-sm text-gray-500 mt-2">
-                            4 active now
+                            {t('teamMembersHint')}
                         </p>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                        Recent Activity
+                        {t('recentActivity')}
                     </h2>
                     <p className="text-gray-600">
-                        Your recent dashboard activity will appear here.
+                        {t('recentActivityEmpty')}
                     </p>
                 </div>
             </div>

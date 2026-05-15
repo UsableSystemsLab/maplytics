@@ -16,15 +16,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Database, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 
 export default function DatasetMultiPicker({
     selectedIds = [],
     onToggle,
-    label = "Select Datasets",
+    label,
     className,
     disabled = false,
 }) {
+    const t = useTranslations("comparison.datasetPicker");
+    const resolvedLabel = label || t('label');
     const activeProject = useSelector(selectActiveProject);
     const projectId = activeProject?.id;
 
@@ -78,7 +81,7 @@ export default function DatasetMultiPicker({
                 >
                     <Plus className="h-5 w-5" />
                     {selectedCount > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
+                        <span className="absolute -top-0.5 -end-0.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
                             {selectedCount}
                         </span>
                     )}
@@ -86,19 +89,19 @@ export default function DatasetMultiPicker({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72 p-2 rounded-2xl shadow-xl">
                 <DropdownMenuLabel className="text-xs uppercase text-muted-foreground tracking-widest p-2">
-                    {label}
+                    {resolvedLabel}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
                 {/* Search filter */}
                 <div className="px-2 pb-2">
                     <div className="relative">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                        <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Filter datasets..."
-                            className="h-8 pl-8 text-xs rounded-lg"
+                            placeholder={t('filterPlaceholder')}
+                            className="h-8 ps-8 text-xs rounded-lg"
                         />
                     </div>
                 </div>
@@ -107,11 +110,11 @@ export default function DatasetMultiPicker({
                     {loading ? (
                         <div className="p-4 flex items-center justify-center gap-2 text-muted-foreground">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-xs">Loading...</span>
+                            <span className="text-xs">{t('loading')}</span>
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="p-4 text-center text-xs text-muted-foreground italic">
-                            {datasets.length === 0 ? "No datasets in project" : "No matches"}
+                            {datasets.length === 0 ? t('empty') : t('noMatches')}
                         </div>
                     ) : (
                         filtered.map(ds => {

@@ -3,6 +3,11 @@ import { render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { makeTestStore } from './testUtils'
 
+jest.mock('next-intl', () => ({
+    useTranslations: () => (key) => key,
+    useLocale: () => 'en',
+}))
+
 // Mock firebase modules BEFORE any imports that trigger them
 jest.mock('@/lib/firebase', () => ({ auth: {} }))
 jest.mock('firebase/app', () => ({ initializeApp: jest.fn(() => ({})) }))
@@ -117,24 +122,24 @@ describe('AppSidebar', () => {
 
     it('renders main navigation items', () => {
         renderWithStore()
-        expect(screen.getByText('Projects')).toBeInTheDocument()
-        expect(screen.getByText('Overview')).toBeInTheDocument()
-        expect(screen.getByText('Map View')).toBeInTheDocument()
-        expect(screen.getByText('Comparison')).toBeInTheDocument()
+        expect(screen.getByText('nav.projects')).toBeInTheDocument()
+        expect(screen.getByText('nav.overview')).toBeInTheDocument()
+        expect(screen.getByText('nav.mapView')).toBeInTheDocument()
+        expect(screen.getByText('nav.comparison')).toBeInTheDocument()
     })
 
     it('renders workspace navigation items', () => {
         renderWithStore()
-        expect(screen.getByText('Datasets')).toBeInTheDocument()
-        expect(screen.getByText('AI Chat')).toBeInTheDocument()
+        expect(screen.getByText('nav.datasets')).toBeInTheDocument()
+        expect(screen.getByText('nav.aiChat')).toBeInTheDocument()
     })
 
 
     it('renders General section links', () => {
         renderWithStore()
-        expect(screen.getByText('Home')).toBeInTheDocument()
-        expect(screen.getByText('Account')).toBeInTheDocument()
-        expect(screen.getByText('Settings')).toBeInTheDocument()
+        expect(screen.getByText('nav.home')).toBeInTheDocument()
+        expect(screen.getByText('nav.account')).toBeInTheDocument()
+        expect(screen.getByText('nav.settings')).toBeInTheDocument()
     })
 
     it('renders user display name in footer when logged in', () => {
@@ -150,12 +155,12 @@ describe('AppSidebar', () => {
     it('renders login button when user is not authenticated', () => {
         useAuth.mockReturnValue({ user: null, loading: false })
         renderWithStore()
-        expect(screen.getByText('Login')).toBeInTheDocument()
+        expect(screen.getByText('login')).toBeInTheDocument()
     })
 
     it('shows "No Project Selected" when no active project', () => {
         renderWithStore()
-        expect(screen.getByText('No Project Selected')).toBeInTheDocument()
+        expect(screen.getByText('noProjectSelected')).toBeInTheDocument()
     })
 
     it('shows active project name when project is selected', () => {
