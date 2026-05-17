@@ -443,7 +443,7 @@ export const choroplethCount = async (req, res, next) => {
                     WHERE boundaries IS NOT NULL
                 )
                 SELECT vr.region_id, vr.name_ar, vr.name_en, vr.code, vr.population,
-                       ST_AsGeoJSON(vr.valid_geom)::json AS geometry,
+                       ST_AsGeoJSON(ST_SimplifyPreserveTopology(vr.valid_geom, 0.005))::json AS geometry,
                        (SELECT COUNT(*) FROM pts WHERE ST_Contains(vr.valid_geom, pts.geom)) AS count
                 FROM valid_regions vr`;
         } else if (level === 'cities') {
@@ -457,6 +457,9 @@ export const choroplethCount = async (req, res, next) => {
                     SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
                     FROM json_array_elements($1::json) AS p
                 ),
+                bbox AS (
+                    SELECT ST_Expand(ST_Extent(geom), 1.0) AS geom FROM pts
+                ),
                 city_bounds AS (
                     SELECT d.city_id, c.name_ar, c.name_en, c.region_id,
                            r.name_en AS region_name,
@@ -465,10 +468,11 @@ export const choroplethCount = async (req, res, next) => {
                     JOIN cities c ON c.city_id = d.city_id
                     JOIN regions r ON r.region_id = c.region_id
                     WHERE ${whereClause}
+                      AND ST_Intersects(d.boundaries, (SELECT geom FROM bbox))
                     GROUP BY d.city_id, c.name_ar, c.name_en, c.region_id, r.name_en
                 )
                 SELECT cb.city_id, cb.name_ar, cb.name_en, cb.region_id, cb.region_name,
-                       ST_AsGeoJSON(cb.boundaries)::json AS geometry,
+                       ST_AsGeoJSON(ST_SimplifyPreserveTopology(cb.boundaries, 0.003))::json AS geometry,
                        (SELECT COUNT(*) FROM pts WHERE ST_Contains(cb.boundaries, pts.geom)) AS count
                 FROM city_bounds cb`;
         } else if (level === 'districts') {
@@ -484,15 +488,19 @@ export const choroplethCount = async (req, res, next) => {
                 WITH pts AS (
                     SELECT ST_SetSRID(ST_MakePoint((p->>'lng')::float, (p->>'lat')::float), 4326) AS geom
                     FROM json_array_elements($1::json) AS p
+                ),
+                bbox AS (
+                    SELECT ST_Expand(ST_Extent(geom), 0.5) AS geom FROM pts
                 )
                 SELECT d.district_id, d.name_ar, d.name_en, d.city_id, d.region_id,
                        c.name_en AS city_name, r.name_en AS region_name,
-                       ST_AsGeoJSON(d.boundaries)::json AS geometry,
+                       ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_MakeValid(d.boundaries), 0.001))::json AS geometry,
                        (SELECT COUNT(*) FROM pts WHERE ST_Contains(d.boundaries, pts.geom)) AS count
                 FROM districts d
                 JOIN cities c ON c.city_id = d.city_id
                 JOIN regions r ON r.region_id = d.region_id
-                WHERE ${whereClause}`;
+                WHERE ${whereClause}
+                  AND ST_Intersects(d.boundaries, (SELECT geom FROM bbox))`;
         } else {
             return res.status(400).json({ error: 'level must be regions, cities, or districts' });
         }

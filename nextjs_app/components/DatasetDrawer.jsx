@@ -100,7 +100,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
 
         <div className="flex-1 overflow-hidden flex flex-col p-6">
           <div className="relative mb-6">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute inset-s-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder={t('searchPlaceholder')}

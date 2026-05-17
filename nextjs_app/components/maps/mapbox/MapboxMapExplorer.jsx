@@ -46,6 +46,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
     const choroplethCacheRef = useRef({});
     // Track what's currently rendered to detect when only color changed
     const choroplethRenderedRef = useRef({});
+    const preloadedLayersRef = useRef(new Set());
 
     const handleChoroplethSettingsChange = (layerId, patch) => {
         setChoroplethSettings(prev => ({
@@ -192,6 +193,29 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
         });
     }, [selectedLayers, dispatch]);
 
+    // Eagerly preload choropleth data for all 3 boundary levels as soon as geojson is available
+    useEffect(() => {
+        selectedLayers.forEach((layer) => {
+            if (!layer.geojson) return;
+            if (preloadedLayersRef.current.has(layer.id)) return;
+
+            const points = (layer.geojson.features || [])
+                .filter(f => f.geometry?.type === 'Point')
+                .map(f => f.geometry.coordinates);
+            if (points.length === 0) return;
+
+            preloadedLayersRef.current.add(layer.id);
+
+            ['regions', 'cities', 'districts'].forEach(level => {
+                const cacheKey = `${layer.id}::${level}`;
+                if (choroplethCacheRef.current[cacheKey]) return;
+                getChoroplethData({ points, level, region_id: null, city_id: null })
+                    .then(data => { choroplethCacheRef.current[cacheKey] = data; })
+                    .catch(err => console.error(`Choropleth preload (${level}):`, err));
+            });
+        });
+    }, [selectedLayers]);
+
     // Sync Mapbox layers
     useEffect(() => {
         const map = mapInstanceRef.current;
@@ -269,7 +293,13 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
             // Remove anything we no longer want (different mode, hidden, removed)
             for (const key of Object.keys(trackedRef.current)) {
-                if (!wantKeys.has(key)) removeTracked(key);
+                if (!wantKeys.has(key)) {
+                    removeTracked(key);
+                    if (key.endsWith('::choropleth')) {
+                        const layerId = key.slice(0, -'::choropleth'.length);
+                        choroplethRenderedRef.current[layerId] = null;
+                    }
+                }
             }
 
             // Forget auto-fit state for layers that are no longer visible

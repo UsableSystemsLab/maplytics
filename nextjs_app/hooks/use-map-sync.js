@@ -20,6 +20,7 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
     const choroplethCacheRef = useRef({});
     // Track what's currently rendered: `${level}::${colorScheme}`
     const choroplethRenderedRef = useRef({});
+    const preloadedLayersRef = useRef(new Set());
 
     useEffect(() => {
         if (!mapInstance) return;
@@ -54,6 +55,29 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
             }
         });
     }, [selectedLayers, dispatch]);
+
+    // Eagerly preload choropleth data for all 3 boundary levels
+    useEffect(() => {
+        selectedLayers.forEach((layer) => {
+            if (!layer.geojson) return;
+            if (preloadedLayersRef.current.has(layer.id)) return;
+
+            const points = (layer.geojson.features || [])
+                .filter(f => f.geometry?.type === 'Point')
+                .map(f => f.geometry.coordinates);
+            if (points.length === 0) return;
+
+            preloadedLayersRef.current.add(layer.id);
+
+            ['regions', 'cities', 'districts'].forEach(level => {
+                const cacheKey = `${layer.id}::${level}`;
+                if (choroplethCacheRef.current[cacheKey]) return;
+                getChoroplethData({ points, level, region_id: null, city_id: null })
+                    .then(data => { choroplethCacheRef.current[cacheKey] = data; })
+                    .catch(err => console.error(`Choropleth preload (${level}):`, err));
+            });
+        });
+    }, [selectedLayers]);
 
     // 2. Sync non-choropleth Leaflet Layers
     useEffect(() => {

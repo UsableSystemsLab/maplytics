@@ -260,7 +260,7 @@ export default function MapArea() {
                 via Portal inside ChoroplethRender so it sits here visually without
                 being buried in MapComponent's stacking context. */}
             {primaryLayer && (
-                <div className="absolute left-4 md:left-6 top-20 md:top-24 z-30 flex flex-col gap-3 max-w-[calc(100vw-32px)] md:max-w-[260px]">
+                <div className="absolute left-4 md:left-6 top-20 md:top-24 z-30 flex flex-col gap-3 max-w-[calc(100vw-32px)] md:max-w-65">
                     {/* Renderer panels portal into this slot */}
                     <div ref={(el) => { panelSlotRef.current = el; if (el && !panelSlotReady) setPanelSlotReady(true); }} />
                     {viewMode === "map" && categories.length > 0 && categoryField && (
@@ -293,7 +293,7 @@ export default function MapArea() {
                                 {isFilterPanelOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             </button>
                             {isFilterPanelOpen && (
-                                <div className="border-t border-gray-200 px-3 py-2 max-h-[400px] overflow-y-auto">
+                                <div className="border-t border-gray-200 px-3 py-2 max-h-100 overflow-y-auto">
                                     {hasActiveFilters && (
                                         <button onClick={clearFilters} className="w-full mb-2 flex items-center justify-center gap-1 text-xs text-red-500 hover:text-red-700 py-1">
                                             <X className="w-3 h-3" /> Clear Filters
@@ -392,13 +392,13 @@ export default function MapArea() {
                     <div className="flex items-center justify-between px-6 py-3 md:py-4 bg-cyan cursor-pointer" onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}>
                         <div className="flex items-center gap-3">
                             <Activity className="w-5 h-5 text-white" />
-                            <h3 className="text-base md:text-lg font-semibold text-white truncate max-w-[200px] md:max-w-none">{primaryLayer ? primaryLayer.name : "Analysis Results"}</h3>
+                            <h3 className="text-base md:text-lg font-semibold text-white truncate max-w-50 md:max-w-none">{primaryLayer ? primaryLayer.name : "Analysis Results"}</h3>
                         </div>
                         <button className={`text-white hover:bg-white/20 p-1 rounded transition-transform duration-500 ${isAnalysisExpanded ? "rotate-180" : "rotate-0"}`}>
                             <ChevronUp className="w-5 h-5" />
                         </button>
                     </div>
-                    <div className={`overflow-hidden transition-all duration-700 ease-in-out ${isAnalysisExpanded ? "max-h-[1000px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4"}`}>
+                    <div className={`overflow-hidden transition-all duration-700 ease-in-out ${isAnalysisExpanded ? "max-h-250 opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4"}`}>
                         <div className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
                                 <StatCard icon={Database} label="Dataset" value={primaryLayer?.name || "N/A"} subtitle="Primary layer" />

@@ -28,7 +28,7 @@ export default function MapLayerPanel({
     const t = useTranslations("mapPanel");
     return (
         <div className={cn(
-            "absolute top-4 start-4 z-40 transition-all duration-300 flex flex-col pointer-events-none",
+            "absolute top-4 inset-s-4 z-40 transition-all duration-300 flex flex-col pointer-events-none",
             isMobile && !isPanelExpanded ? "w-12" : "w-72 max-h-[calc(100%-2rem)]"
         )}>
             <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 overflow-hidden flex flex-col pointer-events-auto">
@@ -85,9 +85,9 @@ export default function MapLayerPanel({
                 {/* Content */}
                 <div className={cn(
                     "transition-all duration-300 overflow-hidden flex flex-col",
-                    !isPanelExpanded ? "max-h-0" : "max-h-[500px] opacity-100"
+                    !isPanelExpanded ? "max-h-0" : "max-h-125 opacity-100"
                 )}>
-                    <div className="flex-1 overflow-y-auto p-2 min-h-[100px] max-h-[400px] space-y-1">
+                    <div className="flex-1 overflow-y-auto p-2 min-h-25 max-h-100 space-y-1">
                         {selectedLayers.length === 0 ? (
                             <div className="py-8 px-4 text-center">
                                 <p className="text-xs text-gray-500 mb-3">{t('noLayers')}</p>
