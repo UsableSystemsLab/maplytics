@@ -411,7 +411,11 @@
       "selectedCount": "{count} مختارة",
       "filterPlaceholder": "تصفية مجموعات البيانات...",
       "loading": "جاري التحميل...",
-      "noMatches": "لا توجد نتائج"
+      "noMatches": "لا توجد نتائج",
+      "projectSection": "المشروع ({count})",
+      "publicSection": "عامة ({count})",
+      "emptyPublic": "لا توجد مجموعات بيانات عامة متاحة.",
+      "loadError": "تعذّر تحميل مجموعات البيانات. حاول مرة أخرى."
     },
     "queryBar": {
       "placeholder": "قارن المطاعم بين العليا والملز...",

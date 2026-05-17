@@ -411,7 +411,11 @@
       "selectedCount": "{count} selected",
       "filterPlaceholder": "Filter datasets...",
       "loading": "Loading...",
-      "noMatches": "No matches"
+      "noMatches": "No matches",
+      "projectSection": "Project ({count})",
+      "publicSection": "Public ({count})",
+      "emptyPublic": "No public datasets available.",
+      "loadError": "Couldn't load datasets. Try again."
     },
     "queryBar": {
       "placeholder": "Compare restaurants between Olaya and Malaz...",
