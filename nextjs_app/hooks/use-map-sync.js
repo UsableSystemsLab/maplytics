@@ -1,14 +1,32 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet.heat";
 import { setLayerGeojson, setLayerLoading } from "@/lib/store/features/layersSlice";
 import { getDatasetGeoJSON, getProjectDatasetData } from "@/lib/datasetApi";
 import { toLeafletHeatPoints } from "@/components/maps/shared/heatmapData";
+import { getChoroplethData } from "@/lib/geoApi";
+import { createChoroplethScale } from "@/lib/choroplethScale";
 
 const LAYER_COLORS = ['#FFBB00', '#26BB00', '#00BBD9', '#FF003C', '#003BFF', '#FF3BA9'];
 
-export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVizModes, dispatch) {
+function zoomToLevel(z) {
+    return z <= 7 ? 'regions' : z <= 10 ? 'cities' : 'districts';
+}
+
+export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVizModes, dispatch, choroplethSettings, setChoroplethSettings) {
     const layerGroupsRef = useRef({});
+    const [mapZoom, setMapZoom] = useState(6);
+    // Cache raw boundary geojson keyed by `${layerId}::${level}`
+    const choroplethCacheRef = useRef({});
+    // Track what's currently rendered: `${level}::${colorScheme}`
+    const choroplethRenderedRef = useRef({});
+
+    useEffect(() => {
+        if (!mapInstance) return;
+        const onZoom = () => setMapZoom(mapInstance.getZoom());
+        mapInstance.on('zoomend', onZoom);
+        return () => mapInstance.off('zoomend', onZoom);
+    }, [mapInstance]);
 
     // 1. Fetch missing data
     useEffect(() => {
@@ -36,13 +54,12 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
         });
     }, [selectedLayers, dispatch]);
 
-    // 2. Sync Leaflet Layers
+    // 2. Sync non-choropleth Leaflet Layers
     useEffect(() => {
         if (!mapInstance) return;
 
         const currentLayerIds = selectedLayers.map(l => l.id);
 
-        // Remove layers no longer selected
         Object.keys(layerGroupsRef.current).forEach(id => {
             if (!currentLayerIds.includes(id)) {
                 mapInstance.removeLayer(layerGroupsRef.current[id]);
@@ -50,13 +67,20 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
             }
         });
 
-        // Update layers
         selectedLayers.forEach((layer, index) => {
             if (!layer.geojson) return;
 
             const isVisible = visibleLayerIds.has(layer.id);
             const mode = layerVizModes[layer.id] || 'plotting';
             const color = LAYER_COLORS[index % LAYER_COLORS.length];
+
+            if (mode === 'choropleth') {
+                if (layerGroupsRef.current[layer.id] && layerGroupsRef.current[layer.id]._vizMode !== 'choropleth') {
+                    mapInstance.removeLayer(layerGroupsRef.current[layer.id]);
+                    delete layerGroupsRef.current[layer.id];
+                }
+                return;
+            }
 
             const existingLayer = layerGroupsRef.current[layer.id];
             const needsRecreation = !existingLayer || existingLayer._vizMode !== mode;
@@ -80,11 +104,11 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
                         maxZoom: 10,
                         minOpacity: 0.4,
                         gradient: {
-                            0.2: '#0000ff', // Blue
-                            0.4: '#00ff00', // Lime
-                            0.6: '#ffff00', // Yellow
-                            0.8: '#ff7f00', // Orange
-                            1.0: '#ff0000'  // Red
+                            0.2: '#0000ff',
+                            0.4: '#00ff00',
+                            0.6: '#ffff00',
+                            0.8: '#ff7f00',
+                            1.0: '#ff0000'
                         }
                     });
                 } else {
@@ -126,4 +150,113 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
             }
         });
     }, [mapInstance, selectedLayers, visibleLayerIds, layerVizModes]);
+
+    // 3. Choropleth effect — cached fetches, instant recolor
+    useEffect(() => {
+        if (!mapInstance) return;
+
+        const buildLayer = (boundaryGeojson, colorScheme) => {
+            const counts = boundaryGeojson.features.map(f => f.properties?.count ?? 0);
+            const scale = createChoroplethScale(counts, colorScheme);
+            return L.geoJSON(boundaryGeojson, {
+                style: (feature) => {
+                    const count = feature.properties?.count ?? 0;
+                    const fillColor = count === 0 ? '#e5e7eb' : scale.getQuantizedColor(count);
+                    return { fillColor, fillOpacity: 0.65, color: '#666', weight: 1 };
+                },
+                onEachFeature: (feature, l) => {
+                    const props = feature.properties || {};
+                    const name = props.name_en || props.name_ar || 'Unknown';
+                    const count = props.count ?? 0;
+                    l.bindTooltip(`<b>${name}</b>: ${count}`, { sticky: true });
+                    l.bindPopup(`
+                        <div class="p-1">
+                            <div class="font-bold text-sm border-b pb-1 mb-1">${name}</div>
+                            <div class="text-xs text-gray-500">${count} point${count !== 1 ? 's' : ''}</div>
+                        </div>
+                    `);
+                }
+            });
+        };
+
+        selectedLayers.forEach((layer) => {
+            const mode = layerVizModes[layer.id] || 'plotting';
+
+            if (mode !== 'choropleth') {
+                const existing = layerGroupsRef.current[layer.id];
+                if (existing && existing._vizMode === 'choropleth') {
+                    mapInstance.removeLayer(existing);
+                    delete layerGroupsRef.current[layer.id];
+                    delete choroplethRenderedRef.current[layer.id];
+                }
+                return;
+            }
+
+            if (!layer.geojson) return;
+            if (!visibleLayerIds.has(layer.id)) return;
+
+            const settings = choroplethSettings?.[layer.id] || { boundaryLock: 'auto', colorScheme: 'Blues' };
+            const resolvedLevel = settings.boundaryLock === 'auto' ? zoomToLevel(mapZoom) : settings.boundaryLock;
+            const colorScheme = settings.colorScheme || 'Blues';
+
+            if (settings.resolvedLevel !== resolvedLevel && setChoroplethSettings) {
+                setChoroplethSettings(prev => ({
+                    ...prev,
+                    [layer.id]: { ...(prev[layer.id] || { boundaryLock: 'auto', colorScheme: 'Blues' }), resolvedLevel }
+                }));
+            }
+
+            const renderKey = `${resolvedLevel}::${colorScheme}`;
+            if (choroplethRenderedRef.current[layer.id] === renderKey) {
+                const lg = layerGroupsRef.current[layer.id];
+                if (lg && !mapInstance.hasLayer(lg)) lg.addTo(mapInstance);
+                return;
+            }
+
+            const cacheKey = `${layer.id}::${resolvedLevel}`;
+            const cached = choroplethCacheRef.current[cacheKey];
+
+            if (cached) {
+                // Cache hit — rebuild layer with new colors (no fetch)
+                const existing = layerGroupsRef.current[layer.id];
+                if (existing) mapInstance.removeLayer(existing);
+
+                const newLayer = L.layerGroup();
+                newLayer._vizMode = 'choropleth';
+                buildLayer(cached, colorScheme).addTo(newLayer);
+                layerGroupsRef.current[layer.id] = newLayer;
+                newLayer.addTo(mapInstance);
+                choroplethRenderedRef.current[layer.id] = renderKey;
+                return;
+            }
+
+            // Cache miss — fetch
+            const points = [];
+            L.geoJSON(layer.geojson).eachLayer(l => {
+                if (l.getLatLng) {
+                    const latlng = l.getLatLng();
+                    points.push([latlng.lng, latlng.lat]);
+                }
+            });
+            if (points.length === 0) return;
+
+            const existing = layerGroupsRef.current[layer.id];
+            if (existing) mapInstance.removeLayer(existing);
+            choroplethRenderedRef.current[layer.id] = null;
+
+            const newLayer = L.layerGroup();
+            newLayer._vizMode = 'choropleth';
+            layerGroupsRef.current[layer.id] = newLayer;
+            newLayer.addTo(mapInstance);
+
+            getChoroplethData({ points, level: resolvedLevel, region_id: null, city_id: null })
+                .then(boundaryGeojson => {
+                    choroplethCacheRef.current[cacheKey] = boundaryGeojson;
+                    if (choroplethRenderedRef.current[layer.id] !== null) return;
+                    buildLayer(boundaryGeojson, colorScheme).addTo(newLayer);
+                    choroplethRenderedRef.current[layer.id] = renderKey;
+                })
+                .catch(err => console.error('Choropleth fetch failed:', err));
+        });
+    }, [mapInstance, selectedLayers, visibleLayerIds, layerVizModes, mapZoom, choroplethSettings]);
 }

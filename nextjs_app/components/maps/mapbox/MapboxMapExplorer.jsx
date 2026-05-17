@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectSelectedLayers, removeLayer, setLayerGeojson, setLayerLoading } from "@/lib/store/features/layersSlice";
 import { selectActiveProject } from "@/lib/store/features/projectSlice";
 import { getDatasetGeoJSON, getProjectDatasetData } from "@/lib/datasetApi";
+import { getChoroplethData } from "@/lib/geoApi";
+import { createChoroplethScale } from "@/lib/choroplethScale";
 import DatasetDrawer from "@/components/DatasetDrawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MapLayerPanel from "@/components/MapLayerPanel";
@@ -35,6 +37,21 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
     const [jobs, setJobs] = useState([]);
     const [isLoadingJobs, setIsLoadingJobs] = useState(false);
     const [selectedJobId, setSelectedJobId] = useState(null);
+
+    // Choropleth: per-layer settings { [layerId]: { boundaryLock, colorScheme, resolvedLevel } }
+    const [choroplethSettings, setChoroplethSettings] = useState({});
+    const [mapZoom, setMapZoom] = useState(SAUDI_ZOOM);
+    // Cache raw boundary geojson keyed by `${layerId}::${level}` — avoids re-fetching on color/level toggle
+    const choroplethCacheRef = useRef({});
+    // Track what's currently rendered to detect when only color changed
+    const choroplethRenderedRef = useRef({});
+
+    const handleChoroplethSettingsChange = (layerId, patch) => {
+        setChoroplethSettings(prev => ({
+            ...prev,
+            [layerId]: { ...(prev[layerId] || { boundaryLock: 'auto', colorScheme: 'Blues' }), ...patch }
+        }));
+    };
 
     const isInitialSync = useRef(false);
     const prevSelectedLayersRef = useRef([]);
@@ -125,6 +142,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
             });
             map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "bottom-right");
             map.on("error", (e) => reportMapboxError(e.error || e));
+            map.on("zoomend", () => setMapZoom(map.getZoom()));
             mapInstanceRef.current = map;
         })();
 
@@ -257,7 +275,10 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
                 const color = LAYER_COLORS[index % LAYER_COLORS.length];
 
-                if (mode === 'heatmap') {
+                if (mode === 'choropleth') {
+                    // Choropleth is managed by a dedicated effect that responds to zoom/settings
+                    trackedRef.current[key] = [];
+                } else if (mode === 'heatmap') {
                     const points = [];
                     (layer.geojson.features || []).forEach(f => {
                         const g = f.geometry;
@@ -371,6 +392,168 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
         else map.once('load', sync);
     }, [selectedLayers, visibleLayerIds, layerVizModes]);
 
+    // Cache mapboxgl module ref so choropleth effect doesn't need dynamic import
+    const mapboxglRef = useRef(null);
+    useEffect(() => { import('mapbox-gl').then(m => { mapboxglRef.current = m.default; }); }, []);
+
+    // Dedicated choropleth effect — uses cache, recolors instantly on scheme change
+    useEffect(() => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+
+        const zoomToLevel = (z) => z <= 7 ? 'regions' : z <= 10 ? 'cities' : 'districts';
+
+        const colorize = (boundaryGeojson, colorScheme) => {
+            const counts = boundaryGeojson.features.map(f => f.properties?.count ?? 0);
+            const scale = createChoroplethScale(counts, colorScheme);
+            return {
+                ...boundaryGeojson,
+                features: boundaryGeojson.features.map(f => {
+                    const count = f.properties?.count ?? 0;
+                    const fillColor = count === 0 ? '#e5e7eb' : scale.getQuantizedColor(count);
+                    return { ...f, properties: { ...f.properties, _fillColor: fillColor } };
+                }),
+            };
+        };
+
+        const ensureLayers = (layerId, colored) => {
+            const srcId = `choro-src-${layerId}`;
+            const fillId = `choro-fill-${layerId}`;
+            const lineId = `choro-line-${layerId}`;
+
+            if (map.getSource(srcId)) {
+                map.getSource(srcId).setData(colored);
+            } else {
+                map.addSource(srcId, { type: 'geojson', data: colored });
+                map.addLayer({
+                    id: fillId,
+                    type: 'fill',
+                    source: srcId,
+                    paint: { 'fill-color': ['get', '_fillColor'], 'fill-opacity': 0.65, 'fill-outline-color': '#ffffff' },
+                });
+                map.addLayer({
+                    id: lineId,
+                    type: 'line',
+                    source: srcId,
+                    paint: { 'line-color': '#666666', 'line-width': 1 },
+                });
+
+                map.on('click', fillId, (e) => {
+                    const feat = e.features?.[0];
+                    if (!feat) return;
+                    const mapboxgl = mapboxglRef.current;
+                    if (!mapboxgl) return;
+                    const props = feat.properties || {};
+                    const name = props.name_en || props.name_ar || 'Unknown';
+                    const count = props.count ?? 0;
+                    const HIDDEN = new Set(['_fillColor', 'name_en', 'name_ar', 'count', 'name', 'title', 'id']);
+                    const propEntries = Object.entries(props).filter(([k, v]) =>
+                        !HIDDEN.has(k) && typeof v !== 'object' && v !== null && v !== ''
+                    );
+                    const propsHtml = propEntries.length
+                        ? `<dl class="maplytics-popup__list">${propEntries.slice(0, 12).map(([k, v]) =>
+                            `<div class="maplytics-popup__row"><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd></div>`
+                          ).join('')}</dl>`
+                        : '';
+                    const html = `
+                        <div class="maplytics-popup__body">
+                            <h3 class="maplytics-popup__title">${escapeHtml(name)}</h3>
+                            <div class="maplytics-popup__layer">${count} POINT${count !== 1 ? 'S' : ''}</div>
+                            ${propsHtml}
+                        </div>
+                    `;
+                    new mapboxgl.Popup({
+                        className: 'maplytics-popup',
+                        maxWidth: '320px',
+                        offset: 12,
+                        closeOnClick: true,
+                    })
+                        .setLngLat(e.lngLat)
+                        .setHTML(html)
+                        .addTo(map);
+                });
+                map.on('mouseenter', fillId, () => { map.getCanvas().style.cursor = 'pointer'; });
+                map.on('mouseleave', fillId, () => { map.getCanvas().style.cursor = ''; });
+
+                const key = `${layerId}::choropleth`;
+                trackedRef.current[key] = [fillId, lineId, srcId];
+            }
+        };
+
+        const removeLayers = (layerId) => {
+            const srcId = `choro-src-${layerId}`;
+            const fillId = `choro-fill-${layerId}`;
+            const lineId = `choro-line-${layerId}`;
+            if (map.getLayer(fillId)) map.removeLayer(fillId);
+            if (map.getLayer(lineId)) map.removeLayer(lineId);
+            if (map.getSource(srcId)) map.removeSource(srcId);
+        };
+
+        selectedLayers.forEach((layer) => {
+            const mode = layerVizModes[layer.id] || 'plotting';
+            if (mode !== 'choropleth') return;
+            if (!layer.geojson) return;
+            if (!visibleLayerIds.has(layer.id)) return;
+
+            const settings = choroplethSettings[layer.id] || { boundaryLock: 'auto', colorScheme: 'Blues' };
+            const resolvedLevel = settings.boundaryLock === 'auto' ? zoomToLevel(mapZoom) : settings.boundaryLock;
+            const colorScheme = settings.colorScheme || 'Blues';
+
+            // Update resolvedLevel in state for UI display
+            if (settings.resolvedLevel !== resolvedLevel) {
+                setChoroplethSettings(prev => ({
+                    ...prev,
+                    [layer.id]: { ...(prev[layer.id] || { boundaryLock: 'auto', colorScheme: 'Blues' }), resolvedLevel }
+                }));
+            }
+
+            const rendered = choroplethRenderedRef.current[layer.id];
+            const renderKey = `${resolvedLevel}::${colorScheme}`;
+
+            // Already showing exactly this — skip
+            if (rendered === renderKey) return;
+
+            const cacheKey = `${layer.id}::${resolvedLevel}`;
+            const cached = choroplethCacheRef.current[cacheKey];
+
+            if (cached) {
+                // Cache hit — just recolor (or switch level from cache). Instant.
+                const prevLevel = rendered?.split('::')[0];
+                if (prevLevel !== resolvedLevel) removeLayers(layer.id);
+                const colored = colorize(cached, colorScheme);
+                ensureLayers(layer.id, colored);
+                choroplethRenderedRef.current[layer.id] = renderKey;
+                return;
+            }
+
+            // Cache miss — fetch from API
+            const points = (layer.geojson.features || [])
+                .filter(f => f.geometry?.type === 'Point')
+                .map(f => f.geometry.coordinates);
+            if (points.length === 0) return;
+
+            // Remove old layers while loading
+            removeLayers(layer.id);
+            choroplethRenderedRef.current[layer.id] = null;
+
+            getChoroplethData({ points, level: resolvedLevel, region_id: null, city_id: null })
+                .then(boundaryGeojson => {
+                    if (!mapInstanceRef.current) return;
+                    // Cache the raw result
+                    choroplethCacheRef.current[cacheKey] = boundaryGeojson;
+                    // Check settings haven't changed while we were fetching
+                    const current = choroplethSettings[layer.id] || { boundaryLock: 'auto', colorScheme: 'Blues' };
+                    const currentLevel = current.boundaryLock === 'auto' ? zoomToLevel(mapZoom) : current.boundaryLock;
+                    if (currentLevel !== resolvedLevel) return;
+
+                    const colored = colorize(boundaryGeojson, colorScheme);
+                    ensureLayers(layer.id, colored);
+                    choroplethRenderedRef.current[layer.id] = renderKey;
+                })
+                .catch(err => console.error('Choropleth fetch failed:', err));
+        });
+    }, [selectedLayers, visibleLayerIds, layerVizModes, mapZoom, choroplethSettings]);
+
     const toggleVisibility = (id) => {
         setVisibleLayerIds(prev => {
             const next = new Set(prev);
@@ -397,6 +580,8 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 selectedLayers={selectedLayers}
                 visibleLayerIds={visibleLayerIds}
                 layerVizModes={layerVizModes}
+                choroplethSettings={choroplethSettings}
+                onChoroplethSettingsChange={handleChoroplethSettingsChange}
                 isMobile={isMobile}
                 isPanelExpanded={isPanelExpanded}
                 setIsPanelExpanded={setIsPanelExpanded}

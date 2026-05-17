@@ -126,7 +126,14 @@
     "standardPlotting": "الرسم القياسي",
     "heatmap": "الخريطة الحرارية",
     "plot": "رسم",
-    "heat": "حرارية"
+    "heat": "حرارية",
+    "choropleth": "كوروبلث",
+    "boundaryLevel": "مستوى الحدود",
+    "auto": "تلقائي",
+    "regions": "المناطق",
+    "cities": "المدن",
+    "districts": "الأحياء",
+    "colorScheme": "نظام الألوان"
   },
   "mapCommand": {
     "queryNotSupported": "الاستعلام غير مدعوم. ابدأ بفعل مثل: report, summarize, analyze, count, إلخ.",

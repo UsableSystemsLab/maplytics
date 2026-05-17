@@ -126,7 +126,14 @@
     "standardPlotting": "Standard Plotting",
     "heatmap": "Heatmap",
     "plot": "Plot",
-    "heat": "Heat"
+    "heat": "Heat",
+    "choropleth": "Choro",
+    "boundaryLevel": "Boundary Level",
+    "auto": "Auto",
+    "regions": "Regions",
+    "cities": "Cities",
+    "districts": "Districts",
+    "colorScheme": "Color Scheme"
   },
   "mapCommand": {
     "queryNotSupported": "Query not supported. Please start with a verb like: report, summarize, analyze, count, etc.",

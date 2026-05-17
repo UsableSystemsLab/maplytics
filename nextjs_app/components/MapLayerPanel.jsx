@@ -1,15 +1,19 @@
 "use client";
-import { Layers, Plus, X, Loader2, Eye, EyeOff, MousePointer2, Flame, ChevronUp } from "lucide-react";
+import { Layers, Plus, X, Loader2, Eye, EyeOff, MousePointer2, Flame, Map as MapIcon, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { COLOR_SCHEMES, getColorRange } from "@/lib/choroplethScale";
 
 const LAYER_COLORS = ['#FFBB00', '#26BB00', '#00BBD9', '#FF003C', '#003BFF', '#FF3BA9'];
+const BOUNDARY_LEVELS = ['auto', 'regions', 'cities', 'districts'];
 
 export default function MapLayerPanel({
     selectedLayers,
     visibleLayerIds,
     layerVizModes,
+    choroplethSettings,
+    onChoroplethSettingsChange,
     isMobile,
     isPanelExpanded,
     setIsPanelExpanded,
@@ -164,13 +168,90 @@ export default function MapLayerPanel({
                                                     <Flame className="w-2.5 h-2.5" />
                                                     {t('heat')}
                                                 </button>
+                                                <button
+                                                    onClick={() => setLayerVizModes(prev => ({ ...prev, [layer.id]: 'choropleth' }))}
+                                                    className={cn(
+                                                        "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all",
+                                                        layerVizModes[layer.id] === 'choropleth' ? "bg-emerald-600 text-white" : "text-gray-500 hover:bg-gray-100"
+                                                    )}
+                                                    title={t('choropleth')}
+                                                >
+                                                    <MapIcon className="w-2.5 h-2.5" />
+                                                    {t('choropleth')}
+                                                </button>
                                             </div>
+                                        )}
+
+                                        {/* Choropleth Settings */}
+                                        {visibleLayerIds.has(layer.id) && layerVizModes[layer.id] === 'choropleth' && (
+                                            <ChoroplethSettingsPanel
+                                                layerId={layer.id}
+                                                settings={choroplethSettings?.[layer.id]}
+                                                onChange={(patch) => onChoroplethSettingsChange?.(layer.id, patch)}
+                                                t={t}
+                                            />
                                         )}
                                     </div>
                                 );
                             })
                         )}
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function ChoroplethSettingsPanel({ layerId, settings, onChange, t }) {
+    const level = settings?.boundaryLock || 'auto';
+    const colorScheme = settings?.colorScheme || 'Blues';
+    const resolvedLevel = settings?.resolvedLevel || 'districts';
+
+    return (
+        <div className="ms-7 mt-1.5 p-2 bg-gray-50 rounded-lg border border-gray-100 space-y-2">
+            <div>
+                <p className="text-[10px] font-medium text-gray-500 mb-1">{t('boundaryLevel')}</p>
+                <div className="flex flex-wrap gap-1">
+                    {BOUNDARY_LEVELS.map((lvl) => (
+                        <button
+                            key={lvl}
+                            onClick={() => onChange({ boundaryLock: lvl })}
+                            className={cn(
+                                "px-2 py-0.5 text-[10px] font-semibold rounded transition-colors capitalize",
+                                level === lvl
+                                    ? "bg-emerald-600 text-white"
+                                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+                            )}
+                        >
+                            {lvl === 'auto' ? `${t('auto')} (${resolvedLevel})` : t(lvl)}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div>
+                <p className="text-[10px] font-medium text-gray-500 mb-1">{t('colorScheme')}</p>
+                <div className="grid grid-cols-4 gap-1">
+                    {Object.keys(COLOR_SCHEMES).map((scheme) => {
+                        const colors = getColorRange(scheme, 5);
+                        return (
+                            <button
+                                key={scheme}
+                                onClick={() => onChange({ colorScheme: scheme })}
+                                title={scheme}
+                                className={cn(
+                                    "rounded overflow-hidden border-2 transition-all",
+                                    colorScheme === scheme ? "border-emerald-600 shadow-sm" : "border-transparent hover:border-gray-300"
+                                )}
+                            >
+                                <div className="flex h-3">
+                                    {colors.map((color, i) => (
+                                        <div key={i} style={{ backgroundColor: color }} className="flex-1" />
+                                    ))}
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         </div>

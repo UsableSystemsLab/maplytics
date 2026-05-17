@@ -31,7 +31,15 @@ export default function LeafletMapExplorer({ className = "w-full h-full" }) {
     const [jobs, setJobs] = useState([]);
     const [isLoadingJobs, setIsLoadingJobs] = useState(false);
     const [selectedJobId, setSelectedJobId] = useState(null);
-    
+    const [choroplethSettings, setChoroplethSettings] = useState({});
+
+    const handleChoroplethSettingsChange = (layerId, patch) => {
+        setChoroplethSettings(prev => ({
+            ...prev,
+            [layerId]: { ...(prev[layerId] || { boundaryLock: 'auto', colorScheme: 'Blues' }), ...patch }
+        }));
+    };
+
     const isInitialSync = useRef(false);
     const prevSelectedLayersRef = useRef([]);
 
@@ -138,11 +146,13 @@ export default function LeafletMapExplorer({ className = "w-full h-full" }) {
 
     // 4. Custom Hook for Layer Syncing (API Fetching + Leaflet Updates)
     useMapSync(
-        mapInstanceRef.current, 
-        selectedLayers, 
-        visibleLayerIds, 
-        layerVizModes, 
-        dispatch
+        mapInstanceRef.current,
+        selectedLayers,
+        visibleLayerIds,
+        layerVizModes,
+        dispatch,
+        choroplethSettings,
+        setChoroplethSettings
     );
 
     // 5. UI Handlers
@@ -168,10 +178,12 @@ export default function LeafletMapExplorer({ className = "w-full h-full" }) {
         <div className="relative w-full h-full">
             <div ref={mapContainerRef} className={className} style={{ minHeight: "400px" }} />
             
-            <MapLayerPanel 
+            <MapLayerPanel
                 selectedLayers={selectedLayers}
                 visibleLayerIds={visibleLayerIds}
                 layerVizModes={layerVizModes}
+                choroplethSettings={choroplethSettings}
+                onChoroplethSettingsChange={handleChoroplethSettingsChange}
                 isMobile={isMobile}
                 isPanelExpanded={isPanelExpanded}
                 setIsPanelExpanded={setIsPanelExpanded}

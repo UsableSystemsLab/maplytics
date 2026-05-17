@@ -280,6 +280,7 @@ button.btn-shine:active::before {
   border-radius: 999px;
   padding: 0;
   cursor: pointer;
+  z-index: 1;
   transition: background 120ms ease, color 120ms ease, transform 120ms ease;
 }
 
