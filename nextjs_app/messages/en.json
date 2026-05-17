@@ -133,7 +133,10 @@
     "regions": "Regions",
     "cities": "Cities",
     "districts": "Districts",
-    "colorScheme": "Color Scheme"
+    "colorScheme": "Color Scheme",
+    "popupFields": "Popup Fields",
+    "popupSettings": "Popup settings",
+    "selectAll": "Select All"
   },
   "mapCommand": {
     "queryNotSupported": "Query not supported. Please start with a verb like: report, summarize, analyze, count, etc.",
@@ -356,6 +359,9 @@
       "invalidFormat": "Invalid file format. Allowed: .json, .geojson, .xlsx, .xls, .sql",
       "fileTooLarge": "File is too large. Maximum size is 50MB."
     },
+    "popupFieldsLabel": "Popup Fields",
+    "popupFieldsHint": "(select which fields show when clicking a point)",
+    "selectAll": "Select All",
     "publicTab": "Public Datasets",
     "privateTab": "My Datasets",
     "verified": "By Maplytics",

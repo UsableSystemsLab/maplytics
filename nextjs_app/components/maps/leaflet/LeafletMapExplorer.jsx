@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useSelector, useDispatch } from "react-redux";
-import { selectSelectedLayers, removeLayer } from "@/lib/store/features/layersSlice";
+import { selectSelectedLayers, removeLayer, setLayerPopupFields } from "@/lib/store/features/layersSlice";
 import { selectActiveProject } from "@/lib/store/features/projectSlice";
 import DatasetDrawer from "@/components/DatasetDrawer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -25,7 +25,7 @@ export default function LeafletMapExplorer({ className = "w-full h-full" }) {
     const isMobile = useIsMobile();
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [visibleLayerIds, setVisibleLayerIds] = useState(new Set());
+    const [visibleLayerIds, setVisibleLayerIds] = useState(() => new Set(selectedLayers.map(l => l.id)));
     const [isPanelExpanded, setIsPanelExpanded] = useState(true);
     const [layerVizModes, setLayerVizModes] = useState({});
     const [jobs, setJobs] = useState([]);
@@ -191,6 +191,7 @@ export default function LeafletMapExplorer({ className = "w-full h-full" }) {
                 toggleVisibility={toggleVisibility}
                 handleRemoveLayer={handleRemoveLayer}
                 setLayerVizModes={setLayerVizModes}
+                onPopupFieldsChange={(layerId, fields) => dispatch(setLayerPopupFields({ layerId, popupFields: fields }))}
             />
 
             <MapResultsSidebar 

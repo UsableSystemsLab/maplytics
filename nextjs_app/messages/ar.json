@@ -133,7 +133,10 @@
     "regions": "المناطق",
     "cities": "المدن",
     "districts": "الأحياء",
-    "colorScheme": "نظام الألوان"
+    "colorScheme": "نظام الألوان",
+    "popupFields": "حقول النافذة",
+    "popupSettings": "إعدادات النافذة",
+    "selectAll": "تحديد الكل"
   },
   "mapCommand": {
     "queryNotSupported": "الاستعلام غير مدعوم. ابدأ بفعل مثل: report, summarize, analyze, count, إلخ.",
@@ -356,6 +359,9 @@
       "invalidFormat": "صيغة الملف غير صالحة. المسموح: .json, .geojson, .xlsx, .xls, .sql",
       "fileTooLarge": "حجم الملف كبير جدًا. الحد الأقصى 50 ميجابايت."
     },
+    "popupFieldsLabel": "حقول النافذة المنبثقة",
+    "popupFieldsHint": "(اختر الحقول التي تظهر عند النقر على نقطة)",
+    "selectAll": "تحديد الكل",
     "publicTab": "البيانات العامة",
     "privateTab": "بياناتي",
     "verified": "بواسطة مابليتيكس",

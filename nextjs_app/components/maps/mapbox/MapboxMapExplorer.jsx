@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useContext } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { selectSelectedLayers, removeLayer, setLayerGeojson, setLayerLoading } from "@/lib/store/features/layersSlice";
+import { selectSelectedLayers, removeLayer, setLayerGeojson, setLayerLoading, setLayerPopupFields } from "@/lib/store/features/layersSlice";
 import { selectActiveProject } from "@/lib/store/features/projectSlice";
 import { getDatasetGeoJSON, getProjectDatasetData } from "@/lib/datasetApi";
 import { getChoroplethData } from "@/lib/geoApi";
@@ -31,7 +31,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
     const { mapboxToken, reportMapboxError } = useContext(MapEngineContext);
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [visibleLayerIds, setVisibleLayerIds] = useState(new Set());
+    const [visibleLayerIds, setVisibleLayerIds] = useState(() => new Set(selectedLayers.map(l => l.id)));
     const [isPanelExpanded, setIsPanelExpanded] = useState(true);
     const [layerVizModes, setLayerVizModes] = useState({});
     const [jobs, setJobs] = useState([]);
@@ -41,10 +41,12 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
     // Choropleth: per-layer settings { [layerId]: { boundaryLock, colorScheme, resolvedLevel } }
     const [choroplethSettings, setChoroplethSettings] = useState({});
     const [mapZoom, setMapZoom] = useState(SAUDI_ZOOM);
+    const [mapReady, setMapReady] = useState(false);
     // Cache raw boundary geojson keyed by `${layerId}::${level}` — avoids re-fetching on color/level toggle
     const choroplethCacheRef = useRef({});
     // Track what's currently rendered to detect when only color changed
     const choroplethRenderedRef = useRef({});
+    const preloadedLayersRef = useRef(new Set());
 
     const handleChoroplethSettingsChange = (layerId, patch) => {
         setChoroplethSettings(prev => ({
@@ -59,8 +61,9 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
     // Tracked Mapbox ids keyed by `${layerId}::${mode}` so we can remove on change.
     const trackedRef = useRef({});
-    // Track which layer ids have already been auto-fit so we don't re-zoom on every mode toggle.
     const autoFitDoneRef = useRef(new Set());
+    const popupInstanceRef = useRef(null);
+    const layerPopupFieldsRef = useRef({});
 
     const fetchJobs = async (isInitial = false) => {
         if (!activeProject?.id) return;
@@ -144,6 +147,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
             map.on("error", (e) => reportMapboxError(e.error || e));
             map.on("zoomend", () => setMapZoom(map.getZoom()));
             mapInstanceRef.current = map;
+            map.once('load', () => setMapReady(true));
         })();
 
         return () => {
@@ -152,6 +156,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 mapInstanceRef.current.remove();
                 mapInstanceRef.current = null;
             }
+            setMapReady(false);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapboxToken]);
@@ -177,7 +182,8 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
                 const geojson = data.geojson || (data.type === "FeatureCollection" ? data : null);
                 if (geojson) {
-                    dispatch(setLayerGeojson({ layerId: layer.id, geojson }));
+                    const popupFields = data.popup_fields || geojson?.metadata?.popup_fields || null;
+                    dispatch(setLayerGeojson({ layerId: layer.id, geojson, popupFields }));
                 }
             } catch (error) {
                 console.error(`Failed to load layer ${layer.name}:`, error);
@@ -186,6 +192,29 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
             }
         });
     }, [selectedLayers, dispatch]);
+
+    // Eagerly preload choropleth data for all 3 boundary levels as soon as geojson is available
+    useEffect(() => {
+        selectedLayers.forEach((layer) => {
+            if (!layer.geojson) return;
+            if (preloadedLayersRef.current.has(layer.id)) return;
+
+            const points = (layer.geojson.features || [])
+                .filter(f => f.geometry?.type === 'Point')
+                .map(f => f.geometry.coordinates);
+            if (points.length === 0) return;
+
+            preloadedLayersRef.current.add(layer.id);
+
+            ['regions', 'cities', 'districts'].forEach(level => {
+                const cacheKey = `${layer.id}::${level}`;
+                if (choroplethCacheRef.current[cacheKey]) return;
+                getChoroplethData({ points, level, region_id: null, city_id: null })
+                    .then(data => { choroplethCacheRef.current[cacheKey] = data; })
+                    .catch(err => console.error(`Choropleth preload (${level}):`, err));
+            });
+        });
+    }, [selectedLayers]);
 
     // Sync Mapbox layers
     useEffect(() => {
@@ -202,9 +231,15 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
             delete trackedRef.current[key];
         };
 
+        const popupInstance = popupInstanceRef.current || (popupInstanceRef.current = { inst: null });
+        selectedLayers.forEach(l => { layerPopupFieldsRef.current[l.id] = l.popupFields; });
+
         const bindFeaturePopup = (mapboxgl, interactiveId, layer) => {
             const datasetName = layer.name || '';
+            const layerId = layer.id;
             map.on('click', interactiveId, (e) => {
+                const currentFields = layerPopupFieldsRef.current[layerId];
+                const allowed = currentFields?.length > 0 ? new Set(currentFields) : null;
                 const feat = e.features?.[0];
                 if (!feat) return;
                 const props = feat.properties || {};
@@ -212,6 +247,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 const HIDDEN = new Set(['_lyrColor', '_lyrFillOpacity', 'name', 'title', 'id']);
                 const propEntries = Object.entries(props).filter(([k, v]) =>
                     !HIDDEN.has(k) && typeof v !== 'object' && v !== null && v !== ''
+                    && (!allowed || allowed.has(k))
                 );
                 const propsHtml = propEntries.length
                     ? `<dl class="maplytics-popup__list">${propEntries.slice(0, 12).map(([k, v]) =>
@@ -225,7 +261,8 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                         ${propsHtml}
                     </div>
                 `;
-                new mapboxgl.Popup({
+                if (popupInstance.inst) popupInstance.inst.remove();
+                popupInstance.inst = new mapboxgl.Popup({
                     className: 'maplytics-popup',
                     maxWidth: '320px',
                     offset: 12,
@@ -250,12 +287,19 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 if (!layer.geojson) return;
                 if (!visible.has(layer.id)) return;
                 const mode = layerVizModes[layer.id] || 'plotting';
+                if (mode === 'none') return;
                 wantKeys.add(`${layer.id}::${mode}`);
             });
 
             // Remove anything we no longer want (different mode, hidden, removed)
             for (const key of Object.keys(trackedRef.current)) {
-                if (!wantKeys.has(key)) removeTracked(key);
+                if (!wantKeys.has(key)) {
+                    removeTracked(key);
+                    if (key.endsWith('::choropleth')) {
+                        const layerId = key.slice(0, -'::choropleth'.length);
+                        choroplethRenderedRef.current[layerId] = null;
+                    }
+                }
             }
 
             // Forget auto-fit state for layers that are no longer visible
@@ -270,6 +314,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 if (!layer.geojson) return;
                 if (!visible.has(layer.id)) return;
                 const mode = layerVizModes[layer.id] || 'plotting';
+                if (mode === 'none') return;
                 const key = `${layer.id}::${mode}`;
                 if (trackedRef.current[key]) return; // already rendered
 
@@ -402,7 +447,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
         if (map.isStyleLoaded()) sync();
         else map.once('load', sync);
-    }, [selectedLayers, visibleLayerIds, layerVizModes]);
+    }, [selectedLayers, visibleLayerIds, layerVizModes, mapReady]);
 
     // Cache mapboxgl module ref so choropleth effect doesn't need dynamic import
     const mapboxglRef = useRef(null);
@@ -474,7 +519,9 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                             ${propsHtml}
                         </div>
                     `;
-                    new mapboxgl.Popup({
+                    const popupInstance = popupInstanceRef.current || (popupInstanceRef.current = { inst: null });
+                    if (popupInstance.inst) popupInstance.inst.remove();
+                    popupInstance.inst = new mapboxgl.Popup({
                         className: 'maplytics-popup',
                         maxWidth: '320px',
                         offset: 12,
@@ -564,7 +611,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 })
                 .catch(err => console.error('Choropleth fetch failed:', err));
         });
-    }, [selectedLayers, visibleLayerIds, layerVizModes, mapZoom, choroplethSettings]);
+    }, [selectedLayers, visibleLayerIds, layerVizModes, mapZoom, choroplethSettings, mapReady]);
 
     const toggleVisibility = (id) => {
         setVisibleLayerIds(prev => {
@@ -601,6 +648,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 toggleVisibility={toggleVisibility}
                 handleRemoveLayer={handleRemoveLayer}
                 setLayerVizModes={setLayerVizModes}
+                onPopupFieldsChange={(layerId, fields) => dispatch(setLayerPopupFields({ layerId, popupFields: fields }))}
             />
 
             <MapResultsSidebar

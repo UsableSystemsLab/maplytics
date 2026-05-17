@@ -375,7 +375,11 @@ export const getDatasetAsGeoJSON = async (req, res, next) => {
             where: sequelize.or(
                 { id: id },
                 { slug: id }
-            )
+            ),
+            include: [{
+                model: Dataset_Metadata,
+                as: 'metadata'
+            }]
         });
 
         if (!dataset) {
@@ -395,6 +399,8 @@ export const getDatasetAsGeoJSON = async (req, res, next) => {
             ]
         });
 
+        const metadataJson = dataset.metadata?.metadata || {};
+
         // Build GeoJSON FeatureCollection
         const geojson = {
             type: 'FeatureCollection',
@@ -402,7 +408,8 @@ export const getDatasetAsGeoJSON = async (req, res, next) => {
                 id: dataset.id,
                 name: dataset.name,
                 entity_type: dataset.entity_type,
-                feature_count: dataset.feature_count
+                feature_count: dataset.feature_count,
+                popup_fields: metadataJson.popup_fields || null
             },
             features: features.map(f => ({
                 type: 'Feature',

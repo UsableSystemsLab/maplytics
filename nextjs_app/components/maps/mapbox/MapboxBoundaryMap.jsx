@@ -7,7 +7,7 @@ import { getDistrictColor } from "@/lib/districtColors";
 
 const LAYER_PALETTE = ['#0E3147', '#A7B34F', '#13B38D', '#F59E0B', '#EF4444', '#8B5CF6'];
 
-const generatePopupContent = (properties) => {
+const generatePopupContent = (properties, popupFields) => {
   if (!properties || Object.keys(properties).length === 0) {
     return '<p style="color: #6b7280;">No properties available</p>';
   }
@@ -16,14 +16,17 @@ const generatePopupContent = (properties) => {
   for (const field of nameFields) {
     if (properties[field]) { primaryName = properties[field]; break; }
   }
+  const allowed = popupFields?.length > 0 ? new Set(popupFields) : null;
   let html = '<div style="padding: 8px; max-width: 250px;">';
-  if (primaryName) {
+  if (primaryName && (!allowed || allowed.has(nameFields.find(f => properties[f])))) {
     html += `<h3 style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #1f2937;">${primaryName}</h3>`;
   }
   html += '<div style="display: flex; flex-direction: column; gap: 2px;">';
   for (const [key, value] of Object.entries(properties)) {
     if (nameFields.includes(key)) continue;
+    if (key.startsWith('_lyr')) continue;
     if (typeof value === 'object') continue;
+    if (allowed && !allowed.has(key)) continue;
     const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     html += `<p style="font-size: 13px; margin: 0;"><span style="font-weight: 500; color: #4b5563;">${label}:</span> <span style="color: #1f2937;">${value}</span></p>`;
   }
@@ -92,6 +95,7 @@ const MapboxBoundaryMap = forwardRef(function MapboxBoundaryMap({
 }, ref) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
+  const popupRef = useRef(null);
   const tracked = useRef([]); // list of {srcId, fillId, lineId, circleId}
   const onZoomChangeRef = useRef(onZoomChange);
   onZoomChangeRef.current = onZoomChange;
@@ -227,13 +231,17 @@ const MapboxBoundaryMap = forwardRef(function MapboxBoundaryMap({
           },
         });
 
+        if (!popupRef.current) {
+          popupRef.current = new mapboxgl.Popup({ maxWidth: "300px" });
+        }
+        const layerPopupFields = layer.popupFields;
         for (const interactiveId of [fillId, lineId, circleId]) {
           map.on("click", interactiveId, (e) => {
             const feat = e.features?.[0];
             if (!feat) return;
-            new mapboxgl.Popup({ maxWidth: "300px" })
+            popupRef.current
               .setLngLat(e.lngLat)
-              .setHTML(generatePopupContent(feat.properties || {}))
+              .setHTML(generatePopupContent(feat.properties || {}, layerPopupFields))
               .addTo(map);
             onFeatureClickRef.current?.(feat);
           });

@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/drawer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, Database, Globe, MapPin, FileJson } from "lucide-react";
+import { Search, Loader2, Database, Globe, MapPin, FileJson, Upload, Plus, X } from "lucide-react";
 import { getDatasets, searchDatasets } from "@/lib/datasetApi";
+import { uploadFile } from "@/lib/uploadApi";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,6 +27,10 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
   const tDrawer = useTranslations("datasets.drawer");
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("my");
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(null);
+  const [uploadName, setUploadName] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -95,7 +100,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
 
         <div className="flex-1 overflow-hidden flex flex-col p-6">
           <div className="relative mb-6">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute inset-s-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder={t('searchPlaceholder')}
@@ -106,18 +111,84 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="my" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-2 mb-6 h-11 bg-gray-100 p-1 rounded-lg">
+              <TabsTrigger value="my" className={cn(
+                "flex items-center gap-2 rounded-md font-semibold text-sm transition-all",
+                activeTab === "my" ? "bg-primary text-white shadow-sm" : "text-gray-600 hover:text-gray-800"
+              )}>
                 <Database className="w-4 h-4" />
                 {tDrawer('myLibrary')}
               </TabsTrigger>
-              <TabsTrigger value="public" className="flex items-center gap-2">
+              <TabsTrigger value="public" className={cn(
+                "flex items-center gap-2 rounded-md font-semibold text-sm transition-all",
+                activeTab === "public" ? "bg-cyan text-white shadow-sm" : "text-gray-600 hover:text-gray-800"
+              )}>
                 <Globe className="w-4 h-4" />
                 {tDrawer('publicCollections')}
               </TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-y-auto pe-2">
+              {user && (
+                <div className="mb-4">
+                  {showUpload ? (
+                    <div className="p-4 border-2 border-dashed border-primary/30 rounded-xl bg-primary/5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-gray-800">{t('uploadLabel')}</p>
+                        <button onClick={() => { setShowUpload(false); setUploadingFile(null); setUploadName(""); }} className="text-gray-400 hover:text-gray-600 p-1">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder={t('namePlaceholder')}
+                        value={uploadName}
+                        onChange={(e) => setUploadName(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                      <div className="flex items-center gap-3">
+                        <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-white text-sm text-gray-600 transition-colors">
+                          <Upload className="w-4 h-4" />
+                          {uploadingFile ? uploadingFile.name : (t('dragDrop') || 'Choose file')}
+                          <input type="file" accept=".json,.geojson,.xlsx,.xls" className="sr-only" onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) {
+                              setUploadingFile(f);
+                              if (!uploadName) setUploadName(f.name.replace(/\.[^/.]+$/, ""));
+                            }
+                          }} />
+                        </label>
+                        <Button
+                          size="sm"
+                          disabled={!uploadingFile || !uploadName.trim() || isUploading}
+                          onClick={async () => {
+                            setIsUploading(true);
+                            try {
+                              await uploadFile({ file: uploadingFile, isPrivate: activeTab === "my", layerName: uploadName.trim() });
+                              setShowUpload(false); setUploadingFile(null); setUploadName("");
+                              fetchDatasets();
+                            } catch (err) { console.error("Upload failed:", err); }
+                            finally { setIsUploading(false); }
+                          }}
+                          className="shrink-0"
+                        >
+                          {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('uploadAction')}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="w-full border-dashed border-2 text-primary hover:bg-primary/5"
+                      onClick={() => setShowUpload(true)}
+                    >
+                      <Plus className="w-4 h-4 me-2" />
+                      {t('addDataset')}
+                    </Button>
+                  )}
+                </div>
+              )}
+
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <Loader2 className="w-8 h-8 animate-spin mb-4" />

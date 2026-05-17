@@ -15,15 +15,15 @@ export default function MapResultsSidebar({ isMobile, jobs = [], isLoading = fal
 
     return (
         <div className={cn(
-            "absolute top-0 end-0 h-full z-[60] transition-all duration-300 flex",
+            "absolute top-0 inset-e-0 h-full z-60 transition-all duration-300 flex",
             isOpen ? (isMobile ? "w-full" : "w-80 shadow-2xl") : "w-0"
         )}>
             {/* Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "absolute top-1/2 -start-8 transform -translate-y-1/2 bg-white/90 backdrop-blur-md p-1.5 rounded-s-xl shadow-lg border border-e-0 border-gray-200 text-gray-500 hover:text-primary transition-all pointer-events-auto",
-                    !isOpen && "rounded-xl -start-10"
+                    "absolute top-1/2 -inset-s-8 transform -translate-y-1/2 bg-white/90 backdrop-blur-md p-1.5 rounded-s-xl shadow-lg border border-e-0 border-gray-200 text-gray-500 hover:text-primary transition-all pointer-events-auto",
+                    !isOpen && "rounded-xl -inset-s-10"
                 )}
             >
                 {isOpen ? <ChevronRight className="w-5 h-5 rtl:rotate-180" /> : <ChevronLeft className="w-5 h-5 rtl:rotate-180" />}

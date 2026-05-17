@@ -5,7 +5,7 @@ import apiClient from './apiClient';
  * Handles both public and private file uploads.
  */
 
-export const uploadFile = async ({ file, isPrivate, projectId, layerName, description }) => {
+export const uploadFile = async ({ file, isPrivate, projectId, layerName, description, popupFields }) => {
     const formData = new FormData();
     formData.append('file', file);
     if (layerName) {
@@ -13,6 +13,9 @@ export const uploadFile = async ({ file, isPrivate, projectId, layerName, descri
     }
     if (description) {
         formData.append('description', description);
+    }
+    if (popupFields?.length) {
+        formData.append('popup_fields', JSON.stringify(popupFields));
     }
 
     let endpoint;
