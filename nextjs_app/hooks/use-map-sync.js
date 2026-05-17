@@ -75,6 +75,14 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
             const mode = layerVizModes[layer.id] || 'plotting';
             const color = LAYER_COLORS[index % LAYER_COLORS.length];
 
+            if (mode === 'none') {
+                if (layerGroupsRef.current[layer.id]) {
+                    mapInstance.removeLayer(layerGroupsRef.current[layer.id]);
+                    delete layerGroupsRef.current[layer.id];
+                }
+                return;
+            }
+
             if (mode === 'choropleth') {
                 if (layerGroupsRef.current[layer.id] && layerGroupsRef.current[layer.id]._vizMode !== 'choropleth') {
                     mapInstance.removeLayer(layerGroupsRef.current[layer.id]);

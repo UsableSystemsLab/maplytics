@@ -129,7 +129,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
             </TabsList>
 
             <div className="flex-1 overflow-y-auto pe-2">
-              {user && activeTab === "my" && (
+              {user && (
                 <div className="mb-4">
                   {showUpload ? (
                     <div className="p-4 border-2 border-dashed border-primary/30 rounded-xl bg-primary/5 space-y-3">
@@ -164,7 +164,7 @@ export default function DatasetDrawer({ isOpen, onClose, activeProject }) {
                           onClick={async () => {
                             setIsUploading(true);
                             try {
-                              await uploadFile({ file: uploadingFile, isPrivate: true, layerName: uploadName.trim() });
+                              await uploadFile({ file: uploadingFile, isPrivate: activeTab === "my", layerName: uploadName.trim() });
                               setShowUpload(false); setUploadingFile(null); setUploadName("");
                               fetchDatasets();
                             } catch (err) { console.error("Upload failed:", err); }

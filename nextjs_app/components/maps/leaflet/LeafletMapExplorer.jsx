@@ -25,7 +25,7 @@ export default function LeafletMapExplorer({ className = "w-full h-full" }) {
     const isMobile = useIsMobile();
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [visibleLayerIds, setVisibleLayerIds] = useState(new Set());
+    const [visibleLayerIds, setVisibleLayerIds] = useState(() => new Set(selectedLayers.map(l => l.id)));
     const [isPanelExpanded, setIsPanelExpanded] = useState(true);
     const [layerVizModes, setLayerVizModes] = useState({});
     const [jobs, setJobs] = useState([]);

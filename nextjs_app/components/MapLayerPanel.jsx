@@ -160,7 +160,10 @@ export default function MapLayerPanel({
                                         {visibleLayerIds.has(layer.id) && (
                                             <div className="flex items-center gap-1 mt-2 border-t border-gray-50 pt-2 ms-7">
                                                 <button
-                                                    onClick={() => setLayerVizModes(prev => ({ ...prev, [layer.id]: 'plotting' }))}
+                                                    onClick={() => {
+                                                        const current = layerVizModes[layer.id] || 'plotting';
+                                                        setLayerVizModes(prev => ({ ...prev, [layer.id]: current === 'plotting' ? 'none' : 'plotting' }));
+                                                    }}
                                                     className={cn(
                                                         "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all",
                                                         (!layerVizModes[layer.id] || layerVizModes[layer.id] === 'plotting') ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100"
@@ -171,7 +174,10 @@ export default function MapLayerPanel({
                                                     {t('plot')}
                                                 </button>
                                                 <button
-                                                    onClick={() => setLayerVizModes(prev => ({ ...prev, [layer.id]: 'heatmap' }))}
+                                                    onClick={() => {
+                                                        const current = layerVizModes[layer.id] || 'plotting';
+                                                        setLayerVizModes(prev => ({ ...prev, [layer.id]: current === 'heatmap' ? 'none' : 'heatmap' }));
+                                                    }}
                                                     className={cn(
                                                         "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all",
                                                         layerVizModes[layer.id] === 'heatmap' ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-gray-100"
@@ -182,7 +188,10 @@ export default function MapLayerPanel({
                                                     {t('heat')}
                                                 </button>
                                                 <button
-                                                    onClick={() => setLayerVizModes(prev => ({ ...prev, [layer.id]: 'choropleth' }))}
+                                                    onClick={() => {
+                                                        const current = layerVizModes[layer.id] || 'plotting';
+                                                        setLayerVizModes(prev => ({ ...prev, [layer.id]: current === 'choropleth' ? 'none' : 'choropleth' }));
+                                                    }}
                                                     className={cn(
                                                         "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all",
                                                         layerVizModes[layer.id] === 'choropleth' ? "bg-emerald-600 text-white" : "text-gray-500 hover:bg-gray-100"

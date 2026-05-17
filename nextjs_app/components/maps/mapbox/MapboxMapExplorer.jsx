@@ -31,7 +31,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
     const { mapboxToken, reportMapboxError } = useContext(MapEngineContext);
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [visibleLayerIds, setVisibleLayerIds] = useState(new Set());
+    const [visibleLayerIds, setVisibleLayerIds] = useState(() => new Set(selectedLayers.map(l => l.id)));
     const [isPanelExpanded, setIsPanelExpanded] = useState(true);
     const [layerVizModes, setLayerVizModes] = useState({});
     const [jobs, setJobs] = useState([]);
@@ -41,6 +41,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
     // Choropleth: per-layer settings { [layerId]: { boundaryLock, colorScheme, resolvedLevel } }
     const [choroplethSettings, setChoroplethSettings] = useState({});
     const [mapZoom, setMapZoom] = useState(SAUDI_ZOOM);
+    const [mapReady, setMapReady] = useState(false);
     // Cache raw boundary geojson keyed by `${layerId}::${level}` — avoids re-fetching on color/level toggle
     const choroplethCacheRef = useRef({});
     // Track what's currently rendered to detect when only color changed
@@ -145,6 +146,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
             map.on("error", (e) => reportMapboxError(e.error || e));
             map.on("zoomend", () => setMapZoom(map.getZoom()));
             mapInstanceRef.current = map;
+            map.once('load', () => setMapReady(true));
         })();
 
         return () => {
@@ -153,6 +155,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 mapInstanceRef.current.remove();
                 mapInstanceRef.current = null;
             }
+            setMapReady(false);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapboxToken]);
@@ -260,6 +263,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 if (!layer.geojson) return;
                 if (!visible.has(layer.id)) return;
                 const mode = layerVizModes[layer.id] || 'plotting';
+                if (mode === 'none') return;
                 wantKeys.add(`${layer.id}::${mode}`);
             });
 
@@ -280,6 +284,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 if (!layer.geojson) return;
                 if (!visible.has(layer.id)) return;
                 const mode = layerVizModes[layer.id] || 'plotting';
+                if (mode === 'none') return;
                 const key = `${layer.id}::${mode}`;
                 if (trackedRef.current[key]) return; // already rendered
 
@@ -412,7 +417,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
         if (map.isStyleLoaded()) sync();
         else map.once('load', sync);
-    }, [selectedLayers, visibleLayerIds, layerVizModes]);
+    }, [selectedLayers, visibleLayerIds, layerVizModes, mapReady]);
 
     // Cache mapboxgl module ref so choropleth effect doesn't need dynamic import
     const mapboxglRef = useRef(null);
@@ -484,7 +489,9 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                             ${propsHtml}
                         </div>
                     `;
-                    new mapboxgl.Popup({
+                    const popupInstance = popupInstanceRef.current || (popupInstanceRef.current = { inst: null });
+                    if (popupInstance.inst) popupInstance.inst.remove();
+                    popupInstance.inst = new mapboxgl.Popup({
                         className: 'maplytics-popup',
                         maxWidth: '320px',
                         offset: 12,
@@ -574,7 +581,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 })
                 .catch(err => console.error('Choropleth fetch failed:', err));
         });
-    }, [selectedLayers, visibleLayerIds, layerVizModes, mapZoom, choroplethSettings]);
+    }, [selectedLayers, visibleLayerIds, layerVizModes, mapZoom, choroplethSettings, mapReady]);
 
     const toggleVisibility = (id) => {
         setVisibleLayerIds(prev => {
