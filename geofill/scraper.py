@@ -3,7 +3,6 @@ from playwright.async_api import async_playwright
 import re
 from urllib.parse import urlparse, unquote
 import logging
-import urllib.parse
 import math
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -96,7 +95,7 @@ async def extract_review_count(page):
         return None
     
 
-async def search_places(query: str, max_results: int = 1, headless: bool = False, lat: float = None, lng: float = None, radius: float = None):
+async def search_places(query: str, max_results: int = 1, headless: bool = False, delay: float = 1.0, lat: float = None, lng: float = None, radius: float = None):
     """Search Google Maps for `query`, click the first result, and return its info.
 
     Returns a list with a single dict: {'name': str, 'url': str, 'lat': float, 'lng': float, ...}
@@ -139,33 +138,41 @@ async def search_places(query: str, max_results: int = 1, headless: bool = False
             return []
 
         await search_input.fill(query)
-        await asyncio.sleep(1)
+        await asyncio.sleep(delay)
         await page.keyboard.press("Enter")
 
-        # Wait for search results to appear
+        # Wait for search results URL, then let the page fully settle
         try:
             await page.wait_for_url(re.compile(r".*/(search|place)/.*"), timeout=20000)
         except Exception:
-            await asyncio.sleep(3)
+            await asyncio.sleep(delay * 3)
 
-        await asyncio.sleep(1)
+        try:
+            await page.wait_for_load_state('networkidle', timeout=delay * 10000)
+        except Exception:
+            await asyncio.sleep(delay)
 
         # If the search landed directly on a place page, extract from current page
         if "/place/" in page.url:
             logging.info("Search landed directly on a place page")
-            result = await _extract_place(page)
+            result = await _extract_place(page, delay)
             await context.close()
             await browser.close()
             return [result] if result else []
 
-        # Otherwise, click the first result card in the results feed
-        first_link = None
+        # Wait for the results feed or a place link to appear before giving up
         try:
-            first_link = await page.wait_for_selector('a[href*="/place/"]', timeout=10000)
+            await page.wait_for_selector(
+                'a[href*="/place/"], div[role="feed"]',
+                timeout=delay * 15000,
+            )
         except Exception:
-            logging.warning("No place links found in search results")
+            logging.warning("Results panel did not appear — page may still be loading")
+
+        first_link = await page.query_selector('a[href*="/place/"]')
 
         if not first_link:
+            logging.warning("No place links found in search results")
             await context.close()
             await browser.close()
             return []
@@ -173,29 +180,39 @@ async def search_places(query: str, max_results: int = 1, headless: bool = False
         logging.info("Clicking first search result")
         await first_link.click()
 
-        # Wait for the place detail panel to load
+        # Wait for the place URL with embedded coordinates
         try:
-            await page.wait_for_url(re.compile(r".*/place/.*"), timeout=15000)
+            await page.wait_for_url(re.compile(r".*!3d-?\d+\.\d+.*"), timeout=delay * 15000)
         except Exception:
-            await asyncio.sleep(3)
+            # Fallback: wait for network to settle and try extracting anyway
+            try:
+                await page.wait_for_load_state('networkidle', timeout=delay * 10000)
+            except Exception:
+                await asyncio.sleep(delay * 2)
 
-        await asyncio.sleep(2)
+        await asyncio.sleep(delay)
 
-        result = await _extract_place(page)
+        result = await _extract_place(page, delay)
         await context.close()
         await browser.close()
 
         return [result] if result else []
 
 
-async def _extract_place(page) -> dict | None:
+async def _extract_place(page, delay: float = 1.0) -> dict | None:
     """Extract place details from a Google Maps place detail page."""
+    # Let the page fully settle before reading the DOM
     try:
-        await page.wait_for_selector('img', timeout=10000)
+        await page.wait_for_load_state('networkidle', timeout=delay * 10000)
     except Exception:
         pass
 
-    await asyncio.sleep(1)
+    try:
+        await page.wait_for_selector('img', timeout=delay * 10000)
+    except Exception:
+        pass
+
+    await asyncio.sleep(delay)
 
     current_url = page.url
     coords = extract_lat_lng(current_url)

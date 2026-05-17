@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 from tqdm.asyncio import tqdm
-from logger import setup_logging
+from logger import setup_logging, CustomFormatter
 from scraper import search_places
 
 # Configure logging with custom formatter
@@ -51,11 +51,24 @@ def cli():
     help='Maximum number of rows to process.'
 )
 @click.option(
+    '--delay',
+    type=float,
+    default=5.0,
+    show_default=True,
+    help='Base delay in seconds between browser interactions.'
+)
+@click.option(
+    '--log-file',
+    type=click.Path(path_type=Path),
+    default=None,
+    help='Log warnings and errors to the given file.'
+)
+@click.option(
     '-v', '--verbose',
     is_flag=True,
     help='Enable verbose debug logging.'
 )
-def enrich(input_file, columns, output_file, headless, limit, verbose):
+def enrich(input_file, columns, output_file, headless, limit, delay, log_file, verbose):
     """Enrich a CSV file with geo-coordinates from Google Maps.
 
     Each row in the CSV is geocoded using the values from the specified columns
@@ -65,12 +78,25 @@ def enrich(input_file, columns, output_file, headless, limit, verbose):
 
         python geofill.py enrich -i schools.csv -c School,City,Region -o results.geojson
 
-        python geofill.py enrich -i places.csv -c Name,Address -o places.geojson --headless
+        python geofill.py enrich -i places.csv -c Name,Address -o places.geojson --headless --delay 3
     """
+    # Confirm overwrite for any files that already exist
+    files_to_check = [(output_file, 'Output file'), (log_file, 'Log file')]
+    for path, label in files_to_check:
+        if path and Path(path).exists():
+            click.confirm(f"{label} '{path}' already exists. Overwrite?", abort=True)
+
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     else:
         logging.getLogger().setLevel(logging.INFO)
+
+    if log_file:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        fh = logging.FileHandler(log_file, encoding='utf-8')
+        fh.setLevel(logging.WARNING)
+        fh.setFormatter(CustomFormatter())
+        logging.getLogger().addHandler(fh)
 
     col_list = [c.strip() for c in columns.split(',')]
 
@@ -86,20 +112,15 @@ def enrich(input_file, columns, output_file, headless, limit, verbose):
     logging.info(f"Loaded {len(rows)} rows from: {input_file}")
     logging.info(f"Using columns for query: {col_list}")
 
-    features = asyncio.run(_enrich_rows(rows, col_list, headless))
-
-    geojson = {
-        "type": "FeatureCollection",
-        "features": features,
-    }
-
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(geojson, f, indent=2, ensure_ascii=False)
+    success, failed = asyncio.run(_write_geojson(rows, col_list, headless, delay, output_file))
 
-    enriched_count = sum(1 for feat in features if feat['geometry'] is not None)
-    logging.info(f"Enriched {enriched_count}/{len(features)} rows with coordinates")
-    click.echo(f"\n✓ Saved {len(features)} features ({enriched_count} with coordinates) to: {output_file}")
+    total = len(rows)
+    logging.info(f"Done — {total} processed, {success} geocoded, {failed} failed/skipped")
+    click.echo(f"\n  Total rows processed : {total}")
+    click.echo(f"  Successfully geocoded: {success}")
+    click.echo(f"  Failed / skipped     : {failed}")
+    click.echo(f"\n✓ Results saved to: {output_file}")
 
 
 @cli.command()
@@ -107,13 +128,34 @@ def providers():
     """Show available geocoding providers."""
     click.echo("Available geocoding providers:\n")
     click.echo("  google_maps   Google Maps via browser automation (default)")
-    click.echo("  nominatim     OpenStreetMap Nominatim (coming soon)")
+    click.echo("  nominatim     OpenStreetMap Nominatim (to be implemented)")
 
 
-async def _enrich_rows(rows: list[dict], columns: list[str], headless: bool) -> list[dict]:
-    """Geocode each CSV row and return a list of GeoJSON Feature dicts."""
-    features = []
+async def _write_geojson(
+    rows: list[dict], columns: list[str], headless: bool, delay: float, output_file: Path
+) -> tuple[int, int]:
+    """Write GeoJSON incrementally, flushing each feature to disk as it resolves."""
+    success = 0
+    failed = 0
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write('{\n  "type": "FeatureCollection",\n  "features": [\n')
+        first = True
+        async for feature, geocoded in _enrich_rows(rows, columns, headless, delay):
+            if not first:
+                f.write(',\n')
+            f.write('    ' + json.dumps(feature, ensure_ascii=False))
+            f.flush()
+            first = False
+            if geocoded:
+                success += 1
+            else:
+                failed += 1
+        f.write('\n  ]\n}\n')
+    return success, failed
 
+
+async def _enrich_rows(rows: list[dict], columns: list[str], headless: bool, delay: float):
+    """Async generator: geocode each CSV row and yield (GeoJSON Feature, geocoded bool)."""
     with tqdm(total=len(rows), unit='row', desc='Enriching') as bar:
         for idx, row in enumerate(rows, 1):
             parts = [str(row.get(col, '')).strip() for col in columns if str(row.get(col, '')).strip()]
@@ -121,27 +163,25 @@ async def _enrich_rows(rows: list[dict], columns: list[str], headless: bool) -> 
 
             if not query:
                 logging.warning(f"Row {idx}: could not build a query from columns {columns} — skipping")
-                features.append(_make_feature(None, None, None, row))
+                yield _make_feature(None, None, None, row), False
                 bar.update(1)
                 continue
 
             bar.set_postfix_str(query[:60])
             logging.info(f"[{idx}/{len(rows)}] Searching: {query}")
             try:
-                results = await search_places(query, max_results=1, headless=headless)
+                results = await search_places(query, max_results=1, headless=headless, delay=delay)
                 if results and results[0].get('lat') and results[0].get('lng'):
                     r = results[0]
-                    features.append(_make_feature(r['lat'], r['lng'], r, row))
+                    yield _make_feature(r['lat'], r['lng'], r, row), True
                     logging.info(f"  → {r.get('name')} ({r['lat']}, {r['lng']})")
                 else:
-                    logging.warning(f"  → No coordinates found for: {query}")
-                    features.append(_make_feature(None, None, None, row))
+                    logging.warning(f"Row {idx}: no coordinates found for query: {query}")
+                    yield _make_feature(None, None, None, row), False
             except Exception as e:
                 logging.error(f"Row {idx} '{query}' failed: {e}")
-                features.append(_make_feature(None, None, None, row))
+                yield _make_feature(None, None, None, row), False
             bar.update(1)
-
-    return features
 
 
 def _make_feature(lat, lng, result: dict | None, original_row: dict) -> dict:

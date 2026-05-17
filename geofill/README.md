@@ -17,8 +17,26 @@ playwright install
 
 ## Usage
 
+
+- Available commands:
+
 ```shell
-python3 geofill.py enrich --help
+Usage: geofill.py [OPTIONS] COMMAND [ARGS]...
+
+  geofill - Enrich CSV datasets with geographic coordinates and export
+  GeoJSON.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  enrich     Enrich a CSV file with geo-coordinates from Google Maps.
+  providers  Show available geocoding providers.
+```
+
+- Enrich command:
+
+```shell
 Usage: geofill.py enrich [OPTIONS]
 
   Enrich a CSV file with geo-coordinates from Google Maps.
@@ -33,7 +51,7 @@ Usage: geofill.py enrich [OPTIONS]
       results.geojson
 
       python geofill.py enrich -i places.csv -c Name,Address -o places.geojson
-      --headless
+      --headless --delay 3
 
 Options:
   -i, --input-file PATH       Input CSV file containing location data.
@@ -45,51 +63,21 @@ Options:
                               [required]
   --headless / --no-headless  Run browser in headless mode (no GUI).
                               [default: no-headless]
+  -n, --limit INTEGER         Maximum number of rows to process.
+  --delay FLOAT               Base delay in seconds between browser
+                              interactions.  [default: 5.0]
+  --log-file PATH             Log warnings and errors to the given file.
   -v, --verbose               Enable verbose debug logging.
   --help                      Show this message and exit.
-  ````
 
-Search for a single query and save results:
+````
 
-```bash
-python geofill.py enrich --input-file <csv_file> --columns COL1,COL2,... --output-file <geojson_file> 
-```
+## Examples
 
-Or using the short form:
+- Add geo coordinates to an existing CSV file and save it as geo json file.
 
-```bash
-python geofill.py enrich -i <csv_file> -c COL1,COL2,... -o <geojson_file> 
-```
-
-
-## Commands
-```
-   enrich
-           Enrich a CSV file with geo-coordinates
-   providers
-          Show available geocoding providers
-```
-
-### Options
-
-- `-i, --input-file`: The CSV input file
-- `-o, --output-file`: Output GeoJSON file to save results. One result per row (required)
-- `-c, --columns`: Columns used to construct location search queries
-- `--headless/--no-headless`: Run browser in headless mode (default: is head mode (--no-headless))
-- `-v, --verbose`: Enable verbose debug logging
-
-### Examples
-
-```bash
-# Enrich a csv file with geo coordiantes
-python geofill.py enrich ../dataset/SpecialEducationSchoolsInSaudi.csv --columns School,Region,City --providers <provider_name>
-```
-
-### Output Format
-
-Results are saved as a GeoJSON file:
-
-```
+```shell
+python3 geofill.py enrich -i ../dataset/SpecialEducationSchoolsInSaudi.csv -c School,City,Region -o special-education-schools-saudi.geojson  --log-file error.log --delay 3 -n 10
 ```
 
 ## Notes
