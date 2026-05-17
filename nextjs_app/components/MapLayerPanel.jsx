@@ -1,5 +1,6 @@
 "use client";
-import { Layers, Plus, X, Loader2, Eye, EyeOff, MousePointer2, Flame, Map as MapIcon, ChevronUp } from "lucide-react";
+import { useState } from "react";
+import { Layers, Plus, X, Loader2, Eye, EyeOff, MousePointer2, Flame, Map as MapIcon, ChevronUp, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -20,8 +21,10 @@ export default function MapLayerPanel({
     setIsDrawerOpen,
     toggleVisibility,
     handleRemoveLayer,
-    setLayerVizModes
+    setLayerVizModes,
+    onPopupFieldsChange
 }) {
+    const [settingsOpenId, setSettingsOpenId] = useState(null);
     const t = useTranslations("mapPanel");
     return (
         <div className={cn(
@@ -130,10 +133,20 @@ export default function MapLayerPanel({
                                                 </p>
                                             </div>
 
-                                            <div className="flex items-center gap-1 shrink-0">
+                                            <div className="flex items-center gap-0.5 shrink-0">
                                                 {layer.loading && (
                                                     <Loader2 className="w-3 h-3 animate-spin text-primary me-1" />
                                                 )}
+                                                <button
+                                                    onClick={() => setSettingsOpenId(settingsOpenId === layer.id ? null : layer.id)}
+                                                    className={cn(
+                                                        "transition-colors p-1 rounded",
+                                                        settingsOpenId === layer.id ? "text-primary bg-primary/10" : "text-gray-300 hover:text-gray-500"
+                                                    )}
+                                                    title={t('popupSettings') || 'Popup settings'}
+                                                >
+                                                    <Settings2 className="w-3.5 h-3.5" />
+                                                </button>
                                                 <button
                                                     onClick={() => handleRemoveLayer(layer.id)}
                                                     className="text-gray-300 hover:text-red-500 transition-colors p-1"
@@ -188,6 +201,15 @@ export default function MapLayerPanel({
                                                 layerId={layer.id}
                                                 settings={choroplethSettings?.[layer.id]}
                                                 onChange={(patch) => onChoroplethSettingsChange?.(layer.id, patch)}
+                                                t={t}
+                                            />
+                                        )}
+
+                                        {/* Popup Fields Settings */}
+                                        {settingsOpenId === layer.id && (
+                                            <PopupFieldsPanel
+                                                layer={layer}
+                                                onChange={(fields) => onPopupFieldsChange?.(layer.id, fields)}
                                                 t={t}
                                             />
                                         )}
@@ -253,6 +275,63 @@ function ChoroplethSettingsPanel({ layerId, settings, onChange, t }) {
                         );
                     })}
                 </div>
+            </div>
+        </div>
+    );
+}
+
+function PopupFieldsPanel({ layer, onChange, t }) {
+    const allFields = (() => {
+        if (!layer.geojson?.features?.length) return [];
+        const keySet = new Set();
+        const coordFields = new Set(['latitude', 'longitude', 'lat', 'lng', 'lon', 'x', 'y']);
+        layer.geojson.features.slice(0, 30).forEach(f => {
+            if (f.properties) Object.keys(f.properties).forEach(k => {
+                if (!coordFields.has(k.toLowerCase())) keySet.add(k);
+            });
+        });
+        return Array.from(keySet);
+    })();
+
+    const selected = layer.popupFields?.length > 0
+        ? new Set(layer.popupFields)
+        : new Set(allFields);
+
+    const allSelected = allFields.every(f => selected.has(f));
+
+    const toggle = (field, checked) => {
+        const next = new Set(selected);
+        if (checked) next.add(field); else next.delete(field);
+        const arr = Array.from(next);
+        onChange(arr.length === allFields.length ? null : arr);
+    };
+
+    if (allFields.length === 0) return null;
+
+    return (
+        <div className="ms-7 mt-1.5 p-2 bg-gray-50 rounded-lg border border-gray-100 space-y-1">
+            <p className="text-[10px] font-medium text-gray-500 mb-1">{t('popupFields') || 'Popup Fields'}</p>
+            <label className="flex items-center gap-2 text-[10px] text-gray-600 cursor-pointer hover:bg-white rounded px-1.5 py-0.5 border-b border-gray-200 pb-1 mb-0.5">
+                <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={(e) => onChange(e.target.checked ? null : [])}
+                    className="rounded border-gray-300 text-primary focus:ring-primary w-3 h-3"
+                />
+                <span className="font-semibold">{t('selectAll') || 'Select All'}</span>
+            </label>
+            <div className="max-h-28 overflow-y-auto space-y-0.5">
+                {allFields.map(field => (
+                    <label key={field} className="flex items-center gap-2 text-[10px] text-gray-700 cursor-pointer hover:bg-white rounded px-1.5 py-0.5">
+                        <input
+                            type="checkbox"
+                            checked={selected.has(field)}
+                            onChange={(e) => toggle(field, e.target.checked)}
+                            className="rounded border-gray-300 text-primary focus:ring-primary w-3 h-3"
+                        />
+                        <span className="truncate">{field.replace(/_/g, ' ')}</span>
+                    </label>
+                ))}
             </div>
         </div>
     );

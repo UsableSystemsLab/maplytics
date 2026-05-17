@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useContext } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { selectSelectedLayers, removeLayer, setLayerGeojson, setLayerLoading } from "@/lib/store/features/layersSlice";
+import { selectSelectedLayers, removeLayer, setLayerGeojson, setLayerLoading, setLayerPopupFields } from "@/lib/store/features/layersSlice";
 import { selectActiveProject } from "@/lib/store/features/projectSlice";
 import { getDatasetGeoJSON, getProjectDatasetData } from "@/lib/datasetApi";
 import { getChoroplethData } from "@/lib/geoApi";
@@ -59,8 +59,9 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
     // Tracked Mapbox ids keyed by `${layerId}::${mode}` so we can remove on change.
     const trackedRef = useRef({});
-    // Track which layer ids have already been auto-fit so we don't re-zoom on every mode toggle.
     const autoFitDoneRef = useRef(new Set());
+    const popupInstanceRef = useRef(null);
+    const layerPopupFieldsRef = useRef({});
 
     const fetchJobs = async (isInitial = false) => {
         if (!activeProject?.id) return;
@@ -177,7 +178,8 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
 
                 const geojson = data.geojson || (data.type === "FeatureCollection" ? data : null);
                 if (geojson) {
-                    dispatch(setLayerGeojson({ layerId: layer.id, geojson }));
+                    const popupFields = data.popup_fields || geojson?.metadata?.popup_fields || null;
+                    dispatch(setLayerGeojson({ layerId: layer.id, geojson, popupFields }));
                 }
             } catch (error) {
                 console.error(`Failed to load layer ${layer.name}:`, error);
@@ -202,9 +204,15 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
             delete trackedRef.current[key];
         };
 
+        const popupInstance = popupInstanceRef.current || (popupInstanceRef.current = { inst: null });
+        selectedLayers.forEach(l => { layerPopupFieldsRef.current[l.id] = l.popupFields; });
+
         const bindFeaturePopup = (mapboxgl, interactiveId, layer) => {
             const datasetName = layer.name || '';
+            const layerId = layer.id;
             map.on('click', interactiveId, (e) => {
+                const currentFields = layerPopupFieldsRef.current[layerId];
+                const allowed = currentFields?.length > 0 ? new Set(currentFields) : null;
                 const feat = e.features?.[0];
                 if (!feat) return;
                 const props = feat.properties || {};
@@ -212,6 +220,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 const HIDDEN = new Set(['_lyrColor', '_lyrFillOpacity', 'name', 'title', 'id']);
                 const propEntries = Object.entries(props).filter(([k, v]) =>
                     !HIDDEN.has(k) && typeof v !== 'object' && v !== null && v !== ''
+                    && (!allowed || allowed.has(k))
                 );
                 const propsHtml = propEntries.length
                     ? `<dl class="maplytics-popup__list">${propEntries.slice(0, 12).map(([k, v]) =>
@@ -225,7 +234,8 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                         ${propsHtml}
                     </div>
                 `;
-                new mapboxgl.Popup({
+                if (popupInstance.inst) popupInstance.inst.remove();
+                popupInstance.inst = new mapboxgl.Popup({
                     className: 'maplytics-popup',
                     maxWidth: '320px',
                     offset: 12,
@@ -601,6 +611,7 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                 toggleVisibility={toggleVisibility}
                 handleRemoveLayer={handleRemoveLayer}
                 setLayerVizModes={setLayerVizModes}
+                onPopupFieldsChange={(layerId, fields) => dispatch(setLayerPopupFields({ layerId, popupFields: fields }))}
             />
 
             <MapResultsSidebar

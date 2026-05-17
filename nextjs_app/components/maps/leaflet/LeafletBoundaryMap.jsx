@@ -4,7 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDistrictColor } from "@/lib/districtColors";
 
-const generatePopupContent = (properties) => {
+const generatePopupContent = (properties, popupFields) => {
     if (!properties || Object.keys(properties).length === 0) {
         return '<p style="color: #6b7280;">No properties available</p>';
     }
@@ -18,9 +18,10 @@ const generatePopupContent = (properties) => {
         }
     }
 
+    const allowed = popupFields?.length > 0 ? new Set(popupFields) : null;
     let html = '<div style="padding: 8px; max-width: 250px;">';
 
-    if (primaryName) {
+    if (primaryName && (!allowed || allowed.has(nameFields.find(f => properties[f])))) {
         html += `<h3 style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #1f2937;">${primaryName}</h3>`;
     }
 
@@ -29,6 +30,7 @@ const generatePopupContent = (properties) => {
     for (const [key, value] of Object.entries(properties)) {
         if (nameFields.includes(key)) continue;
         if (typeof value === 'object') continue;
+        if (allowed && !allowed.has(key)) continue;
 
         const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         html += `<p style="font-size: 13px; margin: 0;"><span style="font-weight: 500; color: #4b5563;">${label}:</span> <span style="color: #1f2937;">${value}</span></p>`;
@@ -139,21 +141,21 @@ const LeafletBoundaryMap = forwardRef(function LeafletBoundaryMap({
                 const geojson = layer.geojson;
                 if (!geojson?.features?.length) return;
 
+                const layerPopupFields = layer.popupFields;
+
                 geojson.features.forEach((feature) => {
                     const geometry = feature.geometry;
                     if (!geometry) return;
 
                     const { type, coordinates } = geometry;
                     let color;
-                    
-                    // Use a unique color for each layer if no explicit colorFn
+
                     if (getFeatureColor) {
                         color = getFeatureColor(feature);
                     } else if (colorBy) {
                          const colorKey = feature.properties?.[colorBy] || 'Unknown';
                          color = getDistrictColor(colorKey);
                     } else {
-                        // Default layer color based on index to differentiate
                         const palette = ['#0E3147', '#A7B34F', '#13B38D', '#F59E0B', '#EF4444', '#8B5CF6'];
                         color = palette[layerIndex % palette.length];
                     }
@@ -177,10 +179,10 @@ const LeafletBoundaryMap = forwardRef(function LeafletBoundaryMap({
                             color,
                             weight: 2,
                             fillColor: color,
-                            fillOpacity: layer.id === (layers[layers.length-1]?.id) ? fillOpacity : 0.2, // Highlight last selected
+                            fillOpacity: layer.id === (layers[layers.length-1]?.id) ? fillOpacity : 0.2,
                         });
 
-                        polygon.bindPopup(generatePopupContent(feature.properties), {
+                        polygon.bindPopup(generatePopupContent(feature.properties, layerPopupFields), {
                             maxWidth: 300,
                         });
 
@@ -201,7 +203,7 @@ const LeafletBoundaryMap = forwardRef(function LeafletBoundaryMap({
                             weight: 2,
                         });
 
-                        circle.bindPopup(generatePopupContent(feature.properties), {
+                        circle.bindPopup(generatePopupContent(feature.properties, layerPopupFields), {
                             maxWidth: 300,
                         });
 
@@ -230,7 +232,7 @@ const LeafletBoundaryMap = forwardRef(function LeafletBoundaryMap({
                             opacity: 0.8,
                         });
 
-                        polyline.bindPopup(generatePopupContent(feature.properties), {
+                        polyline.bindPopup(generatePopupContent(feature.properties, layerPopupFields), {
                             maxWidth: 300,
                         });
 

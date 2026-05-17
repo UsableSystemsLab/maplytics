@@ -36,6 +36,8 @@ export default function PublicDatasetBrowser() {
     const [uploadError, setUploadError] = useState(null);
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [detectedFields, setDetectedFields] = useState([]);
+    const [selectedPopupFields, setSelectedPopupFields] = useState([]);
 
     useEffect(() => {
         fetchDatasets();
@@ -105,6 +107,8 @@ export default function PublicDatasetBrowser() {
         setNewDatasetDescription("");
         setUploadError(null);
         setUploadSuccess(false);
+        setDetectedFields([]);
+        setSelectedPopupFields([]);
     };
 
     const handleDragOver = (e) => {
@@ -131,7 +135,6 @@ export default function PublicDatasetBrowser() {
     };
 
     const processFile = (file) => {
-        // Format validation
         const allowedExtensions = ['.json', '.geojson', '.xlsx', '.xls', '.sql'];
         const fileName = file.name.toLowerCase();
         const isValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
@@ -142,7 +145,6 @@ export default function PublicDatasetBrowser() {
             return;
         }
 
-        // Size validation (50MB)
         const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
             setUploadError(t('validation.fileTooLarge') || 'File is too large. Maximum size is 50MB.');
@@ -153,10 +155,38 @@ export default function PublicDatasetBrowser() {
         setNewDatasetFile(file);
         setUploadError(null);
 
-        // Auto-fill name if empty
         if (!newDatasetName) {
             const baseName = file.name.replace(/\.[^/.]+$/, "");
             setNewDatasetName(baseName.charAt(0).toUpperCase() + baseName.slice(1));
+        }
+
+        if (fileName.endsWith('.json') || fileName.endsWith('.geojson')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    const keySet = new Set();
+                    const items = parsed?.type === 'FeatureCollection'
+                        ? (parsed.features || []).map(f => f.properties || {})
+                        : Array.isArray(parsed) ? parsed : [];
+                    items.slice(0, 50).forEach(obj => {
+                        Object.entries(obj).forEach(([k, v]) => {
+                            if (typeof v !== 'object' || v === null) keySet.add(k);
+                        });
+                    });
+                    const coordFields = ['latitude', 'longitude', 'lat', 'lng', 'lon', 'x', 'y'];
+                    const fields = Array.from(keySet).filter(k => !coordFields.includes(k.toLowerCase()));
+                    setDetectedFields(fields);
+                    setSelectedPopupFields(fields);
+                } catch (_) {
+                    setDetectedFields([]);
+                    setSelectedPopupFields([]);
+                }
+            };
+            reader.readAsText(file);
+        } else {
+            setDetectedFields([]);
+            setSelectedPopupFields([]);
         }
     };
 
@@ -197,11 +227,14 @@ export default function PublicDatasetBrowser() {
             setIsUploading(true);
             setUploadError(null);
 
+            const popupFields = selectedPopupFields.length < detectedFields.length
+                ? selectedPopupFields : undefined;
             await uploadFile({
                 file: newDatasetFile,
                 isPrivate: false,
                 layerName: newDatasetName,
-                description: newDatasetDescription
+                description: newDatasetDescription,
+                popupFields
             });
 
             setUploadSuccess(true);
@@ -499,6 +532,45 @@ export default function PublicDatasetBrowser() {
                                     </div>
                                 </div>
                             </div>
+
+                            {detectedFields.length > 0 && newDatasetFile && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        {t('popupFieldsLabel') || 'Popup Fields'}
+                                        <span className="text-gray-400 font-normal ml-1">
+                                            {t('popupFieldsHint') || '(select which fields show when clicking a point)'}
+                                        </span>
+                                    </label>
+                                    <div className="max-h-40 overflow-y-auto bg-gray-50 rounded-lg border border-gray-200 p-2 space-y-0.5">
+                                        <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:bg-white rounded px-2 py-1 mb-1 border-b border-gray-200 pb-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedPopupFields.length === detectedFields.length}
+                                                onChange={(e) => setSelectedPopupFields(e.target.checked ? [...detectedFields] : [])}
+                                                className="rounded border-gray-300 text-primary focus:ring-primary w-3.5 h-3.5"
+                                            />
+                                            <span className="font-medium">{t('selectAll') || 'Select All'}</span>
+                                        </label>
+                                        {detectedFields.map((field) => (
+                                            <label key={field} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:bg-white rounded px-2 py-1">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedPopupFields.includes(field)}
+                                                    onChange={(e) => {
+                                                        setSelectedPopupFields(prev =>
+                                                            e.target.checked
+                                                                ? [...prev, field]
+                                                                : prev.filter(f => f !== field)
+                                                        );
+                                                    }}
+                                                    className="rounded border-gray-300 text-primary focus:ring-primary w-3.5 h-3.5"
+                                                />
+                                                <span className="truncate">{field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {uploadError && (
                                 <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-start gap-2">

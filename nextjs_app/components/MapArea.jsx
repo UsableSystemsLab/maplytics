@@ -66,6 +66,7 @@ export default function MapArea() {
 
             let geojson = result?.geojson || (result?.type === "FeatureCollection" ? result : null);
             let fields = result?.fields || [];
+            let popupFields = result?.popup_fields || geojson?.metadata?.popup_fields || null;
 
             if (!geojson) throw new Error("Invalid dataset format");
 
@@ -93,7 +94,7 @@ export default function MapArea() {
                 });
             }
 
-            setLayersData(prev => ({ ...prev, [layer.id]: { geojson, fields } }));
+            setLayersData(prev => ({ ...prev, [layer.id]: { geojson, fields, popupFields } }));
             dispatch(setLayerGeojson({ layerId: layer.id, geojson, fields }));
             
             // If this is the primary layer, update local state for analysis
@@ -233,7 +234,7 @@ export default function MapArea() {
                     ref={mapRef}
                     type={viewMode !== "map" ? viewMode : undefined}
                     displayGeojson={displayGeojson}
-                    allLayers={selectedLayers.map(l => ({ ...l, geojson: layersData[l.id]?.geojson }))}
+                    allLayers={selectedLayers.map(l => ({ ...l, geojson: layersData[l.id]?.geojson, popupFields: layersData[l.id]?.popupFields }))}
                     categoryField={categoryField}
                     onZoomChange={setZoomLevel}
                     panelSlotRef={panelSlotRef}

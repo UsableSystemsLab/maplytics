@@ -44,7 +44,8 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
 
                 const geojson = data.geojson || (data.type === "FeatureCollection" ? data : null);
                 if (geojson) {
-                    dispatch(setLayerGeojson({ layerId: layer.id, geojson }));
+                    const popupFields = data.popup_fields || geojson?.metadata?.popup_fields || null;
+                    dispatch(setLayerGeojson({ layerId: layer.id, geojson, popupFields }));
                 }
             } catch (error) {
                 console.error(`Failed to load layer ${layer.name}:`, error);
@@ -83,7 +84,8 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
             }
 
             const existingLayer = layerGroupsRef.current[layer.id];
-            const needsRecreation = !existingLayer || existingLayer._vizMode !== mode;
+            const popupKey = (layer.popupFields || []).join(',');
+            const needsRecreation = !existingLayer || existingLayer._vizMode !== mode || existingLayer._popupKey !== popupKey;
 
             if (needsRecreation) {
                 if (existingLayer) mapInstance.removeLayer(existingLayer);
@@ -113,6 +115,7 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
                         }
                     });
                 } else {
+                    const allowed = layer.popupFields?.length > 0 ? new Set(layer.popupFields) : null;
                     newLayer = L.geoJSON(layer.geojson, {
                         style: { color, weight: 1, fillOpacity: 1.0, color: '#fff' },
                         pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
@@ -125,10 +128,21 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
                             const props = feature.properties || {};
                             const featureName = props.name || props.title || props.id || "Feature";
                             const datasetName = layer.name;
+                            const HIDDEN = new Set(['name', 'title', 'id']);
+                            const entries = Object.entries(props).filter(([k, v]) =>
+                                !HIDDEN.has(k) && typeof v !== 'object' && v !== null && v !== ''
+                                && (!allowed || allowed.has(k))
+                            );
+                            const propsHtml = entries.length
+                                ? entries.slice(0, 12).map(([k, v]) =>
+                                    `<div class="text-xs"><span class="font-medium text-gray-600">${k.replace(/_/g, ' ')}:</span> ${v}</div>`
+                                ).join('')
+                                : '';
                             l.bindPopup(`
                                 <div class="p-1">
                                     <div class="font-bold text-sm border-b pb-1 mb-1">${featureName}</div>
-                                    <div class="text-xs text-gray-500">Layer: ${datasetName}</div>
+                                    <div class="text-xs text-gray-500 mb-1">Layer: ${datasetName}</div>
+                                    ${propsHtml}
                                 </div>
                             `);
                             l.bindTooltip(`
@@ -140,6 +154,7 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
                 }
 
                 newLayer._vizMode = mode;
+                newLayer._popupKey = popupKey;
                 layerGroupsRef.current[layer.id] = newLayer;
             }
 
