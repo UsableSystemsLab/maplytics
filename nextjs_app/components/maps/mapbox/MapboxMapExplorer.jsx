@@ -298,8 +298,20 @@ export default function MapboxMapExplorer({ className = "w-full h-full" }) {
                         source: srcId,
                         paint: {
                             'heatmap-weight': ['get', 'intensity'],
-                            'heatmap-intensity': 1,
-                            'heatmap-radius': 25,
+                            'heatmap-intensity': [
+                                'interpolate', ['linear'], ['zoom'],
+                                0, 0.1,
+                                10, 0.5,
+                                15, 1,
+                                20, 2,
+                            ],
+                            'heatmap-radius': [
+                                'interpolate', ['linear'], ['zoom'],
+                                0, 20,
+                                10, 35,
+                                14, 55,
+                                18, 70,
+                            ],
                             'heatmap-opacity': 0.8,
                             'heatmap-color': [
                                 'interpolate', ['linear'], ['heatmap-density'],

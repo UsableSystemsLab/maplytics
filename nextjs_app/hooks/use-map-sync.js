@@ -99,10 +99,11 @@ export function useMapSync(mapInstance, selectedLayers, visibleLayerIds, layerVi
                     });
                     const points = toLeafletHeatPoints(raw);
                     newLayer = L.heatLayer(points, {
-                        radius: 25,
-                        blur: 15,
-                        maxZoom: 10,
-                        minOpacity: 0.4,
+                        radius: 40,
+                        blur: 25,
+                        maxZoom: 18,
+                        max: Math.max(points.length * 0.15, 3),
+                        minOpacity: 0.3,
                         gradient: {
                             0.2: '#0000ff',
                             0.4: '#00ff00',
