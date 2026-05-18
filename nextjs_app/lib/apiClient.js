@@ -7,10 +7,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/a
  */
 class ApiClient {
     async getHeaders(extraHeaders = {}, isFormData = false) {
+        await auth.authStateReady();
         const user = auth.currentUser;
-        const headers = {
-            ...extraHeaders,
-        };
+        const headers = { ...extraHeaders };
 
         if (!isFormData) {
             headers['Content-Type'] = 'application/json';
@@ -32,7 +31,7 @@ class ApiClient {
         const url = `${API_BASE_URL}${endpoint}`;
         const isFormData = options.body instanceof FormData;
         const headers = await this.getHeaders(options.headers || {}, isFormData);
-        console.log(`making a ${options.method} request to ${url} with headers ${headers}`)
+        console.log(`making a ${options.method} request to ${url} with headers`, headers);
         const response = await fetch(url, {
             ...options,
             headers,

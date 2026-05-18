@@ -16,15 +16,24 @@ def haversine(lat1, lon1, lat2, lon2):
 def extract_lat_lng(url: str):
     """Extract latitude and longitude from a Google Maps URL.
 
-    Looks for patterns like '@lat,lng,zoom' (most common)
-    Example: https://www.google.com/maps/place/Example/@21.3240288,39.7034046,15z
+    Handles two formats:
+      - !3d<lat>!4d<lng>  (place detail panel URL)
+      - @<lat>,<lng>,<zoom>z  (search results / map view URL)
     """
     logging.debug(f"Extracting lat/lng from URL: {url}")
     parsed = urlparse(url)
+
+    # Format 1: /data=...!3d<lat>...!4d<lng>...
     lat = re.search(r"!3d(-?\d+\.\d+)", parsed.path)
     lon = re.search(r"!4d(-?\d+\.\d+)", parsed.path)
     if lat and lon:
         return float(lat.group(1)), float(lon.group(1))
+
+    # Format 2: /@<lat>,<lng>,<zoom>z
+    at = re.search(r"/@(-?\d+\.\d+),(-?\d+\.\d+)", parsed.path)
+    if at:
+        return float(at.group(1)), float(at.group(2))
+
     return None
 
 def extract_title(url: str):
@@ -141,14 +150,9 @@ async def search_places(query: str, max_results: int = 1, headless: bool = False
         await asyncio.sleep(delay)
         await page.keyboard.press("Enter")
 
-        # Wait for search results URL, then let the page fully settle
+        # Wait for the URL to move to a search or place path
         try:
             await page.wait_for_url(re.compile(r".*/(search|place)/.*"), timeout=20000)
-        except Exception:
-            await asyncio.sleep(delay * 3)
-
-        try:
-            await page.wait_for_load_state('networkidle', timeout=delay * 10000)
         except Exception:
             await asyncio.sleep(delay)
 
@@ -160,12 +164,9 @@ async def search_places(query: str, max_results: int = 1, headless: bool = False
             await browser.close()
             return [result] if result else []
 
-        # Wait for the results feed or a place link to appear before giving up
+        # Wait for actual place anchor links to be rendered in the results feed
         try:
-            await page.wait_for_selector(
-                'a[href*="/place/"], div[role="feed"]',
-                timeout=delay * 15000,
-            )
+            await page.wait_for_selector('a[href*="/place/"]', timeout=15000)
         except Exception:
             logging.warning("Results panel did not appear — page may still be loading")
 
@@ -180,17 +181,18 @@ async def search_places(query: str, max_results: int = 1, headless: bool = False
         logging.info("Clicking first search result")
         await first_link.click()
 
-        # Wait for the place URL with embedded coordinates
+        # Wait for coordinates to appear in the URL (either format)
         try:
-            await page.wait_for_url(re.compile(r".*!3d-?\d+\.\d+.*"), timeout=delay * 15000)
+            await page.wait_for_url(
+                re.compile(r".*(!3d-?\d+\.\d+|/@-?\d+\.\d+).*"),
+                timeout=delay * 10000,
+            )
         except Exception:
-            # Fallback: wait for network to settle and try extracting anyway
+            # Coords not in URL yet; wait for the detail panel heading as a fallback
             try:
-                await page.wait_for_load_state('networkidle', timeout=delay * 10000)
+                await page.wait_for_selector('h1, [role="main"] h1', timeout=delay * 5000)
             except Exception:
-                await asyncio.sleep(delay * 2)
-
-        await asyncio.sleep(delay)
+                await asyncio.sleep(delay)
 
         result = await _extract_place(page, delay)
         await context.close()
@@ -201,18 +203,14 @@ async def search_places(query: str, max_results: int = 1, headless: bool = False
 
 async def _extract_place(page, delay: float = 1.0) -> dict | None:
     """Extract place details from a Google Maps place detail page."""
-    # Let the page fully settle before reading the DOM
+    # Wait for the detail panel to render (address button is a reliable signal)
     try:
-        await page.wait_for_load_state('networkidle', timeout=delay * 10000)
+        await page.wait_for_selector(
+            'button[data-item-id="address"], h1, [role="main"] h1',
+            timeout=delay * 8000,
+        )
     except Exception:
-        pass
-
-    try:
-        await page.wait_for_selector('img', timeout=delay * 10000)
-    except Exception:
-        pass
-
-    await asyncio.sleep(delay)
+        await asyncio.sleep(delay)
 
     current_url = page.url
     coords = extract_lat_lng(current_url)

@@ -1,0 +1,128 @@
+# ─────────────────────────────────────────────
+#  Pipeline configuration
+# ─────────────────────────────────────────────
+
+llm:
+  model: ${DEEPSEEK_MODEL:-deepseek-chat}
+  base_url: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+  max_tokens: 1024
+  temperature: 0.1
+
+intent_classifier:
+  # Confidence gate: above this → pre-fill type_hint, below → LLM resolves
+  confidence_threshold: 0.75
+  # HuggingFace zero-shot model (runs locally, CPU-friendly ONNX export)
+  model_name: cross-encoder/nli-MiniLM-L2-v2
+  candidate_labels:
+    - comparison
+    - aggregation
+
+topic_filter:
+  # Minimum TF-IDF cosine similarity to pass as geo-analytical
+  similarity_threshold: 0.25
+  allowed_keywords:
+    - restaurant
+    - school
+    - hospital
+    - clinic
+    - pharmacy
+    - park
+    - mall
+    - supermarket
+    - mosque
+    - church
+    - university
+    - college
+    - district
+    - neighborhood
+    - city
+    - region
+    - zone
+    - density
+    - distribution
+    - proximity
+    - population
+    - compare
+    - comparison
+    - aggregation
+    - highest
+    - lowest
+    - nearest
+    - average
+    - count
+    - east
+    - west
+    - north
+    - south
+    - jeddah
+    - riyadh
+    - makkah
+    - medina
+    - geospatial
+    - location
+    - coordinate
+    - map
+    - special education
+    - facility
+    - infrastructure
+
+language:
+  supported:
+    - en
+    - ar
+  # Reject if detected language not in supported list
+  strict: false   # if false, warn but continue
+
+domain_router:
+  allowed_domains:
+    - geospatial_education
+    - geospatial_retail
+    - geospatial_health
+    - geospatial_infrastructure
+    - geospatial_general
+  blocked_domains:
+    - medical_diagnosis
+    - financial_pii
+    - personal_data
+
+# ─────────────────────────────────────────────
+#  Project & Dataset registry
+#  In production, load this from a DB/secrets store
+# ─────────────────────────────────────────────
+projects:
+  - id: "a2770045-0dca-4583-ba33-a846d80836d8"
+    name: "Jeddah Urban Analysis"
+    domains: [geospatial_retail, geospatial_general]
+    keywords: [restaurant, mall, supermarket, retail, jeddah, west, east]
+
+  - id: "a2770045-0dca-4583-fdsdf-dsfdsfdsfe3"
+    name: "KSA Education Infrastructure"
+    domains: [geospatial_education]
+    keywords: [school, university, college, education, special education, students]
+
+  - id: "b3880056-1edb-5694-cb44-b957e91947e9"
+    name: "KSA Health Facilities"
+    domains: [geospatial_health]
+    keywords: [hospital, clinic, pharmacy, health, medical]
+
+datasets:
+  - id: "02dbd891-42db-4661-a51c-329399c64696"
+    project_id: "a2770045-0dca-4583-ba33-a846d80836d8"
+    name: "Jeddah Restaurants Dataset"
+    geometry_type: point
+    crs: EPSG:4326
+    keywords: [restaurant, food, dining, jeddah]
+
+  - id: "02dbd891-42db-4661-a51c-329399c64644"
+    project_id: "a2770045-0dca-4583-fdsdf-dsfdsfdsfe3"
+    name: "KSA Special Education Schools"
+    geometry_type: point
+    crs: EPSG:4326
+    keywords: [school, special education, students, disability]
+
+  - id: "03cce902-53ec-6772-b62d-c068f02058fa"
+    project_id: "b3880056-1edb-5694-cb44-b957e91947e9"
+    name: "KSA Hospitals & Clinics"
+    geometry_type: point
+    crs: EPSG:4326
+    keywords: [hospital, clinic, health, medical]
