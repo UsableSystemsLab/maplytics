@@ -2,13 +2,16 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function Chat({
-    greeting = "Hello! How can I help you today?",
+    greeting,
     className = "",
 }) {
+    const t = useTranslations("chat");
+    const resolvedGreeting = greeting || t('greeting');
     const [messages, setMessages] = useState([
-        { id: 1, role: "bot", text: greeting },
+        { id: 1, role: "bot", text: resolvedGreeting },
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -57,14 +60,7 @@ export default function Chat({
 
         // Fake backend response simulation
         setTimeout(() => {
-            const botResponses = [
-                "That's an interesting point! Tell me more.",
-                "I'm just a demo bot, but I hear you.",
-                "Can you clarify what you mean?",
-                "I've received your message. Processing...",
-                "Here's a fake response to your inquiry!",
-            ];
-
+            const botResponses = t.raw('responses');
             const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
 
             const botMessage = {
@@ -127,7 +123,7 @@ export default function Chat({
                         value={input}
                         onChange={handleInput}
                         onKeyDown={handleKeyDown}
-                        placeholder="Type your message..."
+                        placeholder={t('inputPlaceholder')}
                         disabled={isLoading}
                         rows={1}
                         className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border border-transparent focus:border-blue-500 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-gray-950 rounded-2xl text-sm outline-none transition-all disabled:opacity-50 resize-none min-h-[44px] max-h-[150px] overflow-y-auto"

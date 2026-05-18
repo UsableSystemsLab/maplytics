@@ -2,6 +2,10 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import BarChartComparison from '../BarChartComparison'
 
+jest.mock('next-intl', () => ({
+    useTranslations: () => (key) => key,
+}))
+
 // Mock vega-embed
 jest.mock('vega-embed', () => ({
     __esModule: true,
@@ -13,12 +17,12 @@ jest.mock('vega-embed', () => ({
 describe('BarChartComparison', () => {
     it('shows "No data available" message when data is null', () => {
         render(<BarChartComparison data={null} />)
-        expect(screen.getByText('No data available for chart')).toBeInTheDocument()
+        expect(screen.getByText('noData')).toBeInTheDocument()
     })
 
     it('shows "No data available" message when data is empty array', () => {
         render(<BarChartComparison data={[]} />)
-        expect(screen.getByText('No data available for chart')).toBeInTheDocument()
+        expect(screen.getByText('noData')).toBeInTheDocument()
     })
 
     it('renders chart container when data is provided', () => {

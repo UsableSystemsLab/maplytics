@@ -1,4 +1,4 @@
-import { Project, Dataset, Dataset_Project } from '../models/index.js';
+import { Project, Dataset, Dataset_Project, Dataset_Metadata } from '../models/index.js';
 import { s3Client, BUCKET_NAME } from '../configs/s3Client.js';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { parseFileToGeoJSON } from '../utils/fileParser.js';
@@ -49,6 +49,8 @@ export const uploadPublicFile = async (req, res) => {
     const projectId = req.query.projectId;
     const displayName = req.body.name || req.file.originalname;
     const description = req.body.description || null;
+    let popupFields = null;
+    try { popupFields = req.body.popup_fields ? JSON.parse(req.body.popup_fields) : null; } catch (_) {}
 
     const filename = req.file.key || req.file.filename;
     const location = req.file.location || `/files/public/${req.userId}/${filename}`;
@@ -59,6 +61,16 @@ export const uploadPublicFile = async (req, res) => {
         filename, displayName, description, req.userId, author, req.file.originalname, true, req.isAdmin
     );
 
+    if (pgDatasetId && popupFields?.length) {
+        try {
+            await Dataset_Metadata.create({
+                dataset_id: pgDatasetId,
+                metadata: { popup_fields: popupFields }
+            });
+        } catch (err) {
+            console.error("Error saving popup_fields metadata:", err);
+        }
+    }
 
     if (projectId && pgDatasetId) {
         try {

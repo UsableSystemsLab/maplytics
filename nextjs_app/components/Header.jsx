@@ -100,8 +100,8 @@ export default function Header({ variant = "light" }) {
       {/* Mobile Menu */}
       <div
         className={cn(
-          "fixed top-0 right-0 h-full w-3/4 max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300 md:hidden",
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
+          "fixed top-0 end-0 h-full w-3/4 max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300 md:hidden",
+          isMenuOpen ? "translate-x-0" : "translate-x-full rtl:-translate-x-full"
         )}
       >
         <div className="p-6 flex flex-col gap-6">

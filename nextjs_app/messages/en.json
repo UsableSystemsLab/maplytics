@@ -105,6 +105,165 @@
     "startNow": "Start Now",
     "login": "Login"
   },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Manage your workspaces and organize your datasets.",
+    "searchPlaceholder": "Search projects...",
+    "showing": "Showing {shown} of {total} projects",
+    "createNew": "Create New Project",
+    "createNewHint": "Start a new workspace from scratch",
+    "noDescription": "No description provided for this project.",
+    "notAvailable": "N/A",
+    "noResults": "No projects found",
+    "noResultsHint": "Try adjusting your search query.",
+    "clearSearch": "Clear search",
+    "deleteConfirm": "Are you sure you want to delete this project? This action cannot be undone."
+  },
+  "mapPanel": {
+    "activeLayers": "Active layers",
+    "noLayers": "No layers added to map",
+    "browseDatasets": "Browse Datasets",
+    "standardPlotting": "Standard Plotting",
+    "heatmap": "Heatmap",
+    "plot": "Plot",
+    "heat": "Heat",
+    "choropleth": "Choro",
+    "boundaryLevel": "Boundary Level",
+    "auto": "Auto",
+    "regions": "Regions",
+    "cities": "Cities",
+    "districts": "Districts",
+    "colorScheme": "Color Scheme",
+    "popupFields": "Popup Fields",
+    "popupSettings": "Popup settings",
+    "selectAll": "Select All"
+  },
+  "mapCommand": {
+    "queryNotSupported": "Query not supported. Please start with a verb like: report, summarize, analyze, count, etc.",
+    "selectDataset": "Please select at least one dataset from the drawer first.",
+    "failedToSubmit": "Failed to submit job. Please try again.",
+    "placeholder": "Ask Maplytics to analyze data..."
+  },
+  "mapResults": {
+    "analysisHistory": "Analysis History",
+    "noHistory": "No history found",
+    "noHistoryHint": "Start processing to see results",
+    "noDescription": "No description",
+    "active": "Active",
+    "view": "View"
+  },
+  "barChart": {
+    "noData": "No data available for chart"
+  },
+  "mapResultPreview": {
+    "altResult": "Result",
+    "altResultExpanded": "Result Expanded"
+  },
+  "mapSummary": {
+    "title": "Map Summary",
+    "layers": "Layers",
+    "features": "Features",
+    "liveAnalysis": "Live dataset analysis"
+  },
+  "mapStats": {
+    "dataset": "Dataset",
+    "datasetSubtitle": "Primary layer",
+    "features": "Features",
+    "filteredResults": "Filtered results",
+    "pointsOnMap": "Points on map",
+    "status": "Status",
+    "loading": "Loading...",
+    "statusActive": "Active",
+    "statusReady": "Ready",
+    "datasetLoaded": "Dataset loaded",
+    "selectALayer": "Select a layer",
+    "notAvailable": "N/A"
+  },
+  "analysis": {
+    "title": "Quick Analysis Summary",
+    "noDatasetTitle": "No Dataset Loaded",
+    "noDatasetDescription": "Select a layer on the map to see analysis results.",
+    "featuresLabel": "Features",
+    "featuresHint": "Data points loaded",
+    "categoriesLabel": "Categories",
+    "categoriesHint": "Categorical fields",
+    "topFieldLabel": "Top Field",
+    "noCategoricalFields": "No categorical fields",
+    "loadDataCta": "Load data to analyze",
+    "showBarChart": "Show Bar Chart",
+    "barChartTitle": "Bar Chart Comparison",
+    "back": "Back",
+    "groupBy": "Group by",
+    "total": "Total",
+    "datasetFallback": "Dataset",
+    "featuresLoaded": "{count} features loaded",
+    "occurrences": "{count} occurrences"
+  },
+  "chat": {
+    "greeting": "Hello! How can I help you today?",
+    "inputPlaceholder": "Type your message...",
+    "responses": [
+      "That's an interesting point! Tell me more.",
+      "I'm just a demo bot, but I hear you.",
+      "Can you clarify what you mean?",
+      "I've received your message. Processing...",
+      "Here's a fake response to your inquiry!"
+    ]
+  },
+  "createProject": {
+    "backToProjects": "Back to Projects",
+    "title": "Create New Project",
+    "description": "Define your workspace details to start organizing your datasets.",
+    "nameLabel": "Project Name",
+    "namePlaceholder": "e.g., Urban Mobility Analysis",
+    "descriptionLabel": "Description",
+    "optional": "(Optional)",
+    "descriptionPlaceholder": "Briefly describe the purpose of this project...",
+    "creating": "Creating Project...",
+    "submit": "Create Project",
+    "terms": "By creating a project, you agree to our terms of service and workspace policies.",
+    "failed": "Failed to create project"
+  },
+  "dashboard": {
+    "loadingDataset": "Loading dataset...",
+    "totalProjects": "Total Projects",
+    "totalProjectsHint": "+2 from last month",
+    "activeLayers": "Active Layers",
+    "activeLayersHint": "Across all projects",
+    "teamMembers": "Team Members",
+    "teamMembersHint": "4 active now",
+    "recentActivity": "Recent Activity",
+    "recentActivityEmpty": "Your recent dashboard activity will appear here."
+  },
+  "profile": {
+    "welcome": "Welcome Home {name} 🎉",
+    "signOut": "Sign Out"
+  },
+  "projectRequired": {
+    "title": "Project Required",
+    "description": "This page requires an active project workspace. Please select an existing project or create a new one to continue.",
+    "goToProjects": "Go to Projects"
+  },
+  "sidebar": {
+    "noProjectSelected": "No Project Selected",
+    "workspaceActive": "Workspace Active",
+    "mainNavigation": "Main Navigation",
+    "workspace": "Workspace",
+    "general": "General",
+    "nav": {
+      "projects": "Projects",
+      "overview": "Overview",
+      "mapView": "Map View",
+      "comparison": "Comparison",
+      "datasets": "Datasets",
+      "aiChat": "AI Chat",
+      "home": "Home",
+      "account": "Account",
+      "settings": "Settings"
+    },
+    "login": "Login",
+    "deleteProjectConfirm": "Are you sure you want to delete this project? This action cannot be undone."
+  },
   "header": {
     "products": "Products",
     "featuredProduct": "Featured Product",
@@ -141,7 +300,24 @@
     "noAccount": "Don't have an account?",
     "registerLink": "Register",
     "alreadyHaveAccount": "Already have an account?",
-    "loginLink": "Login"
+    "loginLink": "Login",
+    "welcomeBack": "Welcome Back",
+    "loginSubtitle": "Sign in to analyze and visualize spatial data effortlessly",
+    "createAccountTitle": "Create Account",
+    "registerSubtitle": "Join us to unlock powerful spatial analysis",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm Password",
+    "emailInputPlaceholder": "email@example.com",
+    "forgotPassword": "Forgot Password?",
+    "signingIn": "Signing In...",
+    "createAccountButton": "Create Account",
+    "creatingAccount": "Creating Account...",
+    "orContinueWith": "Or continue with",
+    "signUpLink": "Sign Up",
+    "signInLink": "Sign In",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "tagline": "Spatial Analysis Simplified"
   },
   "datasets": {
     "title": "Datasets",
@@ -183,23 +359,72 @@
       "invalidFormat": "Invalid file format. Allowed: .json, .geojson, .xlsx, .xls, .sql",
       "fileTooLarge": "File is too large. Maximum size is 50MB."
     },
+    "popupFieldsLabel": "Popup Fields",
+    "popupFieldsHint": "(select which fields show when clicking a point)",
+    "selectAll": "Select All",
     "publicTab": "Public Datasets",
     "privateTab": "My Datasets",
     "verified": "By Maplytics",
     "remove": "Remove file",
-    "pleaseLogin": "Please log in to view your datasets."
+    "pleaseLogin": "Please log in to view your datasets.",
+    "drawer": {
+      "title": "Active Datasets",
+      "description": "Select a dataset to activate it for analysis.",
+      "myLibrary": "My Library",
+      "publicCollections": "Public Collections",
+      "loading": "Loading datasets...",
+      "noResults": "No datasets found",
+      "noDescriptionShort": "No description provided.",
+      "features": "features",
+      "activate": "Activate",
+      "active": "Active",
+      "close": "Close"
+    }
   },
   "comparison": {
-    "title": "Comparison",
-    "subtitle": "Compare features between two locations using natural language.",
+    "title": "Spatial Comparison",
+    "subtitle": "Compare features across locations side by side.",
+    "preview": "Preview:",
+    "complete": "Comparison complete",
+    "comparing": "Comparing…",
+    "compare": "Compare",
+    "detectedBadge": "Comparison Analysis",
+    "filesSelected": "{count} {count, plural, one {file} other {files}} selected",
+    "somethingWentWrong": "Something went wrong",
+    "note": "Comparison note",
+    "filteredBy": "Filtered by:",
+    "filterMatched": "({filtered} of {total} features matched)",
+    "filterUsing": "using {fields}",
+    "filterWarning": "Filter warning",
+    "filterWarningDesc": "This query includes a POI type, but the result says no feature filter was applied. Run a fresh job after restarting the worker.",
+    "processingBanner": "Comparing spatial data…",
+    "jobIdLabel": "Job #{id}",
+    "locationA": "Location A",
+    "locationB": "Location B",
+    "featuresA": "Features A",
+    "featuresB": "Features B",
+    "validation": {
+      "datasetOutsideLocations": "The locations were recognized, but the selected dataset does not contain features inside them.",
+      "featureTypeNotFound": "The selected dataset does not appear to contain this feature type.",
+      "missingFeatureFields": "The dataset has valid points, but no category/type fields that can identify restaurants, clinics, or similar POIs.",
+      "oneSideEmpty": "One side has no matching features, so this comparison may be incomplete.",
+      "bothSidesEmpty": "Both locations were recognized, but no matching features were found in either area."
+    },
     "datasetPicker": {
       "label": "Datasets",
       "placeholder": "Select one or more datasets",
       "empty": "No datasets in this project.",
-      "selectedCount": "{count} selected"
+      "selectedCount": "{count} selected",
+      "filterPlaceholder": "Filter datasets...",
+      "loading": "Loading...",
+      "noMatches": "No matches",
+      "projectSection": "Project ({count})",
+      "publicSection": "Public ({count})",
+      "emptyPublic": "No public datasets available.",
+      "loadError": "Couldn't load datasets. Try again."
     },
     "queryBar": {
-      "placeholder": "compare restaurants between Olaya and Malaz",
+      "placeholder": "Compare restaurants between Olaya and Malaz...",
       "hint": "Start with: compare, contrast, differentiate",
       "submit": "Run"
     },
@@ -221,18 +446,30 @@
         "feature_property_fallback": "Resolved against dataset feature properties."
       }
     },
+    "card": {
+      "locationA": "Location A",
+      "locationB": "Location B",
+      "featuresFound": "features found",
+      "awaiting": "Awaiting comparison…",
+      "analyzing": "Analyzing {side}…"
+    },
     "errors": {
-      "selectDataset": "Select at least one dataset.",
-      "queryRequired": "Enter a query starting with a comparison verb.",
+      "selectProjectFirst": "Select a project first.",
+      "selectDataset": "Select at least one dataset using the + button.",
+      "queryRequired": "Enter a comparison query.",
+      "submitFailed": "Failed to submit job.",
+      "couldNotLoadResult": "Could not load this result.",
+      "processingFailed": "Processing failed.",
       "locationUnresolved": "Could not match the two location names.",
       "queryUnparseable": "Could not find two locations in the query.",
       "noFeatures": "No features were found.",
-      "submitFailed": "Could not submit the job. Please try again.",
       "resultUnavailable": "Result file is unavailable."
     },
     "history": {
-      "title": "Recent comparisons",
-      "empty": "No previous comparisons in this project."
+      "title": "Recent Comparisons",
+      "empty": "No comparisons yet",
+      "emptyHint": "Submit a query above to get started",
+      "refresh": "Refresh"
     },
     "actions": {
       "retry": "Retry",

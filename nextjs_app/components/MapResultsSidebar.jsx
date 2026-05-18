@@ -5,37 +5,39 @@ import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { selectActiveProject } from "@/lib/store/features/projectSlice";
 import { getNlqProjectJobs } from "@/lib/nlqApi";
+import { useTranslations } from "next-intl";
 
 export default function MapResultsSidebar({ isMobile, jobs = [], isLoading = false, selectedJobId, onViewJob }) {
+    const t = useTranslations("mapResults");
     const [isOpen, setIsOpen] = useState(!isMobile);
     const activeProject = useSelector(selectActiveProject);
     const projectId = activeProject?.id;
 
     return (
         <div className={cn(
-            "absolute top-0 right-0 h-full z-[60] transition-all duration-300 flex",
+            "absolute top-0 inset-e-0 h-full z-60 transition-all duration-300 flex",
             isOpen ? (isMobile ? "w-full" : "w-80 shadow-2xl") : "w-0"
         )}>
             {/* Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "absolute top-1/2 -left-8 transform -translate-y-1/2 bg-white/90 backdrop-blur-md p-1.5 rounded-l-xl shadow-lg border border-r-0 border-gray-200 text-gray-500 hover:text-primary transition-all pointer-events-auto",
-                    !isOpen && "rounded-xl -left-10"
+                    "absolute top-1/2 -inset-s-8 transform -translate-y-1/2 bg-white/90 backdrop-blur-md p-1.5 rounded-s-xl shadow-lg border border-e-0 border-gray-200 text-gray-500 hover:text-primary transition-all pointer-events-auto",
+                    !isOpen && "rounded-xl -inset-s-10"
                 )}
             >
-                {isOpen ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+                {isOpen ? <ChevronRight className="w-5 h-5 rtl:rotate-180" /> : <ChevronLeft className="w-5 h-5 rtl:rotate-180" />}
             </button>
 
             {/* Sidebar Content */}
             <div className={cn(
-                "w-full h-full bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl overflow-hidden flex flex-col pointer-events-auto",
-                !isOpen && "border-l-0"
+                "w-full h-full bg-white/95 backdrop-blur-xl border-s border-gray-200 shadow-2xl overflow-hidden flex flex-col pointer-events-auto",
+                !isOpen && "border-s-0"
             )}>
                 {/* Header */}
                 <div className="p-4 bg-primary/5 border-b border-gray-100 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <h2 className="font-bold text-gray-900 leading-none text-sm">Analysis History</h2>
+                        <h2 className="font-bold text-gray-900 leading-none text-sm">{t('analysisHistory')}</h2>
                     </div>
                     <div className="flex items-center gap-2">
                         {isLoading && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
@@ -53,8 +55,8 @@ export default function MapResultsSidebar({ isMobile, jobs = [], isLoading = fal
                     {jobs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
                             <Clock className="w-8 h-8 mb-2" />
-                            <p className="text-xs font-medium">No history found</p>
-                            <span className="text-[10px]">Start processing to see results</span>
+                            <p className="text-xs font-medium">{t('noHistory')}</p>
+                            <span className="text-[10px]">{t('noHistoryHint')}</span>
                         </div>
                     ) : (
                         jobs.map((job) => {
@@ -72,7 +74,7 @@ export default function MapResultsSidebar({ isMobile, jobs = [], isLoading = fal
                                 >
                                     {/* Description */}
                                     <h3 className="font-semibold text-xs text-gray-800 line-clamp-2 mb-2 leading-relaxed">
-                                        {job.query || "No description"}
+                                        {job.query || t('noDescription')}
                                     </h3>
 
                                     {/* Info Row */}
@@ -114,7 +116,7 @@ export default function MapResultsSidebar({ isMobile, jobs = [], isLoading = fal
                                             >
                                                 <ImageIcon className="w-2.5 h-2.5" />
                                                 <span className="text-[9px] uppercase tracking-tighter">
-                                                    {selectedJobId === jobId ? "Active" : "View"}
+                                                    {selectedJobId === jobId ? t('active') : t('view')}
                                                 </span>
                                             </button>
                                         )}

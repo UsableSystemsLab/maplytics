@@ -2,6 +2,10 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import ProjectRequired from '../ProjectRequired'
 
+jest.mock('next-intl', () => ({
+    useTranslations: () => (key) => key,
+}))
+
 // Mock next/link
 jest.mock('next/link', () => {
     return function MockLink({ href, children, className }) {
@@ -32,17 +36,17 @@ describe('ProjectRequired', () => {
 
     it('renders the "Project Required" title', () => {
         render(<ProjectRequired />)
-        expect(screen.getByText('Project Required')).toBeInTheDocument()
+        expect(screen.getByText('title')).toBeInTheDocument()
     })
 
     it('renders description text', () => {
         render(<ProjectRequired />)
-        expect(screen.getByText(/requires an active project/i)).toBeInTheDocument()
+        expect(screen.getByText('description')).toBeInTheDocument()
     })
 
     it('renders a link to /dashboard/projects', () => {
         render(<ProjectRequired />)
-        const link = screen.getByRole('link', { name: /go to projects/i })
+        const link = screen.getByRole('link', { name: /goToProjects/i })
         expect(link).toHaveAttribute('href', '/dashboard/projects')
     })
 })

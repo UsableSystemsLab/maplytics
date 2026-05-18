@@ -4,7 +4,10 @@ import { Provider } from 'react-redux'
 import { makeTestStore } from './testUtils'
 import DatasetDrawer from '../DatasetDrawer'
 
-// Mock next-intl (in case it's used)
+jest.mock('next-intl', () => ({
+    useTranslations: () => (key) => key,
+}))
+
 jest.mock('@/hooks/useAuth', () => ({
     useAuth: jest.fn(),
 }))
@@ -78,28 +81,28 @@ describe('DatasetDrawer', () => {
 
     it('renders "Active Datasets" title', () => {
         renderWithStore()
-        expect(screen.getByText('Active Datasets')).toBeInTheDocument()
+        expect(screen.getByText('title')).toBeInTheDocument()
     })
 
     it('renders the search input', () => {
         renderWithStore()
-        expect(screen.getByPlaceholderText('Search datasets...')).toBeInTheDocument()
+        expect(screen.getByPlaceholderText('searchPlaceholder')).toBeInTheDocument()
     })
 
     it('renders My Library and Public Collections tabs', () => {
         renderWithStore()
-        expect(screen.getByText('My Library')).toBeInTheDocument()
-        expect(screen.getByText('Public Collections')).toBeInTheDocument()
+        expect(screen.getByText('myLibrary')).toBeInTheDocument()
+        expect(screen.getByText('publicCollections')).toBeInTheDocument()
     })
 
     it('renders the close button', () => {
         renderWithStore()
-        expect(screen.getByText('Close')).toBeInTheDocument()
+        expect(screen.getByText('close')).toBeInTheDocument()
     })
 
     it('updates search query when user types', () => {
         renderWithStore()
-        const input = screen.getByPlaceholderText('Search datasets...')
+        const input = screen.getByPlaceholderText('searchPlaceholder')
         fireEvent.change(input, { target: { value: 'riyadh' } })
         expect(input.value).toBe('riyadh')
     })
