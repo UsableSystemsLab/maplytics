@@ -87,9 +87,7 @@ ${areaQuery}
   way["shop"="${args.poi}"](${searchArea});
   relation["shop"="${args.poi}"](${searchArea});
 );
-out body;
->;
-out skel qt;
+out center;
   `.trim();
 
   console.log("Generated Overpass Query:\n---------------------------");
@@ -128,10 +126,39 @@ out skel qt;
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     let filenameParts = [args.country, args.city, args.district, args.poi, timestamp].filter(Boolean);
-    const filename = filenameParts.join("_").replace(/\s+/g, "_") + ".json";
+    const filename = filenameParts.join("_").replace(/\s+/g, "_") + ".geojson";
 
     const outPath = path.join(outDir, filename);
-    fs.writeFileSync(outPath, JSON.stringify(data, null, 2));
+
+    // Convert Overpass JSON to GeoJSON
+    const geojson = {
+      type: "FeatureCollection",
+      features: data.elements.map(el => {
+        let coords;
+        if (el.type === "node") {
+          coords = [el.lon, el.lat];
+        } else if (el.center) {
+          coords = [el.center.lon, el.center.lat];
+        } else {
+          return null;
+        }
+        
+        return {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: coords
+          },
+          properties: {
+            osm_id: el.id,
+            osm_type: el.type,
+            ...el.tags
+          }
+        };
+      }).filter(f => f !== null)
+    };
+
+    fs.writeFileSync(outPath, JSON.stringify(geojson, null, 2));
 
     console.log(`Data saved successfully to ${outPath}`);
 
