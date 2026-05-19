@@ -11,6 +11,7 @@ import {
   FolderKanban,
   Home,
   Database,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -38,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { auth } from "@/lib/firebase";
 import { useTranslations, useLocale } from "next-intl";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -56,20 +58,16 @@ import {
 
 const mainNavItems = [
   { id: "projects", labelKey: "nav.projects", icon: FolderKanban, href: "/dashboard/projects" },
-  { id: "overview", labelKey: "nav.overview", icon: LayoutDashboard, href: "/dashboard" },
   { id: "map", labelKey: "nav.mapView", icon: Map, href: "/dashboard/map" },
   { id: "comparison", labelKey: "nav.comparison", icon: BarChart3, href: "/dashboard/comparison" },
 ];
 
 const secondaryNavItems = [
   { id: "datasets", labelKey: "nav.datasets", icon: Database, href: "/dashboard/datasets" },
-  { id: "chat", labelKey: "nav.aiChat", icon: Bot, href: "/dashboard/chat" },
 ];
 
 const accountItems = [
   { id: "home", labelKey: "nav.home", icon: Home, href: "/" },
-  { id: "account", labelKey: "nav.account", icon: User, href: "/account" },
-  { id: "settings", labelKey: "nav.settings", icon: Settings, href: "/settings" },
 ];
 
 export function AppSidebar() {
@@ -114,7 +112,16 @@ export function AppSidebar() {
   const handleProjectSelect = (project) => {
     dispatch(setActiveProject(project));
     dispatch(clearLayers());
-    router.push('/dashboard');
+    router.push('/dashboard/map');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
 
   const handleDeleteProject = async (e, projectId) => {
@@ -242,6 +249,15 @@ export function AppSidebar() {
                   {user?.email}
                 </p>
               </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout} 
+                className="text-muted-foreground hover:text-red-600 transition-colors shrink-0 group-data-[collapsible=icon]:hidden"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           ) : (
             <div className="group-data-[collapsible=icon]:hidden">

@@ -2045,7 +2045,7 @@ export default function HeroSection({ onScrollDown }) {
                 </p>
 
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mx-auto md:max-w-md">
-                    <Link href="/dashboard" className="w-full">
+                    <Link href="/dashboard/projects" className="w-full">
                         <Button
                             size="lg"
                             className="w-full bg-primary text-white text-base sm:text-lg py-6 sm:py-8 rounded-md shadow-xl hover:bg-primary/90 transition-all"

@@ -52,7 +52,7 @@ export default function ProjectsPage() {
             id: project.id,
             name: project.name
         }));
-        router.push("/dashboard");
+        router.push("/dashboard/map");
     };
 
     const handleDeleteProject = async (e, projectId) => {

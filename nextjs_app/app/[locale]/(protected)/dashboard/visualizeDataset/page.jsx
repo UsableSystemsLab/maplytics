@@ -35,7 +35,7 @@ export default function VisualizeDatasetPage() {
 
     return (
         <div className="p-8 space-y-10 min-h-screen">
-            <Link href="/dashboard">
+            <Link href="/dashboard/projects">
                 <Button className="text-3xl flex items-center pb-3.5 mb-1.5">&larr;</Button>
             </Link>
 

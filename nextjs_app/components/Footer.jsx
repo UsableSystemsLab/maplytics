@@ -24,7 +24,7 @@ export default function Footer() {
                 <div className="flex flex-col gap-y-4">
                     <h3 className="text-base font-semibold tracking-wide">{t('getStarted')}</h3>
                     <nav className="flex flex-col gap-y-3 text-sm mt-1">
-                        <Link href="/dashboard" className="hover:text-white transition-opacity duration-200 w-fit">{t('startNow')}</Link>
+                        <Link href="/dashboard/projects" className="hover:text-white transition-opacity duration-200 w-fit">{t('startNow')}</Link>
                         <Link href="/login" className="hover:text-white transition-opacity duration-200 w-fit">{t('login')}</Link>
                     </nav>
                 </div>
