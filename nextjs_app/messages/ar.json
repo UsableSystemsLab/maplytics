@@ -305,6 +305,8 @@
     "loginSubtitle": "سجّل الدخول لتحليل وتصوّر البيانات المكانية بسهولة",
     "createAccountTitle": "إنشاء حساب",
     "registerSubtitle": "انضم إلينا لتفتح إمكانات التحليل المكاني القوية",
+    "usernameLabel": "اسم المستخدم",
+    "usernameInputPlaceholder": "اسم المستخدم الخاص بك",
     "emailLabel": "البريد الإلكتروني",
     "passwordLabel": "كلمة المرور",
     "confirmPasswordLabel": "تأكيد كلمة المرور",

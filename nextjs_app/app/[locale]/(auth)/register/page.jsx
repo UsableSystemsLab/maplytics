@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
 import { useTranslations } from 'next-intl';
-import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, UserPlus, User } from "lucide-react";
 import AuthMapBackground from "@/components/AuthMapBackground";
 
 export default function RegisterPage() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confPass, setConfPass] = useState("");
@@ -30,7 +31,12 @@ export default function RegisterPage() {
         setError(t('passwordsDoNotMatch'));
         return;
       }
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (username.trim()) {
+        await updateProfile(userCredential.user, {
+          displayName: username.trim()
+        });
+      }
       router.push("/");
     } catch (err) {
       setError(err.message);
@@ -64,6 +70,24 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4 md:space-y-5">
+          <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.15s_forwards] space-y-1.5">
+            <label htmlFor="username" className="text-xs md:text-sm font-semibold text-white/90 block">
+              {t('usernameLabel')}
+            </label>
+            <div className="relative group">
+              <User className="absolute start-3 md:start-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-white/60 group-focus-within:text-white transition-colors" />
+              <input
+                id="username"
+                type="text"
+                placeholder={t('usernameInputPlaceholder')}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full ps-10 md:ps-12 pe-3 md:pe-4 py-2.5 md:py-3 text-sm md:text-base bg-white/5 border border-[#134565]/25 rounded-lg focus:border-[#A7B34F]/60 focus:bg-white/10 focus:outline-none transition-all duration-200 text-white placeholder:text-white/40 hover:border-[#134565]/40"
+                required
+              />
+            </div>
+          </div>
+
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards] space-y-1.5">
             <label htmlFor="email" className="text-xs md:text-sm font-semibold text-white/90 block">
               {t('emailLabel')}

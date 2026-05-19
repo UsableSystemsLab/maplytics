@@ -305,6 +305,8 @@
     "loginSubtitle": "Sign in to analyze and visualize spatial data effortlessly",
     "createAccountTitle": "Create Account",
     "registerSubtitle": "Join us to unlock powerful spatial analysis",
+    "usernameLabel": "Username",
+    "usernameInputPlaceholder": "Your username",
     "emailLabel": "Email Address",
     "passwordLabel": "Password",
     "confirmPasswordLabel": "Confirm Password",
