@@ -3,7 +3,7 @@ WORKDIR /app
 #Change to production instead of development when deploying
 ENV NODE_ENV development
 COPY package*.json ./
-RUN npm ci
+RUN npm i
 COPY . .
 EXPOSE 3000
 CMD ["npx", "next", "dev"]

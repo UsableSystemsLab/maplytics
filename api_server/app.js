@@ -35,6 +35,8 @@ app.use(
 );
 app.use(errorHandling);
 
+import { startAiJobWorker } from './workers/aiJobWorker.js';
+
 // connect to the databases
 postgresDB()
   .then(async () => {
@@ -43,6 +45,8 @@ postgresDB()
     } catch (err) {
       console.error('Failed to initialize S3 bucket:', err);
     }
+
+    startAiJobWorker();
 
     app.listen(port, () => {
       console.log(`Example app listening on port ${port}`);
