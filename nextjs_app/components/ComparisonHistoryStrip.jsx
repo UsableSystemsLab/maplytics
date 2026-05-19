@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export default function ComparisonHistoryStrip({
     history = [],
@@ -20,6 +21,7 @@ export default function ComparisonHistoryStrip({
     onSelectJob,
     activeJobId = null,
 }) {
+    const t = useTranslations("comparison.history");
     const [expanded, setExpanded] = useState(true);
 
     return (
@@ -28,11 +30,11 @@ export default function ComparisonHistoryStrip({
                 <div className="flex items-center justify-between">
                     <button
                         onClick={() => setExpanded(!expanded)}
-                        className="flex items-center gap-2 text-left"
+                        className="flex items-center gap-2 text-start"
                     >
                         <CardTitle className="text-base flex items-center gap-2">
                             <History className="h-4 w-4 text-primary" />
-                            Recent Comparisons
+                            {t('title')}
                         </CardTitle>
                         {expanded ? (
                             <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -53,11 +55,11 @@ export default function ComparisonHistoryStrip({
                     >
                         <RefreshCcw
                             className={cn(
-                                "h-3 w-3 mr-1",
+                                "h-3 w-3 me-1",
                                 loading && "animate-spin"
                             )}
                         />
-                        Refresh
+                        {t('refresh')}
                     </Button>
                 </div>
             </CardHeader>
@@ -76,10 +78,10 @@ export default function ComparisonHistoryStrip({
                                 <History className="h-6 w-6 text-gray-300" />
                             </div>
                             <p className="text-sm font-medium text-gray-400">
-                                No comparisons yet
+                                {t('empty')}
                             </p>
                             <p className="text-xs text-gray-300 mt-1">
-                                Submit a query above to get started
+                                {t('emptyHint')}
                             </p>
                         </div>
                     ) : (
@@ -93,11 +95,11 @@ export default function ComparisonHistoryStrip({
                                         onClick={() => isDone && onSelectJob?.(job)}
                                         disabled={!isDone}
                                         className={cn(
-                                            "w-full flex items-center gap-4 px-6 py-3 text-left transition-colors",
+                                            "w-full flex items-center gap-4 px-6 py-3 text-start transition-colors",
                                             isDone
                                                 ? "hover:bg-gray-50/80 cursor-pointer"
                                                 : "opacity-60 cursor-default",
-                                            id === activeJobId && "bg-primary/5 border-l-2 border-l-primary"
+                                            id === activeJobId && "bg-primary/5 border-s-2 border-s-primary"
                                         )}
                                     >
                                         <div className="flex-1 min-w-0">

@@ -18,8 +18,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveProject, clearActiveProject, selectActiveProject } from "@/lib/store/features/projectSlice";
+import { useTranslations } from "next-intl";
 
 export default function ProjectsPage() {
+    const t = useTranslations("projects");
     const { user } = useAuth();
     const dispatch = useDispatch();
     const activeProject = useSelector(selectActiveProject);
@@ -50,12 +52,12 @@ export default function ProjectsPage() {
             id: project.id,
             name: project.name
         }));
-        router.push("/dashboard");
+        router.push("/dashboard/map");
     };
 
     const handleDeleteProject = async (e, projectId) => {
         e.stopPropagation();
-        if (confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+        if (confirm(t('deleteConfirm'))) {
             try {
                 await projectApi.deleteProject(projectId);
                 if (activeProject?.id === projectId) {
@@ -76,26 +78,26 @@ export default function ProjectsPage() {
         <div className="p-6 md:p-8 space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Projects</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Manage your workspaces and organize your datasets.
+                        {t('subtitle')}
                     </p>
                 </div>
             </div>
 
             <div className="flex items-center gap-4 bg-white p-4 rounded-xl border shadow-xs">
                 <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                         type="text"
-                        placeholder="Search projects..."
-                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                        placeholder={t('searchPlaceholder')}
+                        className="w-full ps-9 pe-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <div className="text-xs text-muted-foreground ml-auto">
-                    Showing {filteredProjects.length} of {projects.length} projects
+                    {t('showing', { shown: filteredProjects.length, total: projects.length })}
                 </div>
             </div>
 
@@ -114,8 +116,8 @@ export default function ProjectsPage() {
                                 <Plus className="w-8 h-8" />
                             </div>
                             <div>
-                                <div className="font-bold text-lg text-gray-900">Create New Project</div>
-                                <p className="text-sm text-muted-foreground mt-1">Start a new workspace from scratch</p>
+                                <div className="font-bold text-lg text-gray-900">{t('createNew')}</div>
+                                <p className="text-sm text-muted-foreground mt-1">{t('createNewHint')}</p>
                             </div>
                         </Card>
                     </Link>
@@ -144,7 +146,7 @@ export default function ProjectsPage() {
                                 <div className="mt-4">
                                     <CardTitle className="text-xl font-bold line-clamp-1">{project.name}</CardTitle>
                                     <CardDescription className="line-clamp-2 mt-1 min-h-[40px]">
-                                        {project.description || "No description provided for this project."}
+                                        {project.description || t('noDescription')}
                                     </CardDescription>
                                 </div>
                             </CardHeader>
@@ -152,11 +154,11 @@ export default function ProjectsPage() {
                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-3.5 h-3.5" />
-                                        {project.created_at ? new Date(project.created_at).toLocaleString() : "N/A"}
+                                        {project.created_at ? new Date(project.created_at).toLocaleString() : t('notAvailable')}
                                     </div>
                                 </div>
                             </CardContent>
-                            <div className="absolute top-0 right-0 p-4 transform translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
+                            <div className="absolute top-0 end-0 p-4 transform translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
                                 <ExternalLink className="w-4 h-4 text-primary" />
                             </div>
                         </Card>
@@ -168,9 +170,9 @@ export default function ProjectsPage() {
                             <div className="size-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
                                 <Search className="w-8 h-8 text-gray-400" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">No projects found</h3>
-                            <p className="text-muted-foreground">Try adjusting your search query.</p>
-                            <Button variant="link" onClick={() => setSearchQuery("")} className="mt-2 text-primary">Clear search</Button>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('noResults')}</h3>
+                            <p className="text-muted-foreground">{t('noResultsHint')}</p>
+                            <Button variant="link" onClick={() => setSearchQuery("")} className="mt-2 text-primary">{t('clearSearch')}</Button>
                         </div>
                     )}
                 </div>

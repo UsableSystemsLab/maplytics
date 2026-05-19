@@ -25,6 +25,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 const COLOR_A = "#0E3147"; // primary
 const COLOR_B = "#13B38D"; // cyan
@@ -34,17 +35,12 @@ const COMPARISON_KEYWORDS = [
     "vs", "versus", "between", "comparison",
 ];
 
-const VALIDATION_MESSAGES = {
-    dataset_outside_requested_locations:
-        "The locations were recognized, but the selected dataset does not contain features inside them.",
-    feature_type_not_found:
-        "The selected dataset does not appear to contain this feature type.",
-    missing_feature_fields:
-        "The dataset has valid points, but no category/type fields that can identify restaurants, clinics, or similar POIs.",
-    one_side_empty:
-        "One side has no matching features, so this comparison may be incomplete.",
-    both_sides_empty:
-        "Both locations were recognized, but no matching features were found in either area.",
+const VALIDATION_KEY_MAP = {
+    dataset_outside_requested_locations: "datasetOutsideLocations",
+    feature_type_not_found: "featureTypeNotFound",
+    missing_feature_fields: "missingFeatureFields",
+    one_side_empty: "oneSideEmpty",
+    both_sides_empty: "bothSidesEmpty",
 };
 
 function isComparisonQuery(query) {
@@ -54,11 +50,12 @@ function isComparisonQuery(query) {
 }
 
 function HighlightedQuery({ query }) {
+    const t = useTranslations("comparison");
     if (!query) return null;
     const words = query.split(/(\s+)/);
     return (
         <span className="text-xs text-muted-foreground">
-            Preview:{" "}
+            {t('preview')}{" "}
             {words.map((word, i) => {
                 const isKw = COMPARISON_KEYWORDS.includes(word.toLowerCase().trim());
                 return (
@@ -91,6 +88,7 @@ function SummaryCard({ label, value, color }) {
 }
 
 export default function ComparisonPage() {
+    const t = useTranslations("comparison");
     const activeProject = useSelector(selectActiveProject);
     const projectId = activeProject?.id;
 
@@ -129,9 +127,9 @@ export default function ComparisonPage() {
     useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
     const handleSubmit = async () => {
-        if (!projectId) return setError("Select a project first.");
-        if (selectedDatasetIds.length === 0) return setError("Select at least one dataset using the + button.");
-        if (!query.trim()) return setError("Enter a comparison query.");
+        if (!projectId) return setError(t('errors.selectProjectFirst'));
+        if (selectedDatasetIds.length === 0) return setError(t('errors.selectDataset'));
+        if (!query.trim()) return setError(t('errors.queryRequired'));
 
         setStatus("submitting");
         setError(null);
@@ -148,7 +146,7 @@ export default function ComparisonPage() {
                 setStatus("processing");
             }
         } catch (err) {
-            setError(err.data?.error || err.message || "Failed to submit job.");
+            setError(err.data?.error || err.message || t('errors.submitFailed'));
             setStatus(null);
         }
     };
@@ -172,7 +170,7 @@ export default function ComparisonPage() {
                 } else if (res.status === "failed") {
                     clearInterval(interval);
                     setStatus("failed");
-                    setError(res.error || "Processing failed.");
+                    setError(res.error || t('errors.processingFailed'));
                     fetchHistory();
                 }
             } catch (err) {
@@ -194,7 +192,7 @@ export default function ComparisonPage() {
             const result = await getComparisonJobResult(id);
             setResultData(result);
         } catch (err) {
-            setError("Could not load this result.");
+            setError(t('errors.couldNotLoadResult'));
         }
     };
 
@@ -204,9 +202,10 @@ export default function ComparisonPage() {
     const validation = resultData?.metadata?.validation;
     const featureQuery = resultData?.metadata?.featureQuery;
     const featureFilter = resultData?.metadata?.featureFilter;
-    const validationMessage = validation?.reasonCode && validation.reasonCode !== "ok"
-        ? VALIDATION_MESSAGES[validation.reasonCode]
+    const validationKey = validation?.reasonCode && validation.reasonCode !== "ok"
+        ? VALIDATION_KEY_MAP[validation.reasonCode]
         : null;
+    const validationMessage = validationKey ? t(`validation.${validationKey}`) : null;
     const showFilterSummary = status === "done" && featureQuery && featureFilter?.applied;
     const showFilterMissingWarning = status === "done" && featureQuery && featureFilter?.applied === false;
 
@@ -218,16 +217,16 @@ export default function ComparisonPage() {
                         <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                             <ArrowRightLeft className="w-5 h-5" />
                         </div>
-                        Spatial Comparison
+                        {t('title')}
                     </h1>
                     <p className="text-muted-foreground mt-1.5 ml-[52px]">
-                        Compare features across locations side by side.
+                        {t('subtitle')}
                     </p>
                 </div>
                 {status === "done" && resultData && (
                     <Badge variant="secondary" className="self-start md:self-center text-xs gap-1.5 px-3 py-1.5">
                         <Sparkles className="h-3 w-3" />
-                        Comparison complete
+                        {t('complete')}
                     </Badge>
                 )}
             </div>
@@ -246,7 +245,7 @@ export default function ComparisonPage() {
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                             disabled={isProcessing}
-                            placeholder="Compare restaurants between Olaya and Malaz..."
+                            placeholder={t('queryBar.placeholder')}
                             className={cn(
                                 "w-full px-4 py-2.5 bg-gray-50 border-none rounded-lg text-sm",
                                 "focus:ring-2 focus:ring-primary/20 transition-all",
@@ -260,7 +259,7 @@ export default function ComparisonPage() {
                         className="h-10 px-5 gap-2 font-semibold shadow-md hover:shadow-lg transition-all"
                     >
                         {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRightLeft className="h-4 w-4" />}
-                        {isProcessing ? "Comparing…" : "Compare"}
+                        {isProcessing ? t('comparing') : t('compare')}
                     </Button>
                 </div>
 
@@ -268,12 +267,12 @@ export default function ComparisonPage() {
                 <div className="px-4 pb-3 flex items-center gap-4">
                     {isDetected && (
                         <Badge variant="outline" className="text-[10px] text-emerald-700 border-emerald-200 bg-emerald-50">
-                            Comparison Analysis
+                            {t('detectedBadge')}
                         </Badge>
                     )}
                     {selectedDatasetIds.length > 0 && (
                         <span className="text-[10px] font-bold text-primary/50 uppercase tracking-tight">
-                            {selectedDatasetIds.length} file{selectedDatasetIds.length !== 1 ? "s" : ""} selected
+                            {t('filesSelected', { count: selectedDatasetIds.length })}
                         </span>
                     )}
                     {query && (
@@ -288,7 +287,7 @@ export default function ComparisonPage() {
             {error && (
                 <Alert variant="destructive" className="rounded-xl border-red-100 bg-red-50/50 animate-in fade-in slide-in-from-top-2 duration-300">
                     <XCircle className="h-4 w-4" />
-                    <AlertTitle>Something went wrong</AlertTitle>
+                    <AlertTitle>{t('somethingWentWrong')}</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
@@ -296,7 +295,7 @@ export default function ComparisonPage() {
             {status === "done" && validationMessage && (
                 <Alert className="rounded-xl border-amber-200 bg-amber-50/70 animate-in fade-in slide-in-from-top-2 duration-300">
                     <Sparkles className="h-4 w-4 text-amber-700" />
-                    <AlertTitle className="text-amber-900">Comparison note</AlertTitle>
+                    <AlertTitle className="text-amber-900">{t('note')}</AlertTitle>
                     <AlertDescription className="text-amber-800">
                         {validationMessage}
                     </AlertDescription>
@@ -305,15 +304,15 @@ export default function ComparisonPage() {
 
             {showFilterSummary && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-900">
-                    Filtered by: <span className="font-semibold">{featureQuery}</span>
+                    {t('filteredBy')} <span className="font-semibold">{featureQuery}</span>
                     {typeof featureFilter.filteredCount === "number" && typeof featureFilter.inputCount === "number" && (
                         <span className="text-emerald-800">
-                            {" "}({featureFilter.filteredCount} of {featureFilter.inputCount} features matched)
+                            {" "}{t('filterMatched', { filtered: featureFilter.filteredCount, total: featureFilter.inputCount })}
                         </span>
                     )}
                     {featureFilter.matchedFields?.length > 0 && (
                         <span className="text-emerald-800">
-                            {" "}using {featureFilter.matchedFields.join(", ")}
+                            {" "}{t('filterUsing', { fields: featureFilter.matchedFields.join(", ") })}
                         </span>
                     )}
                 </div>
@@ -322,9 +321,9 @@ export default function ComparisonPage() {
             {showFilterMissingWarning && (
                 <Alert className="rounded-xl border-amber-200 bg-amber-50/70 animate-in fade-in slide-in-from-top-2 duration-300">
                     <Sparkles className="h-4 w-4 text-amber-700" />
-                    <AlertTitle className="text-amber-900">Filter warning</AlertTitle>
+                    <AlertTitle className="text-amber-900">{t('filterWarning')}</AlertTitle>
                     <AlertDescription className="text-amber-800">
-                        This query includes a POI type, but the result says no feature filter was applied. Run a fresh job after restarting the worker.
+                        {t('filterWarningDesc')}
                     </AlertDescription>
                 </Alert>
             )}
@@ -333,8 +332,8 @@ export default function ComparisonPage() {
             {status === "processing" && (
                 <div className="flex items-center gap-3 bg-primary/5 border border-primary/10 rounded-xl px-5 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="h-5 w-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                    <span className="text-sm font-medium text-primary/80">Comparing spatial data…</span>
-                    <span className="text-xs text-muted-foreground ml-auto">Job #{jobId?.slice(0, 8)}</span>
+                    <span className="text-sm font-medium text-primary/80">{t('processingBanner')}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{t('jobIdLabel', { id: jobId?.slice(0, 8) || '' })}</span>
                 </div>
             )}
 
@@ -347,10 +346,10 @@ export default function ComparisonPage() {
             {/* Summary Stats */}
             {status === "done" && sideA && sideB && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <SummaryCard label="Location A" value={sideA.name} color={COLOR_A} />
-                    <SummaryCard label="Features A" value={sideA.featureCount || sideA.geojson?.features?.length || 0} color={COLOR_A} />
-                    <SummaryCard label="Location B" value={sideB.name} color={COLOR_B} />
-                    <SummaryCard label="Features B" value={sideB.featureCount || sideB.geojson?.features?.length || 0} color={COLOR_B} />
+                    <SummaryCard label={t('locationA')} value={sideA.name} color={COLOR_A} />
+                    <SummaryCard label={t('featuresA')} value={sideA.featureCount || sideA.geojson?.features?.length || 0} color={COLOR_A} />
+                    <SummaryCard label={t('locationB')} value={sideB.name} color={COLOR_B} />
+                    <SummaryCard label={t('featuresB')} value={sideB.featureCount || sideB.geojson?.features?.length || 0} color={COLOR_B} />
                 </div>
             )}
 

@@ -2,6 +2,14 @@ import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import AnalysisFlipCard from '../AnalysisFlipCard'
 
+jest.mock('next-intl', () => ({
+    useTranslations: () => (key, vars) => {
+        if (key === 'featuresLoaded') return `${vars?.count ?? ''} featuresLoaded`
+        if (key === 'occurrences') return `${vars?.count ?? ''} occurrences`
+        return key
+    },
+}))
+
 // Mock useChartData hook
 jest.mock('@/hooks/useChartData', () => ({
     useChartData: jest.fn(),
@@ -43,19 +51,19 @@ describe('AnalysisFlipCard', () => {
     it('renders empty state when features is null', () => {
         useChartData.mockReturnValue({ ...defaultChartHookReturn, chartData: [] })
         render(<AnalysisFlipCard features={null} />)
-        expect(screen.getByText('No Dataset Loaded')).toBeInTheDocument()
+        expect(screen.getByText('noDatasetTitle')).toBeInTheDocument()
     })
 
     it('renders empty state when features array is empty', () => {
         useChartData.mockReturnValue({ ...defaultChartHookReturn, chartData: [] })
         render(<AnalysisFlipCard features={[]} />)
-        expect(screen.getByText('No Dataset Loaded')).toBeInTheDocument()
+        expect(screen.getByText('noDatasetTitle')).toBeInTheDocument()
     })
 
     it('renders the "Quick Analysis Summary" header when data is loaded', () => {
         useChartData.mockReturnValue(defaultChartHookReturn)
         render(<AnalysisFlipCard features={mockFeatures} />)
-        expect(screen.getAllByText('Quick Analysis Summary').length).toBeGreaterThan(0)
+        expect(screen.getAllByText('title').length).toBeGreaterThan(0)
     })
 
     it('renders dataset name', () => {
@@ -73,7 +81,7 @@ describe('AnalysisFlipCard', () => {
     it('renders the Categories stat card', () => {
         useChartData.mockReturnValue(defaultChartHookReturn)
         render(<AnalysisFlipCard features={mockFeatures} />)
-        expect(screen.getByText('Categories')).toBeInTheDocument()
+        expect(screen.getByText('categoriesLabel')).toBeInTheDocument()
         // 1 categorical field
         expect(screen.getByText('1')).toBeInTheDocument()
     })
@@ -81,7 +89,7 @@ describe('AnalysisFlipCard', () => {
     it('renders the Top Field with top category', () => {
         useChartData.mockReturnValue(defaultChartHookReturn)
         render(<AnalysisFlipCard features={mockFeatures} />)
-        expect(screen.getByText('Top Field')).toBeInTheDocument()
+        expect(screen.getByText('topFieldLabel')).toBeInTheDocument()
         expect(screen.getByText('Restaurant')).toBeInTheDocument()
         expect(screen.getByText('45 occurrences')).toBeInTheDocument()
     })
@@ -98,7 +106,7 @@ describe('AnalysisFlipCard', () => {
     it('renders the "Show Bar Chart" button when data is loaded', () => {
         useChartData.mockReturnValue(defaultChartHookReturn)
         render(<AnalysisFlipCard features={mockFeatures} />)
-        expect(screen.getByText('Show Bar Chart')).toBeInTheDocument()
+        expect(screen.getByText('showBarChart')).toBeInTheDocument()
     })
 
     it('disables "Show Bar Chart" button when status is a blocker', () => {
@@ -108,13 +116,13 @@ describe('AnalysisFlipCard', () => {
         })
         isBlocker.mockReturnValue(true)
         render(<AnalysisFlipCard features={mockFeatures} />)
-        const btn = screen.getByText('Show Bar Chart').closest('button')
+        const btn = screen.getByText('showBarChart').closest('button')
         expect(btn).toBeDisabled()
     })
 
     it('renders "Load data to analyze" button in empty state', () => {
         useChartData.mockReturnValue({ ...defaultChartHookReturn, chartData: [] })
         render(<AnalysisFlipCard features={[]} />)
-        expect(screen.getByText('Load data to analyze')).toBeInTheDocument()
+        expect(screen.getByText('loadDataCta')).toBeInTheDocument()
     })
 })

@@ -29,12 +29,18 @@ const layersSlice = createSlice({
             state.selectedLayers = state.selectedLayers.filter(l => l.id !== layerId);
         },
         setLayerGeojson: (state, action) => {
-            const { layerId, geojson, fields } = action.payload;
+            const { layerId, geojson, fields, popupFields } = action.payload;
             const layer = state.selectedLayers.find(l => l.id === layerId);
             if (layer) {
                 layer.geojson = geojson;
                 layer.fields = fields;
+                if (popupFields !== undefined) layer.popupFields = popupFields;
             }
+        },
+        setLayerPopupFields: (state, action) => {
+            const { layerId, popupFields } = action.payload;
+            const layer = state.selectedLayers.find(l => l.id === layerId);
+            if (layer) layer.popupFields = popupFields;
         },
         setLayerLoading: (state, action) => {
             const { layerId, isLoading } = action.payload;
@@ -53,13 +59,14 @@ const layersSlice = createSlice({
     },
 });
 
-export const { 
-    toggleLayer, 
-    addLayer, 
-    removeLayer, 
-    setLayerGeojson, 
+export const {
+    toggleLayer,
+    addLayer,
+    removeLayer,
+    setLayerGeojson,
+    setLayerPopupFields,
     setLayerLoading,
-    clearLayers 
+    clearLayers
 } = layersSlice.actions;
 
 export const selectSelectedLayers = (state) => state.layers.selectedLayers;

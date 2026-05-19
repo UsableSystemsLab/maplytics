@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useRef, useMemo } from "react";
+import { useTranslations } from "next-intl";
 
 export default function BarChartComparison({ data, color = "#13B38D" }) {
+    const t = useTranslations("barChart");
     const containerRef = useRef(null);
     const viewRef = useRef(null);
 
@@ -133,7 +135,7 @@ export default function BarChartComparison({ data, color = "#13B38D" }) {
     if (!data || data.length === 0) {
         return (
             <div className="h-64 flex items-center justify-center text-gray-400 text-sm">
-                No data available for chart
+                {t('noData')}
             </div>
         );
     }

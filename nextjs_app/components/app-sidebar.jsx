@@ -11,6 +11,7 @@ import {
   FolderKanban,
   Home,
   Database,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -38,6 +39,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { auth } from "@/lib/firebase";
+import { useTranslations, useLocale } from "next-intl";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
@@ -54,24 +57,23 @@ import {
 
 
 const mainNavItems = [
-  { id: "projects", label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },
-  { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-  { id: "map", label: "Map View", icon: Map, href: "/dashboard/map" },
-  { id: "comparison", label: "Comparison", icon: BarChart3, href: "/dashboard/comparison" },
+  { id: "projects", labelKey: "nav.projects", icon: FolderKanban, href: "/dashboard/projects" },
+  { id: "map", labelKey: "nav.mapView", icon: Map, href: "/dashboard/map" },
+  { id: "comparison", labelKey: "nav.comparison", icon: BarChart3, href: "/dashboard/comparison" },
 ];
 
 const secondaryNavItems = [
-  { id: "datasets", label: "Datasets", icon: Database, href: "/dashboard/datasets" },
-  { id: "chat", label: "AI Chat", icon: Bot, href: "/dashboard/chat" },
+  { id: "datasets", labelKey: "nav.datasets", icon: Database, href: "/dashboard/datasets" },
 ];
 
 const accountItems = [
-  { id: "home", label: "Home", icon: Home, href: "/" },
-  { id: "account", label: "Account", icon: User, href: "/account" },
-  { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
+  { id: "home", labelKey: "nav.home", icon: Home, href: "/" },
 ];
 
 export function AppSidebar() {
+  const t = useTranslations("sidebar");
+  const locale = useLocale();
+  const isRtl = locale === "ar";
   const { user, loading: authLoading } = useAuth();
   const pathname = usePathname() || "";
   const normalizedPath = pathname.replace(/^\/(en|ar)(?=\/|$)/, "") || "/";
@@ -110,12 +112,21 @@ export function AppSidebar() {
   const handleProjectSelect = (project) => {
     dispatch(setActiveProject(project));
     dispatch(clearLayers());
-    router.push('/dashboard');
+    router.push('/dashboard/map');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
 
   const handleDeleteProject = async (e, projectId) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if (confirm(t('deleteProjectConfirm'))) {
       try {
         await projectApi.deleteProject(projectId);
         if (activeProject?.id === projectId) {
@@ -137,18 +148,18 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="icon  ">
+      <Sidebar collapsible="icon" side={isRtl ? "right" : "left"}>
         <SidebarHeader className="border-b h-[60px] flex items-center px-2">
           <SidebarMenu>
             <SidebarMenuItem className="flex items-center">
-              <SidebarTrigger className="h-8 w-8 text-muted-foreground mr-2" />
+              <SidebarTrigger className="h-8 w-8 text-muted-foreground me-2" />
               <div className="flex-1 flex items-center justify-between group-data-[collapsible=icon]:hidden">
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-start text-sm leading-tight">
                   <span className="truncate font-semibold text-primary">
-                    {activeProject?.name || "No Project Selected"}
+                    {activeProject?.name || t('noProjectSelected')}
                   </span>
                   <span className="truncate text-[10px] text-muted-foreground">
-                    Workspace Active
+                    {t('workspaceActive')}
                   </span>
                 </div>
               </div>
@@ -157,7 +168,7 @@ export function AppSidebar() {
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('mainNavigation')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {mainNavItems.map((item) => (
@@ -165,11 +176,11 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={normalizedPath === item.href}
-                      tooltip={item.label}
+                      tooltip={{ children: t(item.labelKey), side: isRtl ? "left" : "right" }}
                     >
                       <Link href={item.href}>
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -179,7 +190,7 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('workspace')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {secondaryNavItems.map((item) => (
@@ -187,11 +198,11 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={normalizedPath === item.href}
-                      tooltip={item.label}
+                      tooltip={{ children: t(item.labelKey), side: isRtl ? "left" : "right" }}
                     >
                       <Link href={item.href}>
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -203,7 +214,7 @@ export function AppSidebar() {
 
 
           <SidebarGroup className="mt-auto">
-            <SidebarGroupLabel>General</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('general')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {accountItems.map((item) => (
@@ -211,11 +222,11 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={normalizedPath === item.href}
-                      tooltip={item.label}
+                      tooltip={{ children: t(item.labelKey), side: isRtl ? "left" : "right" }}
                     >
                       <Link href={item.href}>
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -238,11 +249,20 @@ export function AppSidebar() {
                   {user?.email}
                 </p>
               </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout} 
+                className="text-muted-foreground hover:text-red-600 transition-colors shrink-0 group-data-[collapsible=icon]:hidden"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           ) : (
             <div className="group-data-[collapsible=icon]:hidden">
               <Link href="/login">
-                <Button size="sm" className="w-full">Login</Button>
+                <Button size="sm" className="w-full">{t('login')}</Button>
               </Link>
             </div>
           )}

@@ -10,8 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { setActiveProject } from "@/lib/store/features/projectSlice";
+import { useTranslations } from "next-intl";
 
 export default function CreateProjectPage() {
+    const t = useTranslations("createProject");
     const { user } = useAuth();
     const router = useRouter();
     const dispatch = useDispatch();
@@ -39,7 +41,7 @@ export default function CreateProjectPage() {
             router.push('/dashboard');
         } catch (error) {
             console.error('Error creating project:', error);
-            alert(error.message || "Failed to create project");
+            alert(error.message || t('failed'));
         } finally {
             setIsSubmitting(false);
         }
@@ -52,8 +54,8 @@ export default function CreateProjectPage() {
                     href="/dashboard/projects" 
                     className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
                 >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Projects
+                    <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+                    {t('backToProjects')}
                 </Link>
 
                 <Card className="shadow-lg border-2 border-transparent hover:border-primary/5 transition-all">
@@ -61,9 +63,9 @@ export default function CreateProjectPage() {
                         <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
                             <FolderPlus className="w-6 h-6" />
                         </div>
-                        <CardTitle className="text-2xl font-bold">Create New Project</CardTitle>
+                        <CardTitle className="text-2xl font-bold">{t('title')}</CardTitle>
                         <CardDescription>
-                            Define your workspace details to start organizing your datasets.
+                            {t('description')}
                         </CardDescription>
                     </CardHeader>
                     
@@ -71,31 +73,31 @@ export default function CreateProjectPage() {
                         <form onSubmit={handleCreateProject} className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    Project Name <span className="text-red-500">*</span>
+                                    {t('nameLabel')} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={projectName}
                                     onChange={(e) => setProjectName(e.target.value)}
-                                    placeholder="e.g., Urban Mobility Analysis"
+                                    placeholder={t('namePlaceholder')}
                                     className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400"
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    Description
-                                    <span className="text-xs font-normal text-muted-foreground">(Optional)</span>
+                                    {t('descriptionLabel')}
+                                    <span className="text-xs font-normal text-muted-foreground">{t('optional')}</span>
                                 </label>
                                 <div className="relative">
-                                    <TextQuote className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                                    <TextQuote className="absolute start-3 top-3 w-4 h-4 text-gray-400" />
                                     <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Briefly describe the purpose of this project..."
+                                        placeholder={t('descriptionPlaceholder')}
                                         rows={4}
-                                        className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400 resize-none"
+                                        className="w-full ps-10 pe-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400 resize-none"
                                     />
                                 </div>
                             </div>
@@ -108,11 +110,11 @@ export default function CreateProjectPage() {
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Creating Project...
+                                        {t('creating')}
                                     </>
                                 ) : (
                                     <>
-                                        Create Project
+                                        {t('submit')}
                                     </>
                                 )}
                             </Button>
@@ -121,7 +123,7 @@ export default function CreateProjectPage() {
                 </Card>
 
                 <p className="text-center text-xs text-muted-foreground mt-8">
-                    By creating a project, you agree to our terms of service and workspace policies.
+                    {t('terms')}
                 </p>
             </div>
         </div>
