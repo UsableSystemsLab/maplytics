@@ -5,14 +5,6 @@ services:
     hostname: ${POSTGRES_HOST}
     env_file:
       - .env.prod
-    environment:
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_PASS=${POSTGRES_PASSWORD}
-      - POSTGRES_DBNAME=${POSTGRES_DB}
     restart: unless-stopped
     volumes:
       - pg_data:/var/lib/postgresql
@@ -33,14 +25,6 @@ services:
       dockerfile: Dockerfile
     image: api_server_image
     container_name: api_server_container
-    environment:
-      - S3_REGION=${S3_REGION}
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
-      - DEEPSEEK_AI_API_KEY=${DEEPSEEK_AI_API_KEY}
-      - WORKER_API_KEY=${WORKER_API_KEY}
     ports:
       - "127.0.0.1:${API_SERVER_PORT}:4000"
     volumes:
@@ -125,12 +109,6 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
-      - WORKER_API_KEY=${WORKER_API_KEY}
-      - API_URL=${API_URL}
     depends_on:
       - redis
     networks:
