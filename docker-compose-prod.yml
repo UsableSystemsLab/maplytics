@@ -44,6 +44,7 @@ services:
     depends_on:
       - db
       - rustfs
+      - redis
     networks:
       - app_network
     restart: unless-stopped
@@ -98,6 +99,36 @@ services:
       - rustfs_data:/data
     environment:
       - RUSTFS_VOLUMES=/data
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: redis_container
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  geopandas_worker:
+    env_file:
+      - .env.prod
+    build:
+      context: geopandas_cli
+      dockerfile: Dockerfile
+    image: geopandas_worker_image
+    container_name: geopandas_worker_container
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - WORKER_API_KEY=${WORKER_API_KEY}
+      - API_URL=${API_URL}
+    depends_on:
+      - redis
     networks:
       - app_network
     restart: unless-stopped
