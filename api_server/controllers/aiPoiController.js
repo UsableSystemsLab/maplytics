@@ -12,7 +12,7 @@ export const extractAndExecute = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Prompt is required' });
     }
 
-    const DEEPSEEK_API_KEY = process.env.DEEPSEEK_AI_API_KEY;
+    const DEEPSEEK_API_KEY = process.env.DEEPSEEK_AI_API_KEY?.replace(/^["']|["']$/g, '').trim();
     if (!DEEPSEEK_API_KEY) {
       return res.status(500).json({ success: false, message: 'DeepSeek API key is not configured' });
     }

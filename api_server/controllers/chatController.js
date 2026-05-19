@@ -1,6 +1,6 @@
 import { sequelize } from '../configs/postgresDB.js';
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_AI_API_KEY;
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_AI_API_KEY?.replace(/^["']|["']$/g, '').trim();
 
 // Available Tools Definition
 const tools = [
