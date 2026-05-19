@@ -1,6 +1,9 @@
 import { sequelize } from '../configs/postgresDB.js';
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_AI_API_KEY?.replace(/^["']|["']$/g, '').trim();
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_AI_API_KEY
+    ?.replace(/^["']|["']$/g, '')
+    ?.trim()
+    ?.replace(/^Bearer\s+/i, '');
 console.log(`[DEEPSEEK DIAGNOSTIC] Raw length: ${process.env.DEEPSEEK_AI_API_KEY ? process.env.DEEPSEEK_AI_API_KEY.length : 'undefined'}, Sanitized length: ${DEEPSEEK_API_KEY ? DEEPSEEK_API_KEY.length : 0}, Prefix: "${DEEPSEEK_API_KEY ? DEEPSEEK_API_KEY.substring(0, 7) : 'none'}"`);
 
 // Available Tools Definition
