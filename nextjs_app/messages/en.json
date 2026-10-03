@@ -259,7 +259,8 @@
       "aiChat": "AI Chat",
       "home": "Home",
       "account": "Account",
-      "settings": "Settings"
+      "settings": "Settings",
+      "aiPoi": "AI POI Extractor"
     },
     "login": "Login",
     "deleteProjectConfirm": "Are you sure you want to delete this project? This action cannot be undone."

@@ -6,6 +6,8 @@ import filesRoutes from './files.routes.js';
 import comparisonRoutes from './comparisonRoutes.js';
 import nlqRoutes from './nlq.js';
 import locationsRoutes from './locations.js';
+import aiPoiRoutes from './aiPoiRoutes.js';
+import chatRoutes from './chatRoutes.js';
 import { updateNLQJobStatus } from '../controllers/nlq.js';
 import { authenticate } from '../middlewares/firebaseAuth.js';
 
@@ -54,6 +56,8 @@ const apiRoutes = (router) => {
   router.patch('/nlq/:id/status', updateNLQJobStatus);
   router.use('/nlq', authenticate, nlqRoutes);
   router.use('/locations', authenticate, locationsRoutes);
+  router.use('/ai-poi', authenticate, aiPoiRoutes);
+  router.use('/chat', authenticate, chatRoutes);
 
   // Middleware to catch 404 errors
   router.use((req, res) => {
